@@ -58,7 +58,7 @@ Azhar Material - Project/
 
 ## 🎯 Penjelasan Struktur
 
-### 📁 `inventory-azhar/` - Backend Laravel Livewire
+### 📁 `backend/` - Backend Laravel Livewire
 
 **Tujuan**: Admin Panel dan API untuk React
 
