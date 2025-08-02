@@ -55,9 +55,10 @@ Azhar Material - Project/
 
 ## 🎯 Teknologi yang Digunakan
 
-### 📁 `inventory-azhar/` - Backend Laravel Livewire
+### 📁 `backend/` - Backend Laravel Livewire
 - **Framework**: Laravel 10 + Livewire
 - **Database**: MySQL
+- **PHP Version**: 8.3.9+
 - **Port**: 8000 (http://localhost:8000)
 - **Fitur**: 
   - ✅ POS (Point of Sale)
