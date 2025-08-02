@@ -241,6 +241,14 @@ Jika ada masalah CORS, pastikan konfigurasi CORS di Laravel sudah benar:
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
+## ⚡ Performance Optimizations
+
+- Menggunakan Yarn untuk dependency management (lebih cepat dari npm)
+- CRACO configuration untuk optimisasi webpack
+- Hot reload dioptimisasi untuk mengurangi CPU usage
+- Database indexing untuk query yang lebih cepat
+- PHP 8.3.9 compatibility untuk performa terbaru
+
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
