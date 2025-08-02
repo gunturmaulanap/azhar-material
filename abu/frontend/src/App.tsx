@@ -1,6 +1,6 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './hooks/useAuth';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './hooks/useAuth';
 import Layout from './components/Layout';
 import Home from './pages/Home';
 import Products from './pages/Products';
@@ -9,28 +9,118 @@ import Services from './pages/Services';
 import Contact from './pages/Contact';
 import Team from './pages/Team';
 import Login from './pages/Login';
+import AdminDashboard from './pages/AdminDashboard';
+import ContentAdminDashboard from './pages/ContentAdminDashboard';
 import './App.css';
+
+// Protected Route Component
+const ProtectedRoute = ({ children, allowedRoles = [] }) => {
+  const { user, isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (allowedRoles.length > 0 && !allowedRoles.includes(user?.role)) {
+    // Redirect based on user role
+    switch (user?.role) {
+      case 'admin':
+      case 'superadmin':
+        return <Navigate to="/admin/dashboard" replace />;
+      case 'content-admin':
+        return <Navigate to="/admin/content" replace />;
+      default:
+        return <Navigate to="/" replace />;
+    }
+  }
+
+  return children;
+};
+
+// Public Route Component (redirects if already authenticated)
+const PublicRoute = ({ children }) => {
+  const { isAuthenticated, user } = useAuth();
+
+  if (isAuthenticated && user) {
+    // Redirect based on user role
+    switch (user.role) {
+      case 'admin':
+      case 'superadmin':
+        return <Navigate to="/admin/dashboard" replace />;
+      case 'content-admin':
+        return <Navigate to="/admin/content" replace />;
+      default:
+        return <Navigate to="/" replace />;
+    }
+  }
+
+  return children;
+};
+
+function AppContent() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        {/* Login Route */}
+        <Route 
+          path="/login" 
+          element={
+            <PublicRoute>
+              <Login />
+            </PublicRoute>
+          } 
+        />
+
+        {/* Admin Dashboard Routes */}
+        <Route 
+          path="/admin/dashboard" 
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'superadmin']}>
+              <AdminDashboard />
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* Content Admin Dashboard Route */}
+        <Route 
+          path="/admin/content" 
+          element={
+            <ProtectedRoute allowedRoles={['content-admin']}>
+              <ContentAdminDashboard />
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* Public Company Profile Routes */}
+        <Route path="/*" element={
+          <Layout>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/products" element={<Products />} />
+              <Route path="/brands" element={<Brands />} />
+              <Route path="/services" element={<Services />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/team" element={<Team />} />
+            </Routes>
+          </Layout>
+        } />
+      </Routes>
+    </BrowserRouter>
+  );
+}
 
 function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/*" element={
-            <Layout>
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/products" element={<Products />} />
-                <Route path="/brands" element={<Brands />} />
-                <Route path="/services" element={<Services />} />
-                <Route path="/contact" element={<Contact />} />
-                <Route path="/team" element={<Team />} />
-              </Routes>
-            </Layout>
-          } />
-        </Routes>
-      </BrowserRouter>
+      <AppContent />
     </AuthProvider>
   );
 }
