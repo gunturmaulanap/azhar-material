@@ -92,7 +92,7 @@ Azhar Material - Project/
 - **2024_12_19_000003_create_hero_sections_table.php**
 - **2024_12_19_000004_add_fields_to_brands_table.php**
 
-### 📁 `abu/` - Frontend React
+### 📁 `frontend/` - Frontend React
 
 **Tujuan**: Company Profile Website
 
