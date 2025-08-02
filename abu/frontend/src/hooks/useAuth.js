@@ -84,6 +84,8 @@ export const AuthProvider = ({ children }) => {
     register,
     logout,
     isAuthenticated: !!user,
+    hasRole: (role) => user?.role === role,
+    hasAnyRole: (roles) => roles.includes(user?.role),
   };
 
   return (
