@@ -14,26 +14,48 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'email' => 'required|email',
+            'username' => 'required',
             'password' => 'required',
+            'role' => 'required|in:customer,admin,superadmin,content-admin'
         ]);
 
-        if (Auth::attempt($request->only('email', 'password'))) {
+        $credentials = [
+            'username' => $request->username,
+            'password' => $request->password,
+        ];
+
+        if (Auth::attempt($credentials)) {
             $user = Auth::user();
+            
+            // Check if user has the requested role
+            if ($user->role !== $request->role) {
+                Auth::logout();
+                throw ValidationException::withMessages([
+                    'role' => ['Role tidak sesuai dengan akun Anda.'],
+                ]);
+            }
+
             $token = $user->createToken('auth-token')->plainTextToken;
 
             return response()->json([
                 'success' => true,
                 'message' => 'Login berhasil',
                 'data' => [
-                    'user' => $user,
+                    'user' => [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'username' => $user->username,
+                        'role' => $user->role,
+                        'phone' => $user->phone,
+                        'address' => $user->address,
+                    ],
                     'token' => $token,
                 ]
             ]);
         }
 
         throw ValidationException::withMessages([
-            'email' => ['Email atau password salah.'],
+            'username' => ['Username atau password salah.'],
         ]);
     }
 
@@ -41,14 +63,20 @@ class AuthController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
+            'username' => 'required|string|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
+            'phone' => 'nullable|string|max:15',
+            'address' => 'nullable|string',
+            'role' => 'in:customer,admin,superadmin,content-admin'
         ]);
 
         $user = User::create([
             'name' => $request->name,
-            'email' => $request->email,
+            'username' => $request->username,
             'password' => Hash::make($request->password),
+            'phone' => $request->phone,
+            'address' => $request->address,
+            'role' => $request->role ?? 'customer', // Default to customer
         ]);
 
         $token = $user->createToken('auth-token')->plainTextToken;
@@ -57,7 +85,14 @@ class AuthController extends Controller
             'success' => true,
             'message' => 'Registrasi berhasil',
             'data' => [
-                'user' => $user,
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'username' => $user->username,
+                    'role' => $user->role,
+                    'phone' => $user->phone,
+                    'address' => $user->address,
+                ],
                 'token' => $token,
             ]
         ], 201);
@@ -77,7 +112,14 @@ class AuthController extends Controller
     {
         return response()->json([
             'success' => true,
-            'data' => $request->user()
+            'data' => [
+                'id' => $request->user()->id,
+                'name' => $request->user()->name,
+                'username' => $request->user()->username,
+                'role' => $request->user()->role,
+                'phone' => $request->user()->phone,
+                'address' => $request->user()->address,
+            ]
         ]);
     }
 }
