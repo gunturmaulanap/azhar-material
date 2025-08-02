@@ -212,7 +212,7 @@ Frontend React mengambil data dari backend Laravel melalui API endpoints:
 
 ### CORS Issues
 Jika ada masalah CORS, pastikan konfigurasi CORS di Laravel sudah benar:
-- File: `inventory-azhar/config/cors.php`
+- File: `backend/config/cors.php`
 - Pastikan `allowed_origins` sudah diset ke `['*']` atau `['http://localhost:3000']`
 
 ### Database Connection
