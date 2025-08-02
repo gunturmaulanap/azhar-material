@@ -114,10 +114,10 @@ php artisan serve
 
 #### Frontend (React)
 ```bash
-cd abu/frontend
-npm install
+cd frontend
+yarn install
 cp env.example .env
-npm start
+yarn start
 ```
 
 ## 🔗 URLs
