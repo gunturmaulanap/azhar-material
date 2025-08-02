@@ -19,10 +19,32 @@ class UserSeeder extends Seeder
         $faker = Faker::create();
 
         $data = [
+            // Demo accounts for testing
+            [
+                'name' => 'Customer Demo',
+                'username' => 'customer',
+                'role' => 'customer',
+            ],
+            [
+                'name' => 'Admin Demo', 
+                'username' => 'admin',
+                'role' => 'admin',
+            ],
+            [
+                'name' => 'Super Admin Demo',
+                'username' => 'superadmin',
+                'role' => 'superadmin',
+            ],
+            [
+                'name' => 'Content Admin Demo',
+                'username' => 'contentadmin',
+                'role' => 'content-admin',
+            ],
+            // Original accounts
             [
                 'name' => 'Azhar Material',
-                'username' => 'superadmin',
-                'role' => 'super_admin',
+                'username' => 'azhar_superadmin',
+                'role' => 'superadmin',
             ],
             [
                 'name' => 'Rina Andriani',
@@ -40,44 +62,9 @@ class UserSeeder extends Seeder
                 'role' => 'customer',
             ],
             [
-                'name' => 'Eka Prasetyo',
-                'username' => 'admin_keuangan',
-                'role' => 'admin',
-            ],
-            [
-                'name' => 'Andi Wijaya',
-                'username' => 'customer_kalimantan',
-                'role' => 'customer',
-            ],
-            [
-                'name' => 'Maya Rahmawati',
-                'username' => 'admin_it',
-                'role' => 'admin',
-            ],
-            [
-                'name' => 'Nurul Aini',
-                'username' => 'customer_sulawesi',
-                'role' => 'customer',
-            ],
-            [
-                'name' => 'Doni Setiawan',
-                'username' => 'admin_operasional',
-                'role' => 'admin',
-            ],
-            [
-                'name' => 'Fitri Amalia',
-                'username' => 'customer_papua',
-                'role' => 'customer',
-            ],
-            [
-                'name' => 'Joko Prabowo',
-                'username' => 'admin_hrd',
-                'role' => 'admin',
-            ],
-            [
-                'name' => 'Dewi Sartika',
-                'username' => 'customer_bali',
-                'role' => 'customer',
+                'name' => 'Content Manager',
+                'username' => 'content_manager',
+                'role' => 'content-admin',
             ],
         ];
 
