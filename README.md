@@ -222,7 +222,7 @@ Jika ada masalah CORS, pastikan konfigurasi CORS di Laravel sudah benar:
 
 ### API Connection
 - Pastikan backend Laravel berjalan di port 8000
-- Periksa URL API di frontend: `abu/frontend/src/config/api.js`
+- Periksa URL API di frontend: `frontend/src/config/api.js`
 - Pastikan tidak ada firewall yang memblokir koneksi
 
 ## 📚 Documentation
