@@ -129,11 +129,24 @@ yarn start
 
 ## 📋 Prerequisites
 
-- PHP 8.1+
+- PHP 8.3.9+
 - Composer
 - Node.js 16+
 - MySQL 8.0+
+- Yarn (recommended)
 - Laravel Sanctum (sudah terinstall)
+
+## 🗃️ Database Configuration
+
+Konfigurasi database pada `.env`:
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=8889
+DB_DATABASE=inventory-azhar
+DB_USERNAME=root
+DB_PASSWORD=root
+```
 
 ## 🔧 API Integration
 
