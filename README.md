@@ -71,7 +71,7 @@ Azhar Material - Project/
   - ✅ Hero Section CRUD
   - ✅ Brand Management CRUD
 
-### 📁 `abu/` - Frontend React Company Profile
+### 📁 `frontend/` - Frontend React Company Profile
 - **Framework**: React + TypeScript
 - **UI Library**: Tailwind CSS + Shadcn/ui
 - **Port**: 3000 (http://localhost:3000)
