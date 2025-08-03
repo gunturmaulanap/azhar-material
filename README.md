@@ -1,257 +1,229 @@
-# Azhar Material - Project
+# Azhar Material - Unified Application
 
-## 🏗️ Struktur Project
+## 🎯 Overview
 
-```
-Azhar Material - Project/
-├── 📁 inventory-azhar/          # Backend Laravel Livewire (Admin Panel)
-│   ├── 📁 app/
-│   │   ├── 📁 Http/
-│   │   │   ├── 📁 Controllers/Api/  # API Controllers untuk React
-│   │   │   │   ├── AuthController.php
-│   │   │   │   ├── ProductController.php
-│   │   │   │   ├── ContactController.php
-│   │   │   │   ├── HeroSectionController.php
-│   │   │   │   └── BrandController.php
-│   │   │   └── 📁 Livewire/         # Livewire Components (Admin)
-│   │   │       ├── 📁 HeroSection/
-│   │   │       │   └── Index.php
-│   │   │       └── 📁 Brand/
-│   │   │           └── Index.php
-│   │   └── 📁 Models/
-│   │       ├── Goods.php
-│   │       ├── Brand.php
-│   │       ├── Category.php
-│   │       └── HeroSection.php
-│   ├── 📁 database/migrations/   # Database Migrations
-│   ├── 📁 routes/
-│   │   ├── api.php              # API Routes untuk React
-│   │   └── web.php              # Web Routes untuk Admin
-│   └── 📁 resources/views/      # Blade Views untuk Admin
-├── 📁 abu/                      # Frontend React (Company Profile)
-│   └── 📁 frontend/
-│       ├── 📁 src/
-│       │   ├── 📁 pages/        # React Pages (.tsx)
-│       │   │   ├── Home.tsx
-│       │   │   ├── Products.tsx
-│       │   │   ├── Login.tsx
-│       │   │   └── ...
-│       │   ├── 📁 components/   # React Components (.tsx)
-│       │   │   ├── Layout.tsx
-│       │   │   └── 📁 ui/       # UI Components
-│       │   ├── 📁 services/     # API Services (.js)
-│       │   │   └── api.js
-│       │   ├── 📁 hooks/        # Custom Hooks (.js)
-│       │   │   └── useAuth.js
-│       │   └── 📁 config/       # Configuration (.js)
-│       │       └── api.js
-│       └── 📁 public/           # Static Assets
-├── 🚀 start-dev.sh              # Development script (macOS/Linux)
-├── 🚀 start-dev.bat             # Development script (Windows)
-├── 📋 run-seeder.sh             # Database seeder script
-├── 📋 run-seeder.bat            # Database seeder script (Windows)
-├── 📝 SETUP.md                  # Detailed setup guide
-└── 📖 README.md                 # This file
-```
+**Aplikasi Laravel Unified** yang menggabungkan **React SPA** (Company Profile) dan **Livewire Admin Panel** (Inventory Management) dalam **satu port (8000)** untuk mengatasi masalah session/cookie persistence dan CORS.
 
-## 🎯 Teknologi yang Digunakan
+## ✨ Key Features
 
-### 📁 `inventory-azhar/` - Backend Laravel Livewire
+### 🌐 Frontend (React SPA)
+- **Company Profile** dengan modern UI/UX
+- **Product Catalog** dengan filter dan search
+- **Contact Form** terintegrasi
+- **Responsive Design** untuk semua device
 
-- **Framework**: Laravel 10 + Livewire
-- **Database**: MySQL
-- **Port**: 8000 (http://localhost:8000)
-- **Fitur**:
-  - ✅ POS (Point of Sale)
-  - ✅ Inventory Management
-  - ✅ Delivery Management
-  - ✅ User Management
-  - ✅ Reports
-  - ✅ API Endpoints untuk React
-  - ✅ Livewire Admin Panel
-  - ✅ Hero Section CRUD
-  - ✅ Brand Management CRUD
+### 🔧 Admin Panel (Livewire)
+- **Inventory Management** (Goods, Transaction, Order)
+- **Master Data Management** (Supplier, Customer, Employee)
+- **POS System** untuk penjualan
+- **Reports & Analytics**
 
-### 📁 `abu/` - Frontend React Company Profile
-
-- **Framework**: React + TypeScript
-- **UI Library**: Tailwind CSS + Shadcn/ui
-- **Port**: 3000 (http://localhost:3000)
-- **Fitur**:
-  - ✅ Company Profile Website
-  - ✅ Product Catalog (terintegrasi dengan Laravel)
-  - ✅ Authentication (terintegrasi dengan Laravel)
-  - ✅ Contact Form
-  - ✅ Responsive Design
-  - ✅ Dynamic Hero Section
-  - ✅ Dynamic Brand Display
+### 👥 Role-Based Access Control
+- **Superadmin**: Akses ke semua fitur
+- **Content-Admin**: Hanya content management
 
 ## 🚀 Quick Start
 
-### Option 1: Automated Setup (Recommended)
-
-**macOS/Linux:**
-
 ```bash
-./start-dev.sh
+# Clone repository
+git clone <repository-url>
+cd azhar-material-unified
+
+# Run unified application
+./start-unified.sh
 ```
 
-**Windows:**
+## 🌍 Application URLs
 
+| Fitur | URL | Role |
+|-------|-----|------|
+| Company Profile | `http://localhost:8000` | Public |
+| Admin Dashboard | `http://localhost:8000/admin/dashboard` | Superadmin |
+| Content Admin | `http://localhost:8000/admin/content` | Content-Admin |
+| Livewire Admin | `http://localhost:8000/admin-login` | All Admin |
+
+## 🔧 Manual Setup
+
+### Prerequisites
+- PHP 8.2+
+- Composer
+- Node.js 18+
+- MySQL/PostgreSQL
+
+### Installation
 ```bash
-start-dev.bat
-```
-
-### Option 2: Manual Setup
-
-#### Backend (Laravel Livewire)
-
-```bash
-cd inventory-azhar
+# Install dependencies
 composer install
+npm install
+
+# Environment setup
 cp .env.example .env
 php artisan key:generate
-# Configure database in .env file
-php artisan migrate
-php artisan db:seed
-php artisan serve
+
+# Database configuration in .env
+# DB_CONNECTION=mysql
+# DB_HOST=127.0.0.1  
+# DB_PORT=3306
+# DB_DATABASE=azhar_material
+# DB_USERNAME=root
+# DB_PASSWORD=
+
+# Run migrations and seeders
+php artisan migrate --seed
+
+# Build React assets
+npm run build
+
+# Start server
+php artisan serve --host=0.0.0.0 --port=8000
 ```
 
-#### Frontend (React)
+## 🏗️ Architecture
 
-```bash
-cd abu/frontend
-npm install
-cp env.example .env
-npm start
+```
+Azhar Material Unified/
+├── 📁 app/Http/
+│   ├── 📁 Controllers/Api/    # API untuk React
+│   ├── 📁 Livewire/          # Livewire Components
+│   └── 📁 Middleware/        # Custom Middleware
+├── 📁 resources/
+│   ├── 📁 js/react/          # React SPA Source
+│   └── 📁 views/             # Blade Templates
+├── 📁 routes/
+│   ├── web.php               # Web & React Routes
+│   └── api.php               # API Routes
+└── 📁 public/build/          # Compiled Assets
 ```
 
-## 🔗 URLs
+## 🔐 Access Control
 
-- **Company Profile (React)**: http://localhost:3000
-- **Backend API (Laravel)**: http://localhost:8000/api
-- **Admin Panel (Laravel)**: http://localhost:8000/admin
-- **Admin Login**: http://localhost:8000/login
+### Superadmin Features:
+- ✅ Inventory Management (Transaction, Order, Goods)
+- ✅ Master Data (Admin, Employee, Supplier, Customer)  
+- ✅ Reports & Analytics
+- ✅ POS System
+- ✅ Content Management
 
-## 📋 Prerequisites
-
-- PHP 8.1+
-- Composer
-- Node.js 16+
-- MySQL 8.0+
-- Laravel Sanctum (sudah terinstall)
-
-## 🔧 API Integration
-
-Frontend React mengambil data dari backend Laravel melalui API endpoints:
-
-### Authentication
-
-- `POST /api/auth/login` - Login user
-- `POST /api/auth/register` - Register user
-- `POST /api/auth/logout` - Logout user (protected)
-- `GET /api/user` - Get user info (protected)
-
-### Products
-
-- `GET /api/products` - Get all products
-- `GET /api/products/{id}` - Get product by ID
-- `GET /api/products/featured` - Get featured products
-- `GET /api/categories` - Get all categories
-- `GET /api/brands` - Get all brands
-
-### Hero Section
-
-- `GET /api/hero-sections` - Get all hero sections
-- `GET /api/hero-sections/{id}` - Get hero section by ID
-- `GET /api/hero-sections/active` - Get active hero section
-
-### Brand
-
-- `GET /api/brands/active` - Get active brands
-- `GET /api/brands/{id}` - Get brand by ID
-
-### Contact
-
-- `POST /api/contact` - Send contact message
+### Content-Admin Features:
+- ❌ No access to Transaction, Order, Goods
+- ❌ No access to Master Data
+- ✅ Content Management only (Hero, Brand, Team, Service, About)
 
 ## 🛠️ Development
 
-### Backend Development (Laravel Livewire)
+### Development Mode
+```bash
+# Terminal 1: Laravel server
+php artisan serve --host=0.0.0.0 --port=8000
 
-- Laravel Livewire untuk admin panel
-- API endpoints untuk frontend React
-- MySQL database
-- Laravel Sanctum untuk authentication
-- CRUD untuk Hero Section dan Brand
+# Terminal 2: Vite dev server (optional for hot reload)
+npm run dev
+```
 
-### Frontend Development (React)
+### Production Build
+```bash
+npm run build
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+```
 
-- React dengan TypeScript
-- Tailwind CSS untuk styling
-- Shadcn/ui untuk components
-- React Router untuk navigation
-- Axios untuk API calls
-- Dynamic content dari Laravel API
+## 📡 API Documentation
 
-## 🎨 Admin Panel Features
+### Authentication
+- `POST /api/auth/login` - User login
+- `POST /api/auth/logout` - User logout
+- `GET /api/user` - Get authenticated user
 
-### Hero Section Management
+### Public APIs
+- `GET /api/products` - Product listings
+- `GET /api/hero-sections` - Hero sections
+- `GET /api/brands` - Brand listings
+- `GET /api/services` - Services
+- `GET /api/teams` - Team members
 
-- Create, Read, Update, Delete hero sections
-- Upload background images
-- Set active/inactive status
-- Dynamic content for company profile
+### Protected APIs (Sanctum)
+- `POST|PUT|DELETE /api/services/*` - Service management
+- `POST|PUT|DELETE /api/about/*` - About management
 
-### Brand Management
+## 🔄 Migration from Separate Ports
 
-- Create, Read, Update, Delete brands
-- Upload brand logos
-- Set active/inactive status
-- Website URL management
+Aplikasi ini adalah hasil migrasi dari arsitektur terpisah:
+- **Before**: React (port 3000) + Laravel (port 8000)
+- **After**: Unified Laravel (port 8000) dengan React terintegrasi
 
-## 🐛 Troubleshooting
+**Benefits**:
+- ✅ No CORS issues
+- ✅ Shared Laravel sessions
+- ✅ Seamless authentication
+- ✅ Single deployment
 
-### CORS Issues
-
-Jika ada masalah CORS, pastikan konfigurasi CORS di Laravel sudah benar:
-
-- File: `inventory-azhar/config/cors.php`
-- Pastikan `allowed_origins` sudah diset ke `['*']` atau `['http://localhost:3000']`
-
-### Database Connection
-
-- Pastikan MySQL server berjalan
-- Periksa konfigurasi database di `.env`
-- Jalankan `php artisan migrate:fresh --seed` jika perlu reset database
-
-### API Connection
-
-- Pastikan backend Laravel berjalan di port 8000
-- Periksa URL API di frontend: `abu/frontend/src/config/api.js`
-- Pastikan tidak ada firewall yang memblokir koneksi
+Lihat [MIGRATION-GUIDE.md](MIGRATION-GUIDE.md) untuk detail lengkap.
 
 ## 📚 Documentation
 
-- [SETUP.md](./SETUP.md) - Detailed setup guide
-- [Laravel Documentation](https://laravel.com/docs)
-- [React Documentation](https://react.dev)
-- [Tailwind CSS Documentation](https://tailwindcss.com/docs)
-- [Livewire Documentation](https://laravel-livewire.com/docs)
+- [📖 Unified Documentation](README-UNIFIED.md) - Complete setup guide
+- [🔄 Migration Guide](MIGRATION-GUIDE.md) - Migration from separate ports
+- [📋 Original Structure](STRUCTURE.md) - Legacy structure reference
+
+## 🛠️ Troubleshooting
+
+### Common Issues:
+
+1. **React tidak loading**: `npm run build`
+2. **Database error**: Check `.env` dan `php artisan migrate --seed`
+3. **Permission denied**: `chmod +x start-unified.sh`
+4. **API tidak accessible**: `php artisan route:list | grep api`
+
+## 📈 Performance
+
+### Optimizations:
+- **Laravel caching** untuk route, config, dan view
+- **Vite** untuk optimal asset bundling
+- **Code splitting** untuk React components
+- **Database indexing** untuk query performance
+
+## 🚀 Deployment
+
+### Production Steps:
+```bash
+composer install --optimize-autoloader --no-dev
+npm ci && npm run build
+php artisan migrate --force
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+```
+
+### Web Server:
+Point web server ke `public/` directory.
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+1. Fork repository
+2. Create feature branch: `git checkout -b feature/new-feature`
+3. Commit changes: `git commit -am 'Add new feature'`
+4. Push branch: `git push origin feature/new-feature`
+5. Submit Pull Request
+
+### Coding Standards:
+- **PHP**: PSR-12
+- **JavaScript**: ESLint + Prettier
+- **Commit**: Conventional Commits
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - see [LICENSE](LICENSE) for details.
 
-## 📞 Support
+## 🆘 Support
 
-- Email: azharmaterial@gmail.com
-- WhatsApp: 081392854911
+- 📧 Email: support@azharmaterial.com
+- 📱 WhatsApp: +62-xxx-xxxx-xxxx
+- 🐛 Issues: [GitHub Issues](https://github.com/username/azhar-material/issues)
+
+---
+
+**🎉 Unified Laravel + React Application**  
+*Single port, seamless authentication, no CORS issues*
+
+**Tech Stack**: Laravel 10 + React 18 + Livewire 2 + Vite + Tailwind CSS
