@@ -211,38 +211,45 @@ Route::middleware('auth:web')->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| Content Admin Routes (Content Management Only)
-| Superadmin juga bisa akses, tapi content-admin hanya bisa akses ini
-| Brand juga bisa diakses content-admin untuk company profile
+| Brand Routes - Accessible by both Content-Admin and Super-Admin
+| Brand digunakan untuk goods management dan company profile
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth:web', 'role:content-admin|super_admin'])->prefix('content')->group(function () {
+    // Brand Management (Both Content Admin for Company Profile & Super Admin for Goods)
+    Route::get('/brands', BrandIndex::class)->name('content.brands');
+    Route::get('/brands/create', App\Http\Livewire\Brand\Form::class)->name('content.brands.create');
+    Route::get('/brands/{id}/edit', App\Http\Livewire\Brand\Form::class)->name('content.brands.edit');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Content Admin Exclusive Routes
+| Hanya content-admin yang bisa akses (hero-sections, teams, services, about)
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth:web', 'role:content-admin'])->prefix('content')->group(function () {
-    // Hero Section Management
+    // Hero Section Management (Content Admin Only)
     Route::get('/hero-sections', HeroSectionIndex::class)->name('content.hero-sections');
     Route::get('/hero-sections/create', App\Http\Livewire\HeroSection\Form::class)->name('content.hero-sections.create');
     Route::get('/hero-sections/{id}/edit', App\Http\Livewire\HeroSection\Form::class)->name('content.hero-sections.edit');
     
-    // Brand Management (Content Admin for Company Profile)
-    Route::get('/brands', BrandIndex::class)->name('content.brands');
-    Route::get('/brands/create', App\Http\Livewire\Brand\Form::class)->name('content.brands.create');
-    Route::get('/brands/{id}/edit', App\Http\Livewire\Brand\Form::class)->name('content.brands.edit');
-    
-    // Team Management
+    // Team Management (Content Admin Only)
     Route::get('/teams', App\Http\Livewire\Team\Index::class)->name('content.teams');
     Route::get('/teams/create', App\Http\Livewire\Team\Form::class)->name('content.teams.create');
     Route::get('/teams/{id}/edit', App\Http\Livewire\Team\Form::class)->name('content.teams.edit');
 
-    // Service Management
+    // Service Management (Content Admin Only)
     Route::get('/services', App\Http\Livewire\Service\Index::class)->name('content.services');
     Route::get('/services/create', App\Http\Livewire\Service\Form::class)->name('content.services.create');
     Route::get('/services/{id}/edit', App\Http\Livewire\Service\Form::class)->name('content.services.edit');
 
-    // About Management
+    // About Management (Content Admin Only)
     Route::get('/about', App\Http\Livewire\About\Index::class)->name('content.about');
     Route::get('/about/create', App\Http\Livewire\About\Form::class)->name('content.about.create');
     Route::get('/about/{id}/edit', App\Http\Livewire\About\Form::class)->name('content.about.edit');
 
-    // Analytics
+    // Analytics (Content Admin Only)
     Route::get('/analytics', App\Http\Livewire\Content\Analytics::class)->name('content.analytics');
 });
 
