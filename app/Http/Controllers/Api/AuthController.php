@@ -92,9 +92,9 @@ class AuthController extends Controller
                 
                 $redirectUrl = config('app.url') . '/';
                 if ($user->role === 'content-admin') {
-                    $redirectUrl = 'http://localhost:8000/sso-login/' . $user->id;
+                    $redirectUrl = config('app.url') . '/sso-login/' . $user->id;
                 } elseif ($user->role === 'admin' || $user->role === 'super_admin') {
-                    $redirectUrl = 'http://localhost:8000/sso-login/' . $user->id;
+                    $redirectUrl = config('app.url') . '/sso-login/' . $user->id;
                 }
                 $token = $user->createToken('auth-token')->plainTextToken;
                 return response()->json([
