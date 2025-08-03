@@ -8,11 +8,19 @@ use App\Models\Customer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Validation\ValidationException;
 
 
 class AuthController extends Controller
 {
+    public function csrf()
+    {
+        return response()->json([
+            'csrf_token' => csrf_token()
+        ]);
+    }
+
     public function login(Request $request)
     {
         $request->validate([
@@ -37,6 +45,10 @@ class AuthController extends Controller
             }
             if (\Auth::guard('customer')->attempt(['username' => $request->username, 'password' => $request->password])) {
                 $customer = \Auth::guard('customer')->user();
+                
+                // Regenerate session untuk security
+                Session::regenerate();
+                
                 $redirectUrl = url('/customer/' . $customer->id);
                 return response()->json([
                     'success' => true,
@@ -45,7 +57,7 @@ class AuthController extends Controller
                         'user' => $customer,
                         'redirectUrl' => $redirectUrl
                     ]
-                ]);
+                ])->withCookie('customer_logged_in', 'true', 120);
             }
             return response()->json([
                 'success' => false,
@@ -74,6 +86,10 @@ class AuthController extends Controller
             }
             if (\Auth::guard('web')->attempt(['username' => $request->username, 'password' => $request->password])) {
                 $user = \Auth::user();
+                
+                // Regenerate session untuk security
+                Session::regenerate();
+                
                 $redirectUrl = 'http://localhost:3000/';
                 if ($user->role === 'content-admin') {
                     $redirectUrl = 'http://localhost:8000/sso-login/' . $user->id;
@@ -89,7 +105,7 @@ class AuthController extends Controller
                         'token' => $token,
                         'redirectUrl' => $redirectUrl
                     ]
-                ]);
+                ])->withCookie('user_logged_in', 'true', 120);
             }
             return response()->json([
                 'success' => false,

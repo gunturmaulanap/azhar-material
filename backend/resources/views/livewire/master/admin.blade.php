@@ -90,7 +90,14 @@
                                 {{ $item->username }}
                             </td>
                             <td class="p-2">
-                                {{ $item->role }}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                    @if($item->role === 'super_admin') bg-purple-100 text-purple-800
+                                    @elseif($item->role === 'admin') bg-blue-100 text-blue-800
+                                    @elseif($item->role === 'content-admin') bg-green-100 text-green-800
+                                    @elseif($item->role === 'owner') bg-yellow-100 text-yellow-800
+                                    @else bg-gray-100 text-gray-800 @endif">
+                                    {{ ucwords(str_replace(['_', '-'], ' ', $item->role)) }}
+                                </span>
                             </td>
                             <td class="p-2">
                                 {{ \Carbon\Carbon::parse($item->created_at)->translatedFormat('d F Y') }}

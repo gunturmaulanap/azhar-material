@@ -154,7 +154,7 @@ return [
     |
     */
 
-    'domain' => null, // atau '.localhost' jika ingin share antar subdomain
+    'domain' => env('SESSION_DOMAIN', null), // Configurable untuk localhost sharing
 
     /*
     |--------------------------------------------------------------------------
@@ -167,7 +167,7 @@ return [
     |
     */
 
-    'secure' => env('SESSION_SECURE_COOKIE'),
+    'secure' => env('SESSION_SECURE_COOKIE', false),
 
     /*
     |--------------------------------------------------------------------------
@@ -195,7 +195,7 @@ return [
     |
     */
 
-    'same_site' => null, // atau 'lax'
+    'same_site' => env('SESSION_SAME_SITE', 'lax'),
 
     /*
     |--------------------------------------------------------------------------

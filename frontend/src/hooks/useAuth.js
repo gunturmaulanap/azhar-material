@@ -38,6 +38,14 @@ export const AuthProvider = ({ children }) => {
   const login = async (credentials) => {
     try {
       console.log("Attempting login with credentials:", credentials); // Debug log
+      
+      // Get CSRF token first
+      try {
+        await authService.getCsrf();
+      } catch (csrfError) {
+        console.log("CSRF token already available or not needed");
+      }
+      
       const response = await authService.login(credentials);
       console.log("API response:", response.data); // Debug log
 
@@ -60,7 +68,7 @@ export const AuthProvider = ({ children }) => {
       console.error("Login error in useAuth:", error); // Debug log
       return {
         success: false,
-        error: error.response?.data?.message || "Login failed",
+        error: error.response?.data?.error || error.response?.data?.message || "Login failed",
       };
     }
   };

@@ -6,8 +6,28 @@ const api = axios.create(apiConfig);
 
 // Request interceptor to add CSRF token
 api.interceptors.request.use(
-  (config) => {
-    const token = getCSRFToken();
+  async (config) => {
+    // Get CSRF token from meta tag or API
+    let token = getCSRFToken();
+    if (!token && config.url !== endpoints.csrf) {
+      try {
+        const response = await api.get(endpoints.csrf);
+        token = response.data.csrf_token;
+        // Set CSRF token in meta tag for future use
+        const metaTag = document.querySelector('meta[name="csrf-token"]');
+        if (metaTag) {
+          metaTag.setAttribute('content', token);
+        } else {
+          const meta = document.createElement('meta');
+          meta.name = 'csrf-token';
+          meta.content = token;
+          document.head.appendChild(meta);
+        }
+      } catch (error) {
+        console.error('Failed to get CSRF token:', error);
+      }
+    }
+    
     if (token) {
       config.headers["X-CSRF-TOKEN"] = token;
     }
@@ -42,6 +62,7 @@ api.interceptors.response.use(
 
 // Auth services
 export const authService = {
+  getCsrf: () => api.get(endpoints.csrf),
   login: (credentials) => {
     console.log("Making login request to:", endpoints.login); // Debug log
     return api.post(endpoints.login, credentials);

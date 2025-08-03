@@ -9,6 +9,7 @@ export const apiConfig = {
     Accept: "application/json",
   },
   timeout: 10000,
+  withCredentials: true, // Enable cookies for cross-origin requests
 };
 
 // CSRF Token configuration for Laravel
@@ -21,6 +22,7 @@ export const getCSRFToken = () => {
 // API endpoints
 export const endpoints = {
   // Auth endpoints
+  csrf: "/csrf-token",
   login: "/auth/login",
   register: "/auth/register",
   logout: "/auth/logout",

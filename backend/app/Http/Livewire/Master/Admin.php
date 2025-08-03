@@ -5,6 +5,7 @@ namespace App\Http\Livewire\Master;
 use App\Models\User;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Spatie\Permission\Models\Role;
 
 class Admin extends Component
 {
@@ -41,15 +42,22 @@ class Admin extends Component
 
     public function render()
     {
-        $data = User::whereIn('role', ['admin', 'super_admin'])
+        // Get admin roles (excluding customer role)
+        $adminRoles = ['admin', 'super_admin', 'content-admin', 'owner'];
+        
+        $data = User::whereIn('role', $adminRoles)
             ->when($this->search, function ($query) {
                 $query->search($this->search);
             })
             ->orderBy('name', 'asc') // ⬅️ Urutkan berdasarkan nama A-Z
             ->paginate($this->perPage);
 
+        // Get available roles untuk dropdown
+        $roles = Role::whereIn('name', $adminRoles)->get();
+
         return view('livewire.master.admin', [
             'data' => $data,
+            'roles' => $roles,
         ]);
     }
 }
