@@ -27,7 +27,7 @@ class RolePermissionSeeder extends Seeder
             // User management
             'view-users',
             'create-user',
-            'edit-user', 
+            'edit-user',
             'delete-user',
 
             // Customer management
@@ -82,17 +82,17 @@ class RolePermissionSeeder extends Seeder
         ];
 
         foreach ($permissions as $permission) {
-            Permission::create(['name' => $permission]);
+            Permission::firstOrCreate(['name' => $permission]);
         }
 
         // Create roles and assign permissions
-        
+
         // Super Admin - has all permissions
-        $superAdminRole = Role::create(['name' => 'super_admin']);
+        $superAdminRole = Role::firstOrCreate(['name' => 'super_admin', 'guard_name' => 'web']);
         $superAdminRole->givePermissionTo(Permission::all());
 
         // Admin - has most permissions but not user management and some reports
-        $adminRole = Role::create(['name' => 'admin']);
+        $adminRole = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
         $adminRole->givePermissionTo([
             'view-dashboard',
             'view-customers',
@@ -114,7 +114,7 @@ class RolePermissionSeeder extends Seeder
         ]);
 
         // Content Admin - only content management permissions
-        $contentAdminRole = Role::create(['name' => 'content-admin']);
+        $contentAdminRole = Role::firstOrCreate(['name' => 'content-admin', 'guard_name' => 'web']);
         $contentAdminRole->givePermissionTo([
             'view-dashboard',
             'manage-content',
@@ -128,7 +128,7 @@ class RolePermissionSeeder extends Seeder
         ]);
 
         // Owner - optional, similar to super admin but for business owner
-        $ownerRole = Role::create(['name' => 'owner']);
+        $ownerRole = Role::firstOrCreate(['name' => 'owner', 'guard_name' => 'web']);
         $ownerRole->givePermissionTo([
             'view-dashboard',
             'view-analytics',
