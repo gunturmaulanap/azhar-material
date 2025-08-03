@@ -11,11 +11,13 @@ const rootElement = document.getElementById("react-root");
 if (rootElement) {
   const root = ReactDOM.createRoot(rootElement);
   root.render(
-    <ErrorBoundary>
-      <AuthProvider>
-        <App />
-      </AuthProvider>
-    </ErrorBoundary>
+    <React.StrictMode>
+      <ErrorBoundary>
+        <AuthProvider>
+          <App />
+        </AuthProvider>
+      </ErrorBoundary>
+    </React.StrictMode>
   );
 } else {
   console.error("React root element not found. Make sure the HTML contains an element with id='react-root'");
