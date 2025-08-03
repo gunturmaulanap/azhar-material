@@ -39,7 +39,7 @@ class AuthenticatedSessionController extends Controller
             }
         }
         // Jika belum login, redirect ke React login page (return View agar sesuai tipe return)
-        return redirect()->away('http://localhost:3000/login');
+        return redirect('/login');
     }
 
     /**
@@ -58,7 +58,7 @@ class AuthenticatedSessionController extends Controller
                 return redirect()->route('customer.detail', ['id' => $customer->id]);
             } else {
                 // Jika gagal login customer, redirect ke React login page dengan pesan error
-                return redirect('http://localhost:3000/login')->with('toast', 'Username atau password customer salah.');
+                return redirect('/login')->with('toast', 'Username atau password customer salah.');
             }
         }
         // Try user authentication (web guard)
@@ -77,7 +77,7 @@ class AuthenticatedSessionController extends Controller
             }
         }
         // If all auth fails, redirect ke React login page dengan pesan error
-        return redirect('http://localhost:3000/login')->with('toast', 'Username atau password salah.');
+        return redirect('/login')->with('toast', 'Username atau password salah.');
     }
 
     public function destroy(Request $request): RedirectResponse
@@ -95,7 +95,7 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerateToken();
 
         // Redirect ke halaman company profile (React landing page) setelah logout
-        return redirect('http://localhost:3000/');
+        return redirect('/');
     }
 
     /**
@@ -106,7 +106,7 @@ class AuthenticatedSessionController extends Controller
         $user = User::find($userId);
 
         if (!$user) {
-            return redirect('http://localhost:3000/login')->withErrors(['username' => 'User tidak ditemukan.']);
+            return redirect('/login')->withErrors(['username' => 'User tidak ditemukan.']);
         }
 
         // Login user ke session Laravel
@@ -126,7 +126,7 @@ class AuthenticatedSessionController extends Controller
                 return redirect()->route('content.dashboard');
             default:
                 // Jika tidak dalam halaman yang seharusnya, redirect ke React
-                return redirect('http://localhost:3000');
+                return redirect('/');
         }
     }
 }
