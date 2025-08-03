@@ -79,6 +79,17 @@ class RolePermissionSeeder extends Seeder
             'edit-employee',
             'delete-employee',
             'manage-attendance',
+            
+            // Stock management
+            'edit-stock',
+            'view-stock-reports',
+            
+            // Delivery management
+            'view-deliveries',
+            'manage-deliveries',
+            
+            // Debt management
+            'view-debts',
         ];
 
         foreach ($permissions as $permission) {
@@ -91,26 +102,21 @@ class RolePermissionSeeder extends Seeder
         $superAdminRole = Role::firstOrCreate(['name' => 'super_admin', 'guard_name' => 'web']);
         $superAdminRole->givePermissionTo(Permission::all());
 
-        // Admin - has most permissions but not user management and some reports
+        // Admin - operational work: transactions, orders, goods, delivery
         $adminRole = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
         $adminRole->givePermissionTo([
             'view-dashboard',
-            'view-customers',
-            'create-customer',
-            'edit-customer',
-            'delete-customer',
             'view-products',
             'create-product',
             'edit-product',
-            'delete-product',
             'view-transactions',
             'create-transaction',
             'edit-transaction',
-            'delete-transaction',
             'view-orders',
             'create-order',
             'edit-order',
-            'delete-order',
+            'view-deliveries',
+            'manage-deliveries',
         ]);
 
         // Content Admin - only content management permissions
@@ -127,33 +133,31 @@ class RolePermissionSeeder extends Seeder
             'view-analytics',
         ]);
 
-        // Owner - optional, similar to super admin but for business owner
+        // Owner - reports, dashboard, and goods stock management only
         $ownerRole = Role::firstOrCreate(['name' => 'owner', 'guard_name' => 'web']);
         $ownerRole->givePermissionTo([
             'view-dashboard',
-            'view-analytics',
-            'view-users',
-            'view-customers',
-            'view-products',
-            'view-transactions',
-            'view-orders',
-            'view-suppliers',
             'view-reports',
             'export-reports',
-            'view-employees',
-            'manage-attendance',
+            'view-products',
+            'edit-stock',
+            'view-stock-reports',
         ]);
 
         // Assign roles to existing users
         $users = [
-            'miura' => 'super_admin',
+            'superadmin' => 'super_admin',
             'admin' => 'admin',
             'contentadmin' => 'content-admin',
+            'guntur' => 'owner',
         ];
 
         foreach ($users as $username => $roleName) {
             $user = User::where('username', $username)->first();
             if ($user) {
+                // Clear existing roles first
+                $user->syncRoles([]);
+                // Assign the new role
                 $user->assignRole($roleName);
                 // Update role field untuk backward compatibility
                 $user->update(['role' => $roleName]);
