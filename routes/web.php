@@ -20,7 +20,7 @@ use App\Http\Livewire\Transaction\MiniInvoice;
 
 // React SPA Routes - These will be handled by React Router
 Route::get('/', function () {
-    return view('react');
+    return view('app');
 })->name('home');
 
 Route::get('/products', function () {

@@ -1,15 +1,41 @@
-import React, { useState, useEffect, createContext, useContext } from "react";
+import React, {
+  useState,
+  useEffect,
+  createContext,
+  useContext,
+  ReactNode,
+} from "react";
 import { authService } from "../services/api";
 import Cookies from "js-cookie";
 
-const AuthContext = createContext(null);
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+}
 
-export const useAuth = () => {
-  return useContext(AuthContext);
+interface AuthContextType {
+  user: User | null;
+  isAuthenticated: boolean;
+  loading: boolean;
+  login: (credentials: any) => Promise<void>;
+  logout: () => void;
+  register: (data: any) => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const useAuth = (): AuthContextType => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
 };
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -18,13 +44,12 @@ export const AuthProvider = ({ children }) => {
       try {
         const token = Cookies.get("token");
         if (token) {
-          // Instead of verifyToken, use getUser endpoint
           const response = await authService.getUser();
           setUser(response.data.user);
           setIsAuthenticated(true);
         }
       } catch (error) {
-        console.error('Auth initialization error:', error);
+        console.error("Auth initialization error:", error);
         Cookies.remove("token");
         setUser(null);
         setIsAuthenticated(false);
@@ -36,7 +61,7 @@ export const AuthProvider = ({ children }) => {
     initializeAuth();
   }, []);
 
-  const login = async (credentials) => {
+  const login = async (credentials: any) => {
     const response = await authService.login(credentials);
     const { token, user } = response.data;
     Cookies.set("token", token, { expires: 7 });
@@ -50,7 +75,7 @@ export const AuthProvider = ({ children }) => {
     setIsAuthenticated(false);
   };
 
-  const register = async (userData) => {
+  const register = async (userData: any) => {
     const response = await authService.register(userData);
     const { token, user } = response.data;
     Cookies.set("token", token, { expires: 7 });
@@ -58,7 +83,7 @@ export const AuthProvider = ({ children }) => {
     setIsAuthenticated(true);
   };
 
-  const value = {
+  const value: AuthContextType = {
     user,
     isAuthenticated,
     loading,

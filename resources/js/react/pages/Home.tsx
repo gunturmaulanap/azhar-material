@@ -1,10 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowRight, Play, AlertCircle } from 'lucide-react';
-import { Button } from '../components/ui/button';
-import { Card, CardContent } from '../components/ui/card';
-import LoadingSpinner from '../components/LoadingSpinner';
-import { productService, heroSectionService, brandService } from '../services/api';
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { ArrowRight, Play, AlertCircle } from "lucide-react";
+import { Button } from "../components/ui/button";
+import { Card, CardContent } from "../components/ui/card";
+import LoadingSpinner from "../components/LoadingSpinner";
+import {
+  productService,
+  heroSectionService,
+  brandService,
+} from "../services/api";
 
 interface Product {
   id: number;
@@ -63,7 +67,7 @@ const Home: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       // Mock data in case API fails - for development/testing
       const mockData = {
         products: [
@@ -76,7 +80,7 @@ const Home: React.FC = () => {
             category: { id: 1, name: "Steel" },
             brand: { id: 1, name: "Azhar Material" },
             created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
+            updated_at: new Date().toISOString(),
           },
           {
             id: 2,
@@ -87,20 +91,21 @@ const Home: React.FC = () => {
             category: { id: 2, name: "Cement" },
             brand: { id: 1, name: "Azhar Material" },
             created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }
+            updated_at: new Date().toISOString(),
+          },
         ],
         hero: {
           id: 1,
           title: "Azhar Material",
           subtitle: "Your Trusted Construction Partner",
-          description: "Menyediakan material konstruksi berkualitas tinggi untuk berbagai kebutuhan proyek Anda",
+          description:
+            "Menyediakan material konstruksi berkualitas tinggi untuk berbagai kebutuhan proyek Anda",
           button_text: "Lihat Produk",
           button_url: "/products",
           background_image: "",
           is_active: true,
           created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         },
         brands: [
           {
@@ -111,48 +116,62 @@ const Home: React.FC = () => {
             website_url: "",
             is_active: true,
             created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }
-        ]
+            updated_at: new Date().toISOString(),
+          },
+        ],
       };
 
       try {
         const [productsRes, heroRes, brandsRes] = await Promise.all([
-          productService.getFeatured().catch(() => ({ data: { data: mockData.products } })),
-          heroSectionService.getActive().catch(() => ({ data: { data: mockData.hero } })),
-          brandService.getActive().catch(() => ({ data: { data: mockData.brands } }))
+          productService
+            .getFeatured()
+            .catch(() => ({ data: { data: mockData.products } })),
+          heroSectionService
+            .getActive()
+            .catch(() => ({ data: { data: mockData.hero } })),
+          brandService
+            .getActive()
+            .catch(() => ({ data: { data: mockData.brands } })),
         ]);
 
-        setFeaturedProducts(Array.isArray(productsRes.data.data) ? productsRes.data.data : mockData.products);
+        setFeaturedProducts(
+          Array.isArray(productsRes.data.data)
+            ? productsRes.data.data
+            : mockData.products
+        );
         setHeroSection(heroRes.data.data || mockData.hero);
-        setBrands(Array.isArray(brandsRes.data.data) ? brandsRes.data.data : mockData.brands);
+        setBrands(
+          Array.isArray(brandsRes.data.data)
+            ? brandsRes.data.data
+            : mockData.brands
+        );
       } catch (apiError) {
-        console.warn('API not available, using mock data:', apiError);
+        console.warn("API not available, using mock data:", apiError);
         setFeaturedProducts(mockData.products);
         setHeroSection(mockData.hero);
         setBrands(mockData.brands);
       }
     } catch (error) {
-      console.error('Error fetching data:', error);
-      setError('Gagal memuat data. Silakan coba lagi.');
+      console.error("Error fetching data:", error);
+      setError("Gagal memuat data. Silakan coba lagi.");
     } finally {
       setLoading(false);
     }
   };
 
   const scrollToProducts = () => {
-    const element = document.getElementById('product-preview');
+    const element = document.getElementById("product-preview");
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+      element.scrollIntoView({ behavior: "smooth" });
     }
   };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <LoadingSpinner 
-          size="lg" 
-          text="Memuat halaman..." 
+        <LoadingSpinner
+          size="lg"
+          text="Memuat halaman..."
           className="min-h-screen"
         />
       </div>
@@ -200,7 +219,10 @@ const Home: React.FC = () => {
               playsInline
               className="w-full h-full object-cover"
             >
-              <source src="https://cdn.pixabay.com/video/2021/08/04/84170-582657466_large.mp4" type="video/mp4" />
+              <source
+                src="https://cdn.pixabay.com/video/2021/08/04/84170-582657466_large.mp4"
+                type="video/mp4"
+              />
             </video>
           )}
           {/* Video Overlay */}
@@ -210,19 +232,22 @@ const Home: React.FC = () => {
         {/* Hero Content */}
         <div className="relative z-10 text-center text-white px-4 sm:px-6 lg:px-8 max-w-4xl">
           <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
-            {heroSection?.title || 'Build with Quality.'}
+            {heroSection?.title || "Build with Quality."}
             <br />
-            <span className="text-accent">{heroSection?.subtitle || 'Build with Azhar.'}</span>
+            <span className="text-accent">
+              {heroSection?.subtitle || "Build with Azhar."}
+            </span>
           </h1>
           <p className="text-xl md:text-2xl mb-8 text-gray-200 font-light">
-            {heroSection?.description || 'Supplying trusted construction materials to fuel your vision.'}
+            {heroSection?.description ||
+              "Supplying trusted construction materials to fuel your vision."}
           </p>
           <Button
             onClick={scrollToProducts}
             size="lg"
             className="bg-primary hover:bg-primary/90 text-white px-8 py-4 text-lg font-semibold rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
           >
-            {heroSection?.button_text || 'View Products'}
+            {heroSection?.button_text || "View Products"}
             <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
         </div>
@@ -243,7 +268,8 @@ const Home: React.FC = () => {
               Featured Products
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Discover our premium selection of construction materials from trusted brands
+              Discover our premium selection of construction materials from
+              trusted brands
             </p>
           </div>
 
@@ -256,7 +282,10 @@ const Home: React.FC = () => {
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
                 {featuredProducts.map((product) => (
-                  <Card key={product.id} className="group cursor-pointer border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 rounded-2xl overflow-hidden">
+                  <Card
+                    key={product.id}
+                    className="group cursor-pointer border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 rounded-2xl overflow-hidden"
+                  >
                     <div className="relative overflow-hidden">
                       <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
                         <span className="text-gray-500">No Image</span>
@@ -264,14 +293,20 @@ const Home: React.FC = () => {
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     </div>
                     <CardContent className="p-6">
-                      <h3 className="text-xl font-semibold text-neutral-800 mb-2">{product.name}</h3>
+                      <h3 className="text-xl font-semibold text-neutral-800 mb-2">
+                        {product.name}
+                      </h3>
                       {product.description && (
                         <p className="text-gray-600 text-sm mb-2 line-clamp-2">
                           {product.description}
                         </p>
                       )}
-                      <p className="text-primary font-medium mb-1">{product.brand?.name || 'No Brand'}</p>
-                      <p className="text-gray-600 text-sm">{product.category?.name || 'No Category'}</p>
+                      <p className="text-primary font-medium mb-1">
+                        {product.brand?.name || "No Brand"}
+                      </p>
+                      <p className="text-gray-600 text-sm">
+                        {product.category?.name || "No Category"}
+                      </p>
                     </CardContent>
                   </Card>
                 ))}
@@ -313,38 +348,38 @@ const Home: React.FC = () => {
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 items-center">
-              {brands.length > 0 ? (
-                brands.map((brand) => (
-                  <div
-                    key={brand.id}
-                    className="flex justify-center items-center p-4 rounded-lg transition-all duration-300 hover:scale-110 grayscale hover:grayscale-0"
-                  >
-                    {brand.logo ? (
-                      <img
-                        src={brand.logo}
-                        alt={brand.name}
-                        className="max-h-16 w-auto opacity-70 hover:opacity-100 transition-opacity duration-300"
-                      />
-                    ) : (
-                      <div className="w-16 h-16 bg-gray-300 rounded-lg flex items-center justify-center">
-                        <span className="text-gray-500 text-xs">{brand.name}</span>
-                      </div>
-                    )}
-                  </div>
-                ))
-              ) : (
-                // Placeholder for brands
-                [1, 2, 3, 4, 5, 6].map((i) => (
-                  <div
-                    key={i}
-                    className="flex justify-center items-center p-4 rounded-lg transition-all duration-300 hover:scale-110 grayscale hover:grayscale-0"
-                  >
-                    <div className="w-16 h-16 bg-gray-300 rounded-lg flex items-center justify-center">
-                      <span className="text-gray-500 text-xs">Brand {i}</span>
+              {brands.length > 0
+                ? brands.map((brand) => (
+                    <div
+                      key={brand.id}
+                      className="flex justify-center items-center p-4 rounded-lg transition-all duration-300 hover:scale-110 grayscale hover:grayscale-0"
+                    >
+                      {brand.logo ? (
+                        <img
+                          src={brand.logo}
+                          alt={brand.name}
+                          className="max-h-16 w-auto opacity-70 hover:opacity-100 transition-opacity duration-300"
+                        />
+                      ) : (
+                        <div className="w-16 h-16 bg-gray-300 rounded-lg flex items-center justify-center">
+                          <span className="text-gray-500 text-xs">
+                            {brand.name}
+                          </span>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))
-              )}
+                  ))
+                : // Placeholder for brands
+                  [1, 2, 3, 4, 5, 6].map((i) => (
+                    <div
+                      key={i}
+                      className="flex justify-center items-center p-4 rounded-lg transition-all duration-300 hover:scale-110 grayscale hover:grayscale-0"
+                    >
+                      <div className="w-16 h-16 bg-gray-300 rounded-lg flex items-center justify-center">
+                        <span className="text-gray-500 text-xs">Brand {i}</span>
+                      </div>
+                    </div>
+                  ))}
             </div>
           )}
         </div>

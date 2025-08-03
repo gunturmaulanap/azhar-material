@@ -1,5 +1,5 @@
-import React from 'react';
-import { Building2, Phone, Mail, MapPin } from 'lucide-react';
+import React from "react";
+import { Building2, Phone, Mail, MapPin } from "lucide-react";
 
 const CompanyProfileFallback: React.FC = () => {
   return (
@@ -7,7 +7,7 @@ const CompanyProfileFallback: React.FC = () => {
       {/* Hero Section */}
       <section className="relative h-screen flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-600 opacity-90"></div>
-        
+
         <div className="relative z-10 text-center text-white px-4 max-w-4xl mx-auto">
           <div className="flex justify-center mb-6">
             <Building2 className="h-16 w-16" />
@@ -19,7 +19,8 @@ const CompanyProfileFallback: React.FC = () => {
             Your Trusted Construction Partner
           </p>
           <p className="text-lg mb-8 opacity-80 max-w-2xl mx-auto">
-            Menyediakan material konstruksi berkualitas tinggi untuk berbagai kebutuhan proyek Anda
+            Menyediakan material konstruksi berkualitas tinggi untuk berbagai
+            kebutuhan proyek Anda
           </p>
           <button className="bg-white text-blue-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors">
             Lihat Produk Kami
@@ -35,8 +36,9 @@ const CompanyProfileFallback: React.FC = () => {
               Tentang Azhar Material
             </h2>
             <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              Kami adalah perusahaan terpercaya yang telah berpengalaman dalam menyediakan 
-              material konstruksi berkualitas tinggi untuk berbagai kebutuhan proyek Anda.
+              Kami adalah perusahaan terpercaya yang telah berpengalaman dalam
+              menyediakan material konstruksi berkualitas tinggi untuk berbagai
+              kebutuhan proyek Anda.
             </p>
           </div>
 
@@ -44,19 +46,25 @@ const CompanyProfileFallback: React.FC = () => {
             {/* Contact Info Cards */}
             <div className="text-center p-6 bg-gray-50 rounded-lg">
               <Phone className="h-8 w-8 text-blue-600 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Telepon</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Telepon
+              </h3>
               <p className="text-gray-600">+62 123 456 7890</p>
             </div>
 
             <div className="text-center p-6 bg-gray-50 rounded-lg">
               <Mail className="h-8 w-8 text-blue-600 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Email</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Email
+              </h3>
               <p className="text-gray-600">info@azharmaterial.com</p>
             </div>
 
             <div className="text-center p-6 bg-gray-50 rounded-lg">
               <MapPin className="h-8 w-8 text-blue-600 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Lokasi</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Lokasi
+              </h3>
               <p className="text-gray-600">Jakarta, Indonesia</p>
             </div>
           </div>
@@ -78,13 +86,21 @@ const CompanyProfileFallback: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {/* Sample Products */}
             {[
-              { name: "Besi Beton", description: "Besi beton berkualitas tinggi" },
+              {
+                name: "Besi Beton",
+                description: "Besi beton berkualitas tinggi",
+              },
               { name: "Semen", description: "Semen premium untuk konstruksi" },
-              { name: "Agregat", description: "Pasir dan kerikil pilihan" }
+              { name: "Agregat", description: "Pasir dan kerikil pilihan" },
             ].map((product, index) => (
-              <div key={index} className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+              <div
+                key={index}
+                className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow"
+              >
                 <div className="h-40 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg mb-4"></div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{product.name}</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  {product.name}
+                </h3>
                 <p className="text-gray-600">{product.description}</p>
               </div>
             ))}

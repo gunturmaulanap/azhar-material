@@ -1,18 +1,24 @@
-import React from 'react';
-import { useAuth } from '../hooks/useAuth';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import { 
-  Users, 
-  Package, 
-  ShoppingCart, 
-  TrendingUp, 
+import React from "react";
+import { useAuth } from "../hooks/useAuth";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import {
+  Users,
+  Package,
+  ShoppingCart,
+  TrendingUp,
   Settings,
   LogOut,
   BarChart3,
-  Database
-} from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+  Database,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const AdminDashboard = () => {
   const { user, logout } = useAuth();
@@ -20,64 +26,64 @@ const AdminDashboard = () => {
 
   const handleLogout = async () => {
     await logout();
-    navigate('/login');
+    navigate("/login");
   };
 
   const dashboardCards = [
     {
-      title: 'Total Users',
-      description: 'Manage system users',
+      title: "Total Users",
+      description: "Manage system users",
       icon: Users,
-      value: '150+',
-      color: 'bg-blue-500',
+      value: "150+",
+      color: "bg-blue-500",
     },
     {
-      title: 'Products',
-      description: 'Inventory management',
+      title: "Products",
+      description: "Inventory management",
       icon: Package,
-      value: '500+',
-      color: 'bg-green-500',
+      value: "500+",
+      color: "bg-green-500",
     },
     {
-      title: 'Orders',
-      description: 'Order management',
+      title: "Orders",
+      description: "Order management",
       icon: ShoppingCart,
-      value: '1,200+',
-      color: 'bg-orange-500',
+      value: "1,200+",
+      color: "bg-orange-500",
     },
     {
-      title: 'Revenue',
-      description: 'Total revenue',
+      title: "Revenue",
+      description: "Total revenue",
       icon: TrendingUp,
-      value: 'Rp 50M+',
-      color: 'bg-purple-500',
+      value: "Rp 50M+",
+      color: "bg-purple-500",
     },
   ];
 
   const quickActions = [
     {
-      title: 'User Management',
-      description: 'Manage users and roles',
+      title: "User Management",
+      description: "Manage users and roles",
       icon: Users,
-      action: () => navigate('/admin/users'),
+      action: () => navigate("/admin/users"),
     },
     {
-      title: 'Product Management',
-      description: 'Manage products and inventory',
+      title: "Product Management",
+      description: "Manage products and inventory",
       icon: Package,
-      action: () => navigate('/admin/products'),
+      action: () => navigate("/admin/products"),
     },
     {
-      title: 'Analytics',
-      description: 'View reports and analytics',
+      title: "Analytics",
+      description: "View reports and analytics",
       icon: BarChart3,
-      action: () => navigate('/admin/analytics'),
+      action: () => navigate("/admin/analytics"),
     },
     {
-      title: 'System Settings',
-      description: 'Configure system settings',
+      title: "System Settings",
+      description: "Configure system settings",
       icon: Settings,
-      action: () => navigate('/admin/settings'),
+      action: () => navigate("/admin/settings"),
     },
   ];
 
@@ -92,14 +98,20 @@ const AdminDashboard = () => {
                 <span className="text-sm font-bold text-white">AZ</span>
               </div>
               <div>
-                <h1 className="text-xl font-semibold text-gray-900">Admin Dashboard</h1>
-                <p className="text-sm text-gray-500">Azhar Material Management System</p>
+                <h1 className="text-xl font-semibold text-gray-900">
+                  Admin Dashboard
+                </h1>
+                <p className="text-sm text-gray-500">
+                  Azhar Material Management System
+                </p>
               </div>
             </div>
-            
+
             <div className="flex items-center space-x-4">
               <div className="text-right">
-                <p className="text-sm font-medium text-gray-900">{user?.name}</p>
+                <p className="text-sm font-medium text-gray-900">
+                  {user?.name}
+                </p>
                 <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
               </div>
               <Button
@@ -152,10 +164,16 @@ const AdminDashboard = () => {
 
         {/* Quick Actions */}
         <div className="mb-8">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            Quick Actions
+          </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {quickActions.map((action, index) => (
-              <Card key={index} className="hover:shadow-md transition-shadow cursor-pointer" onClick={action.action}>
+              <Card
+                key={index}
+                className="hover:shadow-md transition-shadow cursor-pointer"
+                onClick={action.action}
+              >
                 <CardHeader className="text-center">
                   <div className="mx-auto w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-2">
                     <action.icon className="h-6 w-6 text-gray-600" />
@@ -181,16 +199,21 @@ const AdminDashboard = () => {
           <CardContent>
             <div className="space-y-4">
               {[
-                'New user registered: John Doe',
-                'Product updated: Semen Portland',
-                'Order completed: #ORD-001',
-                'System backup completed',
-                'New supplier added: PT. Building Materials',
+                "New user registered: John Doe",
+                "Product updated: Semen Portland",
+                "Order completed: #ORD-001",
+                "System backup completed",
+                "New supplier added: PT. Building Materials",
               ].map((activity, index) => (
-                <div key={index} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                <div
+                  key={index}
+                  className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg"
+                >
                   <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                   <span className="text-sm text-gray-700">{activity}</span>
-                  <span className="text-xs text-gray-500 ml-auto">{index + 1}h ago</span>
+                  <span className="text-xs text-gray-500 ml-auto">
+                    {index + 1}h ago
+                  </span>
                 </div>
               ))}
             </div>
