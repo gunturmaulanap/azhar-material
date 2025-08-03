@@ -1,7 +1,7 @@
 # 🚀 GitHub Push Summary
 
 ## 📂 Repository Information
-- **Repository**: `gunturmaulanap/Azhar-Material---Project`
+- **Repository**: `gunturmaulanap/Project AI/azharmaterial`
 - **Branch**: `cursor/integrate-frontend-and-backend-on-single-port-cb47`
 - **Push Status**: ✅ **Successfully Pushed**
 

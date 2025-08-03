@@ -51,8 +51,7 @@ class UserSeeder extends Seeder
                     'name' => $userData['name'],
                     'username' => $userData['username'],
                     'role' => $userData['role'],
-                    'password' => $userData['username'] === 'guntur' ? Hash::make('gugun1710') : Hash::make('password'),
-                    'email' => $userData['username'] . '@azharmaterial.com', // Add email for completeness
+                    'password' => $userData['username'] === 'guntur' ? Hash::make('gugun1710') : Hash::make('password')
                 ]
             );
 

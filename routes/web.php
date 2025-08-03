@@ -4,6 +4,13 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 use App\Http\Livewire\HeroSection\Index as HeroSectionIndex;
 use App\Http\Livewire\Brand\Index as BrandIndex;
+use App\Http\Livewire\Transaction\Pos;
+use App\Http\Livewire\Transaction\CreditSales;
+use App\Http\Livewire\Transaction\Create as TransactionCreate;
+use App\Http\Livewire\Transaction\History as TransactionHistory;
+use App\Http\Livewire\Transaction\Detail as TransactionDetail;
+use App\Http\Livewire\Transaction\Invoice;
+use App\Http\Livewire\Transaction\MiniInvoice;
 
 /*
 |--------------------------------------------------------------------------
@@ -54,7 +61,7 @@ Route::get('/customer/{id}', [App\Http\Livewire\Master\CustomerDetail::class, 's
     ->name('customer.dashboard');
 
 // Customer transaction tracking routes
-Route::get('/customer/detail-transaksi/{id}', App\Http\Livewire\Transaction\Detail::class)->name('customer.transaction.detail');
+Route::get('/customer/detail-transaksi/{id}', TransactionDetail::class)->name('customer.transaction.detail');
 Route::get('/customer/pengiriman-barang/{id}', App\Http\Livewire\Delivery\Detail::class)->name('customer.delivery.detail');
 
 /*
@@ -64,7 +71,7 @@ Route::get('/customer/pengiriman-barang/{id}', App\Http\Livewire\Delivery\Detail
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth:web', 'role:super_admin'])->group(function () {
-    
+
     // Master Data Management
     Route::get('data-admin', App\Http\Livewire\Master\Admin::class)->name('master.admin');
     Route::get('tambah-data-admin', App\Http\Livewire\Master\AdminForm::class)->name('master.create-admin');
@@ -107,35 +114,35 @@ Route::middleware(['auth:web', 'role:super_admin'])->group(function () {
     Route::get('laporan-barang', App\Http\Livewire\Report\Goods::class)->name('report.goods');
 
     // POS System and Financial
-    Route::get('point-of-sale', App\Http\Livewire\Transaction\Pos::class)->name('pos.index');
-    Route::get('kredit-penjualan', App\Http\Livewire\Transaction\CreditSales::class)->name('transaction.credit-sales');
+    // Route::get('point-of-sale', Pos::class)->name('pos.index');
+    // Route::get('kredit-penjualan', CreditSales::class)->name('transaction.credit-sales');
     Route::get('data-hutang', App\Http\Livewire\Debt\Index::class)->name('debt.index');
 
     // Transaction Management - HANYA SUPERADMIN
-    Route::get('transaksi', App\Http\Livewire\Transaction\Create::class)->name('transaction.create');
-    Route::get('riwayat-transaksi', App\Http\Livewire\Transaction\History::class)->name('transaction.history');
-    Route::get('detail-transaksi/{id}', App\Http\Livewire\Transaction\Detail::class)->name('transaction.detail');
+    Route::get('transaksi', TransactionCreate::class)->name('transaction.create');
+    Route::get('riwayat-transaksi', TransactionHistory::class)->name('transaction.history');
+    Route::get('detail-transaksi/{id}', TransactionDetail::class)->name('transaction.detail');
     Route::get('pengiriman-barang', App\Http\Livewire\Delivery\Index::class)->name('delivery.index');
     Route::get('pengiriman-barang/{id}', App\Http\Livewire\Delivery\Detail::class)->name('delivery.detail');
-    Route::get('invoice/{id}', App\Http\Livewire\Transaction\Invoice::class)->name('transaction.invoice');
-    Route::get('mini-invoice/{id}', App\Http\Livewire\Transaction\MiniInvoice::class)->name('transaction.mini-invoice');
+    Route::get('invoice/{id}', Invoice::class)->name('transaction.invoice');
+    Route::get('mini-invoice/{id}', MiniInvoice::class)->name('transaction.mini-invoice');
 
     // Goods Management - HANYA SUPERADMIN
     Route::get('data-barang', App\Http\Livewire\Goods\Data::class)->name('goods.data');
     Route::get('tambah-data-barang', App\Http\Livewire\Goods\Form::class)->name('goods.create');
     Route::get('ubah-data-barang/{id}', App\Http\Livewire\Goods\Form::class)->name('goods.update');
     Route::get('kelola-data-barang', App\Http\Livewire\Goods\Management::class)->name('goods.management');
-    
+
     // Brand CRUD within goods management
     Route::get('data-barang/brand', App\Http\Livewire\Brand\Index::class)->name('goods.brand.index');
     Route::get('data-barang/brand-baru', App\Http\Livewire\Brand\Form::class)->name('goods.brand.create');
     Route::get('data-barang/ubah-brand/{id}', App\Http\Livewire\Brand\Form::class)->name('goods.brand.update');
-    
+
     // Category CRUD within goods management
     Route::get('data-barang/kategori', App\Http\Livewire\Category\Index::class)->name('goods.category.index');
     Route::get('data-barang/kategori-baru', App\Http\Livewire\Category\Form::class)->name('goods.category.create');
     Route::get('data-barang/ubah-kategori/{id}', App\Http\Livewire\Category\Form::class)->name('goods.category.update');
-    
+
     Route::get('retur-barang', App\Http\Livewire\Retur\Create::class)->name('goods.retur');
     Route::get('detail-retur/{id}', App\Http\Livewire\Retur\Detail::class)->name('goods.retur-detail');
 
@@ -153,10 +160,10 @@ Route::middleware(['auth:web', 'role:super_admin'])->group(function () {
 */
 Route::middleware(['auth:web', 'role:admin'])->group(function () {
     // Transaction Management - Admin
-    Route::get('admin/transaksi', App\Http\Livewire\Transaction\Create::class)->name('admin.transaction.create');
-    Route::get('admin/riwayat-transaksi', App\Http\Livewire\Transaction\History::class)->name('admin.transaction.history');
-    Route::get('admin/detail-transaksi/{id}', App\Http\Livewire\Transaction\Detail::class)->name('admin.transaction.detail');
-    
+    Route::get('admin/transaksi', TransactionCreate::class)->name('admin.transaction.create');
+    Route::get('admin/riwayat-transaksi', TransactionHistory::class)->name('admin.transaction.history');
+    Route::get('admin/detail-transaksi/{id}', TransactionDetail::class)->name('admin.transaction.detail');
+
     // Order Management - Admin
     Route::get('admin/data-order', App\Http\Livewire\Order\Index::class)->name('admin.order.index');
     Route::get('admin/order', App\Http\Livewire\Order\Create::class)->name('admin.order.create');
@@ -166,7 +173,7 @@ Route::middleware(['auth:web', 'role:admin'])->group(function () {
     Route::get('admin/data-barang', App\Http\Livewire\Goods\Data::class)->name('admin.goods.data');
     Route::get('admin/tambah-data-barang', App\Http\Livewire\Goods\Form::class)->name('admin.goods.create');
     Route::get('admin/ubah-data-barang/{id}', App\Http\Livewire\Goods\Form::class)->name('admin.goods.update');
-    
+
     // Brand/Category management for Admin (limited)
     Route::get('admin/data-barang/brand', App\Http\Livewire\Brand\Index::class)->name('admin.goods.brand.index');
     Route::get('admin/data-barang/kategori', App\Http\Livewire\Category\Index::class)->name('admin.goods.category.index');
@@ -186,7 +193,7 @@ Route::middleware(['auth:web', 'role:owner'])->group(function () {
     // Reports
     Route::get('owner/laporan-penjualan', App\Http\Livewire\Report\Index::class)->name('owner.report.index');
     Route::get('owner/laporan-barang', App\Http\Livewire\Report\Goods::class)->name('owner.report.goods');
-    
+
     // Goods Stock Management - Owner can only edit stock
     Route::get('owner/data-barang', App\Http\Livewire\Goods\Data::class)->name('owner.goods.data');
     Route::get('owner/kelola-stok-barang', App\Http\Livewire\Goods\Management::class)->name('owner.goods.stock');
@@ -233,7 +240,7 @@ Route::middleware(['auth:web', 'role:content-admin'])->prefix('content')->group(
     Route::get('/hero-sections', HeroSectionIndex::class)->name('content.hero-sections');
     Route::get('/hero-sections/create', App\Http\Livewire\HeroSection\Form::class)->name('content.hero-sections.create');
     Route::get('/hero-sections/{id}/edit', App\Http\Livewire\HeroSection\Form::class)->name('content.hero-sections.edit');
-    
+
     // Team Management (Content Admin Only)
     Route::get('/teams', App\Http\Livewire\Team\Index::class)->name('content.teams');
     Route::get('/teams/create', App\Http\Livewire\Team\Form::class)->name('content.teams.create');
@@ -253,4 +260,4 @@ Route::middleware(['auth:web', 'role:content-admin'])->prefix('content')->group(
     Route::get('/analytics', App\Http\Livewire\Content\Analytics::class)->name('content.analytics');
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

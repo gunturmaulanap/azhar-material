@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './hooks/useAuth';
+import { useAuth } from './hooks/useAuth';
 import Layout from './components/Layout';
 import Home from './pages/Home';
 import Products from './pages/Products';
@@ -14,7 +14,13 @@ import ContentAdminDashboard from './pages/ContentAdminDashboard';
 import './App.css';
 
 // Protected Route Component
-const ProtectedRoute = ({ children, allowedRoles = [] }) => {
+const ProtectedRoute = ({
+  children,
+  allowedRoles = [],
+}: {
+  children: React.ReactNode;
+  allowedRoles: string[];
+}) => {
   const { user, isAuthenticated, loading } = useAuth();
 
   if (loading) {
@@ -46,7 +52,7 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
 };
 
 // Public Route Component (redirects if already authenticated)
-const PublicRoute = ({ children }) => {
+const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, user } = useAuth();
 
   if (isAuthenticated && user) {
@@ -118,11 +124,7 @@ function AppContent() {
 }
 
 function App() {
-  return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
-  );
+  return <AppContent />;
 }
 
 export default App;
