@@ -21,9 +21,15 @@
                 <h3 class="ml-3 text-lg font-semibold text-gray-900">Profile</h3>
             </div>
             <p class="text-gray-600 mb-4">Kelola informasi profil Anda</p>
-            <a href="{{ route('customer.detail', ['id' => auth()->user()->id]) }}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-                Lihat Profile
-            </a>
+            @if(auth()->guard('customer')->check())
+                <a href="{{ route('customer.detail', ['id' => auth()->guard('customer')->user()->id]) }}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                    Lihat Profile
+                </a>
+            @elseif(auth()->guard('web')->check() && auth()->user()->role === 'customer')
+                <a href="{{ route('customer.detail', ['id' => auth()->user()->id]) }}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                    Lihat Profile
+                </a>
+            @endif
         </div>
 
         <!-- Transactions -->
@@ -37,9 +43,15 @@
                 <h3 class="ml-3 text-lg font-semibold text-gray-900">Transaksi</h3>
             </div>
             <p class="text-gray-600 mb-4">Lihat riwayat transaksi Anda</p>
-            <a href="{{ route('customer.transaction.detail', ['id' => auth()->user()->id]) }}" class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
-                Lihat Transaksi
-            </a>
+            @if(auth()->guard('customer')->check())
+                <a href="{{ route('customer.transaction.detail', ['id' => auth()->guard('customer')->user()->id]) }}" class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
+                    Lihat Transaksi
+                </a>
+            @elseif(auth()->guard('web')->check() && auth()->user()->role === 'customer')
+                <a href="{{ route('customer.transaction.detail', ['id' => auth()->user()->id]) }}" class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
+                    Lihat Transaksi
+                </a>
+            @endif
         </div>
 
         <!-- Deliveries -->
@@ -53,15 +65,27 @@
                 <h3 class="ml-3 text-lg font-semibold text-gray-900">Pengiriman</h3>
             </div>
             <p class="text-gray-600 mb-4">Track status pengiriman barang</p>
-            <a href="{{ route('customer.delivery.detail', ['id' => auth()->user()->id]) }}" class="inline-flex items-center px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700">
-                Track Pengiriman
-            </a>
+            @if(auth()->guard('customer')->check())
+                <a href="{{ route('customer.delivery.detail', ['id' => auth()->guard('customer')->user()->id]) }}" class="inline-flex items-center px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700">
+                    Track Pengiriman
+                </a>
+            @elseif(auth()->guard('web')->check() && auth()->user()->role === 'customer')
+                <a href="{{ route('customer.delivery.detail', ['id' => auth()->user()->id]) }}" class="inline-flex items-center px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700">
+                    Track Pengiriman
+                </a>
+            @endif
         </div>
     </div>
 
     <!-- Welcome Message -->
     <div class="mt-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6">
-        <h2 class="text-xl font-semibold text-gray-900 mb-2">Selamat Datang, {{ auth()->user()->name }}!</h2>
+        @if(auth()->guard('customer')->check())
+            <h2 class="text-xl font-semibold text-gray-900 mb-2">Selamat Datang, {{ auth()->guard('customer')->user()->name }}!</h2>
+        @elseif(auth()->guard('web')->check() && auth()->user()->role === 'customer')
+            <h2 class="text-xl font-semibold text-gray-900 mb-2">Selamat Datang, {{ auth()->user()->name }}!</h2>
+        @else
+            <h2 class="text-xl font-semibold text-gray-900 mb-2">Selamat Datang!</h2>
+        @endif
         <p class="text-gray-600">
             Anda dapat mengakses semua layanan customer melalui dashboard ini. 
             Silakan pilih menu yang ingin Anda akses di atas.

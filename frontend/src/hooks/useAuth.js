@@ -51,7 +51,11 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(true);
       console.log("User authenticated:", user); // Debug log
 
-      return { success: true, redirectUrl };
+      return { 
+        success: true, 
+        redirectUrl,
+        data: response.data // Include full response data for fallback
+      };
     } catch (error) {
       console.error("Login error in useAuth:", error); // Debug log
       return {
