@@ -120,6 +120,7 @@ class AuthenticatedSessionController extends Controller
                 return redirect()->route('customer.detail', ['id' => $user->id]);
             case 'admin':
             case 'super_admin':
+            case 'owner':
                 return redirect()->route('dashboard');
             case 'content-admin':
                 return redirect()->route('content.dashboard');

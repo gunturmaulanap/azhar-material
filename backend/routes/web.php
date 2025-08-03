@@ -29,14 +29,14 @@ Route::middleware(['auth:customer,web'])->group(function () {
     Route::get('/customer/pengiriman-barang/{id}', App\Http\Livewire\Delivery\Detail::class)->name('customer.delivery.detail');
 });
 
-// Main dashboard for Admin & Super Admin
-Route::middleware(['auth', 'role:admin|super_admin'])->group(function () {
+// Main dashboard for Admin & Super Admin & Owner
+Route::middleware(['auth', 'role:admin|super_admin|owner'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/api/sales-percentage-by-category', [DashboardController::class, 'getSalesPercentageByCategory']);
 
 
-    // SUPER ADMIN ACCESS
-    Route::middleware(['role:super_admin'])->group(function () {
+    // SUPER ADMIN & OWNER ACCESS
+    Route::middleware(['role:super_admin|owner'])->group(function () {
         // Data Admin
         Route::get('data-admin', App\Http\Livewire\Master\Admin::class)->name('master.admin');
         Route::get('tambah-data-admin', App\Http\Livewire\Master\AdminForm::class)->name('master.create-admin');

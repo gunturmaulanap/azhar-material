@@ -53,8 +53,11 @@
                         <select wire:model="user.role" id="user.role"
                             class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6">
                             <option value="">Pilih Role</option>
-                            <option value="super_admin">Super Admin</option>
-                            <option value="admin">Admin</option>
+                            @foreach($roles as $role)
+                                <option value="{{ $role->name }}" @if(old('user.role', $user['role'] ?? '') == $role->name) selected @endif>
+                                    {{ ucwords(str_replace(['_', '-'], ' ', $role->name)) }}
+                                </option>
+                            @endforeach
                         </select>
                         @error('user.role')
                             <span class="text-xs text-red-500">{{ $message }}</span>
