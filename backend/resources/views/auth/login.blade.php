@@ -1,4 +1,4 @@
-<x-guest-layout>
+{{-- <x-guest-layout>
     <x-slot name="title">{{ __('Login') }}</x-slot>
 
     <!-- Session Status -->
@@ -42,4 +42,4 @@
             <span class="tracking-normal normal-case">Login now</span>
         </x-primary-button>
     </form>
-</x-guest-layout>
+</x-guest-layout> --}}
