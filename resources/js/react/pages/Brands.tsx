@@ -1,5 +1,5 @@
 import React from 'react';
-import { mockBrands } from '../utils/mockData';
+import { mockBrands } from '../utils/mockData.js';
 
 const Brands: React.FC = () => {
   return (

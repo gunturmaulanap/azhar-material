@@ -1,7 +1,7 @@
 import React from 'react';
 import { Truck, Users, Building, Package, Clock, Shield, MapPin, Phone } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
-import { mockServices } from '../utils/mockData';
+import { mockServices } from '../utils/mockData.js';
 
 const Services: React.FC = () => {
   const iconMap = {

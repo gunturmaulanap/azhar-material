@@ -1,7 +1,7 @@
 import React from 'react';
 import { Handshake, Award, Users, Building2 } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
-import { mockTeamPartners } from '../utils/mockData';
+import { mockTeamPartners } from '../utils/mockData.js';
 
 const Team: React.FC = () => {
   return (

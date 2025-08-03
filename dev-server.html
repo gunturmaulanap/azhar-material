@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="dev-token">
+    <title>Azhar Material - Development Mode</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+                'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+                sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        .dev-notice {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #f59e0b;
+            color: white;
+            padding: 8px;
+            text-align: center;
+            font-size: 14px;
+            z-index: 10000;
+        }
+        
+        #react-root {
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="dev-notice">
+        🚧 Development Mode - Running without Laravel backend
+    </div>
+    <div id="react-root"></div>
+    
+    <!-- Mock API responses for development -->
+    <script>
+        // Mock fetch for API calls during development
+        const originalFetch = window.fetch;
+        window.fetch = function(url, options) {
+            // Mock API responses for development
+            if (url.includes('/api/') || url.startsWith('/api/')) {
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        resolve({
+                            ok: true,
+                            status: 200,
+                            json: () => Promise.resolve({
+                                success: true,
+                                data: [],
+                                message: 'Mock response'
+                            })
+                        });
+                    }, 100);
+                });
+            }
+            return originalFetch.apply(this, arguments);
+        };
+        
+        // Mock axios for API calls
+        window.mockAxios = true;
+    </script>
+    
+    <script type="module" src="/resources/js/react/main.tsx"></script>
+</body>
+</html>
