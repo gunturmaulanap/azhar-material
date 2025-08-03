@@ -15,6 +15,14 @@ export default defineConfig({
         }),
         react({
             include: "**/*.{jsx,tsx}",
+            jsxImportSource: 'react',
+            babel: {
+                plugins: [
+                    ['@babel/plugin-transform-react-jsx', {
+                        'runtime': 'automatic'
+                    }]
+                ]
+            }
         })
     ],
     resolve: {
