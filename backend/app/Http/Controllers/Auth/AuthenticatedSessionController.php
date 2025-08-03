@@ -34,11 +34,13 @@ class AuthenticatedSessionController extends Controller
                 $request->session()->regenerate();
                 return redirect()->route('customer.dashboard');
             }
-            // If customer auth fails, try user authentication as fallback
+            // If customer auth fails, try user authentication as fallback for users with customer role
             if (Auth::guard('web')->attempt($request->only('username', 'password'))) {
                 $request->session()->regenerate();
                 $user = Auth::user();
-                if ($user->role === 'content-admin') {
+                if ($user->role === 'customer') {
+                    return redirect()->route('customer.dashboard');
+                } elseif ($user->role === 'content-admin') {
                     return redirect()->route('content.dashboard');
                 } elseif ($user->role === 'admin' || $user->role === 'super_admin') {
                     return redirect()->route('dashboard');
@@ -55,6 +57,8 @@ class AuthenticatedSessionController extends Controller
                     return redirect()->route('content.dashboard');
                 } elseif ($user->role === 'admin' || $user->role === 'super_admin') {
                     return redirect()->route('dashboard');
+                } elseif ($user->role === 'customer') {
+                    return redirect()->route('customer.dashboard');
                 } else {
                     return redirect(RouteServiceProvider::HOME);
                 }

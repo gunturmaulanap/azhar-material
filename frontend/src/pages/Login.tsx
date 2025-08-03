@@ -96,9 +96,7 @@ const Login = () => {
           let redirectUrl = "/";
           switch (userRole) {
             case "customer":
-              redirectUrl =
-                "http://localhost:8000/sso-login/" +
-                result.data?.data?.user?.id;
+              redirectUrl = "http://localhost:8000/customer/dashboard";
               break;
             case "admin":
             case "super_admin":

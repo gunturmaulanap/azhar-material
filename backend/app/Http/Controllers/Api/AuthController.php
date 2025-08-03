@@ -40,21 +40,26 @@ class AuthController extends Controller
         if (Auth::guard('web')->attempt(['username' => $request->username, 'password' => $request->password])) {
             $user = Auth::user();
 
-            // Tentukan redirect URL berdasarkan role menggunakan SSO
+            // Tentukan redirect URL berdasarkan role
             $redirectUrl = 'http://localhost:3000/'; // Default to React app root
             if ($user->role === 'content-admin') {
                 $redirectUrl = 'http://localhost:8000/sso-login/' . $user->id; // SSO ke Laravel content dashboard
             } elseif ($user->role === 'admin' || $user->role === 'super_admin') {
                 $redirectUrl = 'http://localhost:8000/sso-login/' . $user->id; // SSO ke Laravel dashboard
             } elseif ($user->role === 'customer') {
-                $redirectUrl = 'http://localhost:8000/sso-login/' . $user->id; // SSO ke Laravel dashboard
+                // Customer langsung ke Laravel dashboard tanpa SSO
+                $redirectUrl = 'http://localhost:8000/customer/dashboard';
             }
+
+            // Generate token untuk API authentication
+            $token = $user->createToken('auth-token')->plainTextToken;
 
             return response()->json([
                 'success' => true,
                 'message' => 'Login berhasil',
                 'data' => [
                     'user' => $user,
+                    'token' => $token,
                     'redirectUrl' => $redirectUrl
                 ]
             ]);
