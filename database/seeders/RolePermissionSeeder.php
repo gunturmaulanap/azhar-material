@@ -155,6 +155,9 @@ class RolePermissionSeeder extends Seeder
         foreach ($users as $username => $roleName) {
             $user = User::where('username', $username)->first();
             if ($user) {
+                // Clear existing roles first
+                $user->syncRoles([]);
+                // Assign the new role
                 $user->assignRole($roleName);
                 // Update role field untuk backward compatibility
                 $user->update(['role' => $roleName]);

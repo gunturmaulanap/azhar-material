@@ -52,13 +52,11 @@ class UserSeeder extends Seeder
                     'username' => $userData['username'],
                     'role' => $userData['role'],
                     'password' => $userData['username'] === 'guntur' ? Hash::make('gugun1710') : Hash::make('password'),
+                    'email' => $userData['username'] . '@azharmaterial.com', // Add email for completeness
                 ]
             );
 
-            // Assign Spatie role for all admin users
-            if (in_array($userData['role'], ['super_admin', 'admin', 'content-admin', 'owner'])) {
-                $user->assignRole($userData['role']);
-            }
+            // Role assignment will be handled by RolePermissionSeeder
         }
     }
 }

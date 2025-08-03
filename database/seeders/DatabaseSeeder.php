@@ -16,15 +16,16 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            UserSeeder::class,
+            UserSeeder::class,              // Create users first
+            RolePermissionSeeder::class,    // Then create roles and assign them
             EmployeeSeeder::class,
             // AttendanceSeeder::class,
             SupplierSeeder::class,
             CustomerSeeder::class,
             // CustomerUserSeeder::class, // Menjalankan CustomerUserSeeder setelah CustomerSeeder
             GoodsSeeder::class,
-            ContentSeeder::class, // Menambahkan ContentSeeder untuk data hero-section, brand, dll
-            RolePermissionSeeder::class, // Menambahkan RolePermissionSeeder untuk setup roles dan permissions
+            ContentSeeder::class,           // Content data (hero-section, brand, dll)
+            TestValidationSeeder::class,    // Validate setup
         ]);
     }
 }

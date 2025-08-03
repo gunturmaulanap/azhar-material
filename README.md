@@ -353,22 +353,95 @@ npm run build
 php artisan serve --host=0.0.0.0 --port=8000
 ```
 
-### 🔐 Access Testing
+### 🔐 Access Testing & Validation
+
+#### Database Setup Validation
+```bash
+# Run seeders with validation
+php artisan migrate:fresh --seed
+
+# Check if validation passes (should see ✅ for all items)
+# The TestValidationSeeder will automatically run and show:
+# - ✅ All roles exist (super_admin, admin, content-admin, owner)
+# - ✅ All users exist with correct roles
+# - ✅ Permissions are properly assigned
+```
 
 #### Quick Login Test
 ```bash
-# Super Admin
-URL: http://localhost:8000/admin-login
+# Access Point: http://localhost:8000/admin-login
+
+# Super Admin (Full System Access)
 Username: superadmin | Password: password
+Dashboard: /admin
 
-# Admin
+# Admin (Operational Only)  
 Username: admin | Password: password
+Dashboard: /admin
 
-# Content Admin  
-Username: contentadmin | Password: password
+# Content Admin (Website Content Only)
+Username: contentadmin | Password: password  
+Dashboard: /admin
 
-# Owner
+# Owner (Reports & Stock Only)
 Username: guntur | Password: gugun1710
+Dashboard: /admin
+```
+
+#### Role-Based Access Validation
+
+**Test Super Admin Access:**
+```bash
+# Login as superadmin, then test these URLs:
+✅ /data-admin (Master Data)
+✅ /data-barang (Goods Management)  
+✅ /data-kategori (Categories)
+✅ /data-brand (Brand Management)
+✅ /transaksi (Transactions)
+✅ /data-order (Orders)
+✅ /pengiriman-barang (Delivery)
+✅ /data-hutang (Debt Management)
+✅ /laporan-penjualan (Reports)
+✅ /content/brands (Shared Brand Access)
+❌ /content/hero-sections (Content-Admin Only)
+❌ /content/teams (Content-Admin Only)
+```
+
+**Test Admin Access:**
+```bash
+# Login as admin, then test these URLs:
+✅ /admin/transaksi (Operational Transactions)
+✅ /admin/data-order (Order Management)
+✅ /admin/data-barang (Goods View/Edit)
+✅ /admin/pengiriman-barang (Delivery)
+❌ /data-admin (No Master Data Access)
+❌ /laporan-penjualan (No Reports Access)
+❌ /content/brands (No Content Access)
+```
+
+**Test Content Admin Access:**
+```bash
+# Login as contentadmin, then test these URLs:
+✅ /content/hero-sections (Exclusive)
+✅ /content/brands (Shared with Super Admin)
+✅ /content/teams (Exclusive)
+✅ /content/services (Exclusive)
+✅ /content/about (Exclusive)
+✅ /content/analytics (Exclusive)
+❌ /data-barang (No Business Operations)
+❌ /transaksi (No Transactions)
+```
+
+**Test Owner Access:**
+```bash
+# Login as guntur, then test these URLs:
+✅ /owner/laporan-penjualan (Sales Reports)
+✅ /owner/laporan-barang (Inventory Reports)
+✅ /owner/data-barang (Stock View)
+✅ /owner/kelola-stok-barang (Stock Management)
+❌ /transaksi (No Daily Operations)
+❌ /data-admin (No User Management)
+❌ /content/brands (No Content Access)
 ```
 
 ## 🛠️ Development
@@ -428,14 +501,94 @@ Lihat [MIGRATION-GUIDE.md](MIGRATION-GUIDE.md) untuk detail lengkap.
 - [🔄 Migration Guide](MIGRATION-GUIDE.md) - Migration from separate ports
 - [📋 Original Structure](STRUCTURE.md) - Legacy structure reference
 
-## 🛠️ Troubleshooting
+## 🛠️ Troubleshooting & Common Issues
 
-### Common Issues:
+### Authentication & Role Issues
 
-1. **React tidak loading**: `npm run build`
-2. **Database error**: Check `.env` dan `php artisan migrate --seed`
-3. **Permission denied**: `chmod +x start-unified.sh`
-4. **API tidak accessible**: `php artisan route:list | grep api`
+**Problem**: User can't access certain routes after login
+```bash
+# Solution 1: Clear and rebuild roles
+php artisan permission:cache-reset
+php artisan db:seed --class=RolePermissionSeeder
+
+# Solution 2: Check user roles
+php artisan tinker
+>>> $user = App\Models\User::where('username', 'superadmin')->first();
+>>> $user->getRoleNames(); // Should show ['super_admin']
+>>> $user->role; // Should match Spatie role
+```
+
+**Problem**: "Role does not exist" error
+```bash
+# Solution: Rebuild roles and permissions
+php artisan migrate:fresh --seed
+# Look for ✅ validation messages
+```
+
+**Problem**: Access denied on valid routes
+```bash
+# Solution: Check middleware and route names
+php artisan route:list | grep "role:"
+# Verify route middleware matches user roles
+```
+
+### Database & Migration Issues
+
+**Problem**: Migration fails
+```bash
+# Solution: Fresh migration
+php artisan migrate:fresh --seed
+php artisan storage:link
+```
+
+**Problem**: Seeder validation fails
+```bash
+# Check specific seeder
+php artisan db:seed --class=UserSeeder
+php artisan db:seed --class=RolePermissionSeeder
+php artisan db:seed --class=TestValidationSeeder
+```
+
+### Application Issues
+
+**Problem**: React SPA not loading
+```bash
+# Solution: Rebuild assets
+npm run build
+php artisan view:clear
+php artisan config:clear
+```
+
+**Problem**: Livewire components not working
+```bash
+# Solution: Clear all caches
+php artisan optimize:clear
+php artisan livewire:publish --config
+```
+
+**Problem**: Session issues
+```bash
+# Solution: Check session configuration
+php artisan session:table
+php artisan migrate
+# Ensure APP_KEY is set: php artisan key:generate
+```
+
+### Quick System Validation
+```bash
+# Complete system validation script
+php artisan migrate:fresh --seed && \
+php artisan storage:link && \
+npm run build && \
+echo "🎉 System ready for testing!"
+
+# Test all user logins
+echo "Testing Super Admin..." && \
+echo "Testing Admin..." && \
+echo "Testing Content Admin..." && \
+echo "Testing Owner..." && \
+echo "✅ All accounts ready!"
+```
 
 ## 📈 Performance
 
