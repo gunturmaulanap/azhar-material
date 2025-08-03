@@ -53,6 +53,16 @@ class DashboardController extends Controller
 
     public function index()
     {
+        // Check if authenticated via customer guard
+        if (auth()->guard('customer')->check()) {
+            return view('customer.dashboard');
+        }
+
+        // Check if authenticated via web guard and has customer role
+        if (auth()->guard('web')->check() && auth()->user()->role === 'customer') {
+            return view('customer.dashboard');
+        }
+
         return view('dashboard');
     }
 }

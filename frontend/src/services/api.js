@@ -1,5 +1,5 @@
-import axios from 'axios';
-import { apiConfig, getCSRFToken, endpoints } from '../config/api';
+import axios from "axios";
+import { apiConfig, getCSRFToken, endpoints } from "../config/api";
 
 // Create axios instance with default config
 const api = axios.create(apiConfig);
@@ -9,15 +9,15 @@ api.interceptors.request.use(
   (config) => {
     const token = getCSRFToken();
     if (token) {
-      config.headers['X-CSRF-TOKEN'] = token;
+      config.headers["X-CSRF-TOKEN"] = token;
     }
-    
+
     // Add Authorization header if user is authenticated
-    const authToken = localStorage.getItem('auth_token');
+    const authToken = localStorage.getItem("auth_token");
     if (authToken) {
-      config.headers['Authorization'] = `Bearer ${authToken}`;
+      config.headers["Authorization"] = `Bearer ${authToken}`;
     }
-    
+
     return config;
   },
   (error) => {
@@ -33,8 +33,8 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       // Handle unauthorized access
-      localStorage.removeItem('auth_token');
-      window.location.href = '/login';
+      localStorage.removeItem("auth_token");
+      window.location.href = "/login";
     }
     return Promise.reject(error);
   }
@@ -42,7 +42,10 @@ api.interceptors.response.use(
 
 // Auth services
 export const authService = {
-  login: (credentials) => api.post(endpoints.login, credentials),
+  login: (credentials) => {
+    console.log("Making login request to:", endpoints.login); // Debug log
+    return api.post(endpoints.login, credentials);
+  },
   register: (userData) => api.post(endpoints.register, userData),
   logout: () => api.post(endpoints.logout),
   getUser: () => api.get(endpoints.user),
@@ -57,23 +60,29 @@ export const productService = {
   getBrands: () => api.get(endpoints.brands),
 };
 
-// Hero Section services
-export const heroSectionService = {
-  getAll: () => api.get(endpoints.heroSections),
-  getById: (id) => api.get(endpoints.heroSection(id)),
-  getActive: () => api.get(endpoints.activeHeroSection),
-};
-
-// Brand services
-export const brandService = {
-  getAll: () => api.get(endpoints.brands),
-  getById: (id) => api.get(endpoints.brand(id)),
-  getActive: () => api.get(endpoints.activeBrands),
-};
-
 // Contact services
 export const contactService = {
   send: (data) => api.post(endpoints.contact, data),
 };
 
-export default api; 
+// Hero Section services
+export const heroSectionService = {
+  getAll: (params = {}) => api.get(endpoints.heroSections, { params }),
+  getById: (id) => api.get(endpoints.heroSection(id)),
+  getActive: () => api.get(endpoints.activeHeroSection),
+  create: (data) => api.post(endpoints.heroSections, data),
+  update: (id, data) => api.put(endpoints.heroSection(id), data),
+  delete: (id) => api.delete(endpoints.heroSection(id)),
+};
+
+// Brand services
+export const brandService = {
+  getAll: (params = {}) => api.get(endpoints.brands, { params }),
+  getById: (id) => api.get(endpoints.brand(id)),
+  getActive: () => api.get(endpoints.activeBrands),
+  create: (data) => api.post(endpoints.brands, data),
+  update: (id, data) => api.put(endpoints.brand(id), data),
+  delete: (id) => api.delete(endpoints.brand(id)),
+};
+
+export default api;

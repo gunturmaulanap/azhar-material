@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Azhar Material - Development Startup Script (Updated Structure)
+# Azhar Material - Development Startup Script
 echo "🚀 Starting Azhar Material Development Environment..."
 
 # Function to check if a command exists
@@ -12,7 +12,7 @@ command_exists() {
 echo "📋 Checking prerequisites..."
 
 if ! command_exists php; then
-    echo "❌ PHP is not installed. Please install PHP 8.3.9+"
+    echo "❌ PHP is not installed. Please install PHP 8.1+"
     exit 1
 fi
 
@@ -26,16 +26,16 @@ if ! command_exists node; then
     exit 1
 fi
 
-if ! command_exists yarn; then
-    echo "⚠️ yarn not found, installing yarn globally..."
-    npm install -g yarn
+if ! command_exists npm; then
+    echo "❌ npm is not installed. Please install npm"
+    exit 1
 fi
 
 echo "✅ All prerequisites are installed"
 
 # Start Laravel Backend
 echo "🔧 Starting Laravel Backend..."
-cd backend
+cd inventory-azhar
 
 # Check if .env exists
 if [ ! -f .env ]; then
@@ -51,14 +51,6 @@ if [ ! -d "vendor" ]; then
     composer install
 fi
 
-# Generate application key if needed
-php artisan key:generate --force
-
-# Run migrations and seeders
-echo "🗃️ Setting up database..."
-php artisan migrate --force
-php artisan db:seed --force
-
 # Start Laravel server in background
 echo "🌐 Starting Laravel server on http://localhost:8000"
 php artisan serve --host=0.0.0.0 --port=8000 &
@@ -69,17 +61,23 @@ sleep 3
 
 # Start React Frontend
 echo "⚛️  Starting React Frontend..."
-cd ../frontend
+cd ../abu/frontend
 
 # Install dependencies if needed
 if [ ! -d "node_modules" ]; then
     echo "📦 Installing React dependencies..."
-    yarn install
+    npm install
+fi
+
+# Check if .env exists
+if [ ! -f .env ]; then
+    echo "📝 Creating .env file..."
+    cp env.example .env
 fi
 
 # Start React server
 echo "🌐 Starting React server on http://localhost:3000"
-yarn start &
+npm start &
 REACT_PID=$!
 
 # Function to cleanup on exit
@@ -99,7 +97,7 @@ echo "🎉 Development environment is running!"
 echo ""
 echo "📱 Frontend (React): http://localhost:3000"
 echo "🔧 Backend (Laravel): http://localhost:8000"
-echo "📊 Laravel Admin: http://localhost:8000/admin"
+echo "📊 Laravel Admin: http://localhost:8000/login"
 echo ""
 echo "Press Ctrl+C to stop all servers"
 echo ""

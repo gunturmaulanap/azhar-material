@@ -1,10 +1,10 @@
 # Azhar Material - Project
 
-## 🏗️ Struktur Project (Updated)
+## 🏗️ Struktur Project
 
 ```
 Azhar Material - Project/
-├── 📁 backend/                   # Backend Laravel Livewire (Admin Panel)
+├── 📁 inventory-azhar/          # Backend Laravel Livewire (Admin Panel)
 │   ├── 📁 app/
 │   │   ├── 📁 Http/
 │   │   │   ├── 📁 Controllers/Api/  # API Controllers untuk React
@@ -28,23 +28,24 @@ Azhar Material - Project/
 │   │   ├── api.php              # API Routes untuk React
 │   │   └── web.php              # Web Routes untuk Admin
 │   └── 📁 resources/views/      # Blade Views untuk Admin
-├── 📁 frontend/                  # Frontend React (Company Profile)
-│   ├── 📁 src/
-│   │   ├── 📁 pages/        # React Pages (.tsx)
-│   │   │   ├── Home.tsx
-│   │   │   ├── Products.tsx
-│   │   │   ├── Login.tsx
-│   │   │   └── ...
-│   │   ├── 📁 components/   # React Components (.tsx)
-│   │   │   ├── Layout.tsx
-│   │   │   └── 📁 ui/       # UI Components
-│   │   ├── 📁 services/     # API Services (.js)
-│   │   │   └── api.js
-│   │   ├── 📁 hooks/        # Custom Hooks (.js)
-│   │   │   └── useAuth.js
-│   │   └── 📁 config/       # Configuration (.js)
-│   │       └── api.js
-│   └── 📁 public/           # Static Assets
+├── 📁 abu/                      # Frontend React (Company Profile)
+│   └── 📁 frontend/
+│       ├── 📁 src/
+│       │   ├── 📁 pages/        # React Pages (.tsx)
+│       │   │   ├── Home.tsx
+│       │   │   ├── Products.tsx
+│       │   │   ├── Login.tsx
+│       │   │   └── ...
+│       │   ├── 📁 components/   # React Components (.tsx)
+│       │   │   ├── Layout.tsx
+│       │   │   └── 📁 ui/       # UI Components
+│       │   ├── 📁 services/     # API Services (.js)
+│       │   │   └── api.js
+│       │   ├── 📁 hooks/        # Custom Hooks (.js)
+│       │   │   └── useAuth.js
+│       │   └── 📁 config/       # Configuration (.js)
+│       │       └── api.js
+│       └── 📁 public/           # Static Assets
 ├── 🚀 start-dev.sh              # Development script (macOS/Linux)
 ├── 🚀 start-dev.bat             # Development script (Windows)
 ├── 📋 run-seeder.sh             # Database seeder script
@@ -55,12 +56,12 @@ Azhar Material - Project/
 
 ## 🎯 Teknologi yang Digunakan
 
-### 📁 `backend/` - Backend Laravel Livewire
+### 📁 `inventory-azhar/` - Backend Laravel Livewire
+
 - **Framework**: Laravel 10 + Livewire
 - **Database**: MySQL
-- **PHP Version**: 8.3.9+
 - **Port**: 8000 (http://localhost:8000)
-- **Fitur**: 
+- **Fitur**:
   - ✅ POS (Point of Sale)
   - ✅ Inventory Management
   - ✅ Delivery Management
@@ -71,7 +72,8 @@ Azhar Material - Project/
   - ✅ Hero Section CRUD
   - ✅ Brand Management CRUD
 
-### 📁 `frontend/` - Frontend React Company Profile
+### 📁 `abu/` - Frontend React Company Profile
+
 - **Framework**: React + TypeScript
 - **UI Library**: Tailwind CSS + Shadcn/ui
 - **Port**: 3000 (http://localhost:3000)
@@ -89,11 +91,13 @@ Azhar Material - Project/
 ### Option 1: Automated Setup (Recommended)
 
 **macOS/Linux:**
+
 ```bash
 ./start-dev.sh
 ```
 
 **Windows:**
+
 ```bash
 start-dev.bat
 ```
@@ -101,8 +105,9 @@ start-dev.bat
 ### Option 2: Manual Setup
 
 #### Backend (Laravel Livewire)
+
 ```bash
-cd backend
+cd inventory-azhar
 composer install
 cp .env.example .env
 php artisan key:generate
@@ -113,11 +118,12 @@ php artisan serve
 ```
 
 #### Frontend (React)
+
 ```bash
-cd frontend
-yarn install
+cd abu/frontend
+npm install
 cp env.example .env
-yarn start
+npm start
 ```
 
 ## 🔗 URLs
@@ -129,36 +135,25 @@ yarn start
 
 ## 📋 Prerequisites
 
-- PHP 8.3.9+
+- PHP 8.1+
 - Composer
 - Node.js 16+
 - MySQL 8.0+
-- Yarn (recommended)
 - Laravel Sanctum (sudah terinstall)
-
-## 🗃️ Database Configuration
-
-Konfigurasi database pada `.env`:
-```env
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=8889
-DB_DATABASE=inventory-azhar
-DB_USERNAME=root
-DB_PASSWORD=root
-```
 
 ## 🔧 API Integration
 
 Frontend React mengambil data dari backend Laravel melalui API endpoints:
 
 ### Authentication
+
 - `POST /api/auth/login` - Login user
 - `POST /api/auth/register` - Register user
 - `POST /api/auth/logout` - Logout user (protected)
 - `GET /api/user` - Get user info (protected)
 
 ### Products
+
 - `GET /api/products` - Get all products
 - `GET /api/products/{id}` - Get product by ID
 - `GET /api/products/featured` - Get featured products
@@ -166,20 +161,24 @@ Frontend React mengambil data dari backend Laravel melalui API endpoints:
 - `GET /api/brands` - Get all brands
 
 ### Hero Section
+
 - `GET /api/hero-sections` - Get all hero sections
 - `GET /api/hero-sections/{id}` - Get hero section by ID
 - `GET /api/hero-sections/active` - Get active hero section
 
 ### Brand
+
 - `GET /api/brands/active` - Get active brands
 - `GET /api/brands/{id}` - Get brand by ID
 
 ### Contact
+
 - `POST /api/contact` - Send contact message
 
 ## 🛠️ Development
 
 ### Backend Development (Laravel Livewire)
+
 - Laravel Livewire untuk admin panel
 - API endpoints untuk frontend React
 - MySQL database
@@ -187,6 +186,7 @@ Frontend React mengambil data dari backend Laravel melalui API endpoints:
 - CRUD untuk Hero Section dan Brand
 
 ### Frontend Development (React)
+
 - React dengan TypeScript
 - Tailwind CSS untuk styling
 - Shadcn/ui untuk components
@@ -197,12 +197,14 @@ Frontend React mengambil data dari backend Laravel melalui API endpoints:
 ## 🎨 Admin Panel Features
 
 ### Hero Section Management
+
 - Create, Read, Update, Delete hero sections
 - Upload background images
 - Set active/inactive status
 - Dynamic content for company profile
 
 ### Brand Management
+
 - Create, Read, Update, Delete brands
 - Upload brand logos
 - Set active/inactive status
@@ -211,18 +213,22 @@ Frontend React mengambil data dari backend Laravel melalui API endpoints:
 ## 🐛 Troubleshooting
 
 ### CORS Issues
+
 Jika ada masalah CORS, pastikan konfigurasi CORS di Laravel sudah benar:
-- File: `backend/config/cors.php`
+
+- File: `inventory-azhar/config/cors.php`
 - Pastikan `allowed_origins` sudah diset ke `['*']` atau `['http://localhost:3000']`
 
 ### Database Connection
+
 - Pastikan MySQL server berjalan
 - Periksa konfigurasi database di `.env`
 - Jalankan `php artisan migrate:fresh --seed` jika perlu reset database
 
 ### API Connection
+
 - Pastikan backend Laravel berjalan di port 8000
-- Periksa URL API di frontend: `frontend/src/config/api.js`
+- Periksa URL API di frontend: `abu/frontend/src/config/api.js`
 - Pastikan tidak ada firewall yang memblokir koneksi
 
 ## 📚 Documentation
@@ -241,14 +247,6 @@ Jika ada masalah CORS, pastikan konfigurasi CORS di Laravel sudah benar:
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## ⚡ Performance Optimizations
-
-- Menggunakan Yarn untuk dependency management (lebih cepat dari npm)
-- CRACO configuration untuk optimisasi webpack
-- Hot reload dioptimisasi untuk mengurangi CPU usage
-- Database indexing untuk query yang lebih cepat
-- PHP 8.3.9 compatibility untuk performa terbaru
-
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
@@ -256,4 +254,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📞 Support
 
 - Email: azharmaterial@gmail.com
-- WhatsApp: 081392854911 
+- WhatsApp: 081392854911

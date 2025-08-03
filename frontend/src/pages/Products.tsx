@@ -57,11 +57,18 @@ const Products: React.FC = () => {
         productService.getBrands()
       ]);
 
-      setProducts(productsRes.data.data);
-      setCategories(categoriesRes.data.data);
-      setBrands(brandsRes.data.data);
+      // Handle paginated data structure
+      const productsData = productsRes.data.data;
+      const productsArray = productsData.data || productsData; // Handle both paginated and non-paginated responses
+      
+      setProducts(Array.isArray(productsArray) ? productsArray : []);
+      setCategories(categoriesRes.data.data || []);
+      setBrands(brandsRes.data.data || []);
     } catch (error) {
       console.error('Error fetching data:', error);
+      setProducts([]);
+      setCategories([]);
+      setBrands([]);
     } finally {
       setLoading(false);
     }

@@ -15,10 +15,21 @@ class CheckRole
      */
     public function handle(Request $request, Closure $next, ...$roles): Response
     {
-        if (in_array($request->user()->role, $roles)) {
-            return $next($request);
-        } else {
-            return back();
+        $user = $request->user();
+        
+        // If user is authenticated via customer guard, treat as customer role
+        if (auth()->guard('customer')->check()) {
+            if (in_array('customer', $roles)) {
+                return $next($request);
+            }
         }
+        // If user is authenticated via web guard, check their role
+        elseif (auth()->guard('web')->check() && isset($user->role)) {
+            if (in_array($user->role, $roles)) {
+                return $next($request);
+            }
+        }
+        
+        return back();
     }
 }

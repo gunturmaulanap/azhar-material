@@ -4,7 +4,7 @@
 
 ```
 Azhar Material - Project/
-├── 📁 backend/                   # Backend Laravel Livewire (Admin Panel)
+├── 📁 inventory-azhar/          # Backend Laravel Livewire (Admin Panel)
 │   ├── 📁 app/
 │   │   ├── 📁 Http/
 │   │   │   ├── 📁 Controllers/Api/  # API Controllers untuk React
@@ -28,23 +28,24 @@ Azhar Material - Project/
 │   │   ├── api.php              # API Routes untuk React
 │   │   └── web.php              # Web Routes untuk Admin
 │   └── 📁 resources/views/      # Blade Views untuk Admin
-├── 📁 frontend/                  # Frontend React (Company Profile)
-│   ├── 📁 src/
-│   │   ├── 📁 pages/        # React Pages (.tsx)
-│   │   │   ├── Home.tsx
-│   │   │   ├── Products.tsx
-│   │   │   ├── Login.tsx
-│   │   │   └── ...
-│   │   ├── 📁 components/   # React Components (.tsx)
-│   │   │   ├── Layout.tsx
-│   │   │   └── 📁 ui/       # UI Components
-│   │   ├── 📁 services/     # API Services (.js)
-│   │   │   └── api.js
-│   │   ├── 📁 hooks/        # Custom Hooks (.js)
-│   │   │   └── useAuth.js
-│   │   └── 📁 config/       # Configuration (.js)
-│   │       └── api.js
-│   └── 📁 public/           # Static Assets
+├── 📁 abu/                      # Frontend React (Company Profile)
+│   └── 📁 frontend/
+│       ├── 📁 src/
+│       │   ├── 📁 pages/        # React Pages (.tsx)
+│       │   │   ├── Home.tsx
+│       │   │   ├── Products.tsx
+│       │   │   ├── Login.tsx
+│       │   │   └── ...
+│       │   ├── 📁 components/   # React Components (.tsx)
+│       │   │   ├── Layout.tsx
+│       │   │   └── 📁 ui/       # UI Components
+│       │   ├── 📁 services/     # API Services (.js)
+│       │   │   └── api.js
+│       │   ├── 📁 hooks/        # Custom Hooks (.js)
+│       │   │   └── useAuth.js
+│       │   └── 📁 config/       # Configuration (.js)
+│       │       └── api.js
+│       └── 📁 public/           # Static Assets
 ├── 🚀 start-dev.sh              # Development script (macOS/Linux)
 ├── 🚀 start-dev.bat             # Development script (Windows)
 ├── 📋 run-seeder.sh             # Database seeder script
@@ -58,7 +59,7 @@ Azhar Material - Project/
 
 ## 🎯 Penjelasan Struktur
 
-### 📁 `backend/` - Backend Laravel Livewire
+### 📁 `inventory-azhar/` - Backend Laravel Livewire
 
 **Tujuan**: Admin Panel dan API untuk React
 
@@ -92,7 +93,7 @@ Azhar Material - Project/
 - **2024_12_19_000003_create_hero_sections_table.php**
 - **2024_12_19_000004_add_fields_to_brands_table.php**
 
-### 📁 `frontend/` - Frontend React
+### 📁 `abu/` - Frontend React
 
 **Tujuan**: Company Profile Website
 

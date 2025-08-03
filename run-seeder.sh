@@ -3,7 +3,7 @@
 # Azhar Material - Database Seeder Script
 echo "🌱 Running Database Seeders..."
 
-cd backend
+cd inventory-azhar
 
 # Check if .env exists
 if [ ! -f .env ]; then

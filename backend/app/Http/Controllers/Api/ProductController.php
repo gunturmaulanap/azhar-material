@@ -20,18 +20,33 @@ class ProductController extends Controller
         }
 
         // Filter by category
-        if ($request->has('category_id') && $request->category_id) {
+        if ($request->has('category_id') && $request->category_id != 'all') {
             $query->where('category_id', $request->category_id);
         }
 
         // Filter by brand
-        if ($request->has('brand_id') && $request->brand_id) {
+        if ($request->has('brand_id') && $request->brand_id != 'all') {
             $query->where('brand_id', $request->brand_id);
         }
 
-        // Pagination
-        $perPage = $request->get('per_page', 12);
-        $products = $query->paginate($perPage);
+        // Sort functionality
+        $sortBy = $request->get('sort_by', 'name');
+        $sortOrder = $request->get('sort_order', 'asc');
+
+        switch ($sortBy) {
+            case 'price-low':
+                $query->orderBy('price', 'asc');
+                break;
+            case 'price-high':
+                $query->orderBy('price', 'desc');
+                break;
+            case 'name':
+            default:
+                $query->orderBy('name', $sortOrder);
+                break;
+        }
+
+        $products = $query->paginate(12);
 
         return response()->json([
             'success' => true,
@@ -46,7 +61,7 @@ class ProductController extends Controller
         if (!$product) {
             return response()->json([
                 'success' => false,
-                'message' => 'Produk tidak ditemukan'
+                'message' => 'Product not found'
             ], 404);
         }
 
@@ -56,9 +71,22 @@ class ProductController extends Controller
         ]);
     }
 
+    public function featured()
+    {
+        $featuredProducts = Goods::with(['category', 'brand'])
+            ->inRandomOrder()
+            ->limit(6)
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $featuredProducts
+        ]);
+    }
+
     public function categories()
     {
-        $categories = Category::all();
+        $categories = Category::orderBy('name', 'asc')->get();
 
         return response()->json([
             'success' => true,
@@ -68,25 +96,11 @@ class ProductController extends Controller
 
     public function brands()
     {
-        $brands = Brand::all();
+        $brands = Brand::orderBy('name', 'asc')->get();
 
         return response()->json([
             'success' => true,
             'data' => $brands
-        ]);
-    }
-
-    public function featured()
-    {
-        $featuredProducts = Goods::with(['category', 'brand'])
-            ->where('stock', '>', 0)
-            ->orderBy('created_at', 'desc')
-            ->limit(8)
-            ->get();
-
-        return response()->json([
-            'success' => true,
-            'data' => $featuredProducts
         ]);
     }
 }

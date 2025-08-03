@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ $title ?? config('app.name') }}</title>
+    <title>@yield('title', $title ?? config('app.name'))</title>
     <link rel="icon" type="image/png" href="{{ asset('img/azhar.png') }}">
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -40,11 +40,23 @@
                                     class="text-2xl uppercase tracking-widest font-[1000] subpixel-antialiased">
                                     {{ __('inventory') }}
                                 </a>
-                            @else
-                                <a href="{{ route('customer.detail', ['id' => Auth::guard('customer')->user()->id]) }}"
+                            @elseif (auth()->user()->role === 'content-admin')
+                                <a href="{{ route('content.dashboard') }}"
                                     class="text-2xl uppercase tracking-widest font-[1000] subpixel-antialiased">
-                                    {{ __('inventory') }}
+                                    {{ __('content') }}
                                 </a>
+                            @else
+                                @if (Auth::guard('customer')->check())
+                                    <a href="{{ route('customer.detail', ['id' => Auth::guard('customer')->user()->id]) }}"
+                                        class="text-2xl uppercase tracking-widest font-[1000] subpixel-antialiased">
+                                        {{ __('inventory') }}
+                                    </a>
+                                @else
+                                    <a href="{{ route('customer.dashboard') }}"
+                                        class="text-2xl uppercase tracking-widest font-[1000] subpixel-antialiased">
+                                        {{ __('inventory') }}
+                                    </a>
+                                @endif
                             @endif
 
                             <!-- Settings Dropdown -->
@@ -153,26 +165,34 @@
                 <aside :class="side ? 'block' : 'hidden'" class="w-[400px] bg-white shadow-lg xl:block">
                     @include('layouts.sidebar')
                 </aside>
+            @elseif (auth()->user()->role === 'content-admin')
+                {{-- Content Admin doesn't need sidebar for now --}}
             @endif
             <div class="w-full">
                 {{-- HEADER --}}
                 <header class="bg-white shadow">
                     <div class="max-w-7xl mx-auto sm:flex items-center py-6 px-4 sm:px-8 divide-x">
                         <h2 class="font-semibold mb-4 sm:mb-0 text-xl text-gray-800 leading-tight pr-4">
-                            {{ $title ?? '' }}
+                            @yield('title', $title ?? '')
                         </h2>
                         <nav aria-label="Breadcrumb" class="ps-4 sm:ps-6">
                             <ol class="flex items-center gap-1 text-sm text-gray-600">
                                 <li>
-                                    <a href="{{ route('dashboard') }}" class="block transition hover:text-gray-900">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="size-5 mb-1" fill="none"
-                                            viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                                        </svg>
+                                    @if (auth()->user()->role === 'content-admin')
+                                        <a href="{{ route('content.dashboard') }}"
+                                            class="block transition hover:text-gray-900">
+                                        @else
+                                            <a href="{{ route('dashboard') }}"
+                                                class="block transition hover:text-gray-900">
+                                    @endif
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-5 mb-1" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                                    </svg>
                                     </a>
                                 </li>
-                                {{ $breadcrumb ?? '' }}
+                                @yield('breadcrumb', $breadcrumb ?? '')
                             </ol>
                         </nav>
                     </div>
@@ -181,7 +201,11 @@
                 {{-- MAIN CONTENT --}}
                 <main class="overflow-y-auto h-[78vh]">
                     <div class="max-w-7xl mx-auto px-4 py-4 sm:px-8 sm:py-6">
-                        {{ $slot }}
+                        @if (isset($slot))
+                            {{ $slot }}
+                        @else
+                            @yield('content')
+                        @endif
                     </div>
                 </main>
             </div>

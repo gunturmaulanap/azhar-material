@@ -29,6 +29,7 @@ class LoginRequest extends FormRequest
         return [
             'username' => ['required', 'string'],
             'password' => ['required', 'string'],
+            'login_type' => ['nullable', 'string', 'in:user,customer'],
         ];
     }
 
@@ -41,18 +42,9 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        // Tentukan guard berdasarkan parameter 'is_customer'
-        $guard = $this->has('is_customer') && $this->boolean('is_customer') ? 'customer' : 'web';
-
-        // Gunakan guard yang sesuai untuk otentikasi
-        if (!Auth::guard($guard)->attempt($this->only('username', 'password'), $this->boolean('remember'))) {
-            RateLimiter::hit($this->throttleKey());
-
-            throw ValidationException::withMessages([
-                'username' => trans('auth.failed'),
-            ]);
-        }
-
+        // Authentication logic is now handled in the controller
+        // This method is kept for compatibility but logic moved to AuthenticatedSessionController
+        
         RateLimiter::clear($this->throttleKey());
     }
 

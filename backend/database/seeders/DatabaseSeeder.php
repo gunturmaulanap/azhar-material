@@ -21,7 +21,9 @@ class DatabaseSeeder extends Seeder
             // AttendanceSeeder::class,
             SupplierSeeder::class,
             CustomerSeeder::class,
+            CustomerUserSeeder::class, // Menjalankan CustomerUserSeeder setelah CustomerSeeder
             GoodsSeeder::class,
+            ContentSeeder::class, // Menambahkan ContentSeeder untuk data hero-section, brand, dll
         ]);
     }
 }

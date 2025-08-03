@@ -9,53 +9,59 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
+
 class AuthController extends Controller
 {
     public function login(Request $request)
     {
         $request->validate([
-            'username' => 'required',
+            'username' => 'required|string',
             'password' => 'required',
-            'role' => 'required|in:customer,admin,superadmin,content-admin'
+            'role' => 'required|string',
         ]);
 
-        $credentials = [
-            'username' => $request->username,
-            'password' => $request->password,
-        ];
+        // Cek apakah user ada dan role sesuai
+        $user = User::where('username', $request->username)->first();
 
-        if (Auth::attempt($credentials)) {
+        if (!$user) {
+            throw ValidationException::withMessages([
+                'username' => ['Username tidak ditemukan.'],
+            ]);
+        }
+
+        // Validasi role
+        if ($user->role !== $request->role) {
+            throw ValidationException::withMessages([
+                'role' => ['Role yang dipilih tidak sesuai dengan akun Anda.'],
+            ]);
+        }
+
+        // Coba login
+        if (Auth::guard('web')->attempt(['username' => $request->username, 'password' => $request->password])) {
             $user = Auth::user();
-            
-            // Check if user has the requested role
-            if ($user->role !== $request->role) {
-                Auth::logout();
-                throw ValidationException::withMessages([
-                    'role' => ['Role tidak sesuai dengan akun Anda.'],
-                ]);
-            }
 
-            $token = $user->createToken('auth-token')->plainTextToken;
+            // Tentukan redirect URL berdasarkan role menggunakan SSO
+            $redirectUrl = 'http://localhost:3000/'; // Default to React app root
+            if ($user->role === 'content-admin') {
+                $redirectUrl = 'http://localhost:8000/sso-login/' . $user->id; // SSO ke Laravel content dashboard
+            } elseif ($user->role === 'admin' || $user->role === 'super_admin') {
+                $redirectUrl = 'http://localhost:8000/sso-login/' . $user->id; // SSO ke Laravel dashboard
+            } elseif ($user->role === 'customer') {
+                $redirectUrl = 'http://localhost:8000/sso-login/' . $user->id; // SSO ke Laravel dashboard
+            }
 
             return response()->json([
                 'success' => true,
                 'message' => 'Login berhasil',
                 'data' => [
-                    'user' => [
-                        'id' => $user->id,
-                        'name' => $user->name,
-                        'username' => $user->username,
-                        'role' => $user->role,
-                        'phone' => $user->phone,
-                        'address' => $user->address,
-                    ],
-                    'token' => $token,
+                    'user' => $user,
+                    'redirectUrl' => $redirectUrl
                 ]
             ]);
         }
 
         throw ValidationException::withMessages([
-            'username' => ['Username atau password salah.'],
+            'password' => ['Password salah.'],
         ]);
     }
 
@@ -63,20 +69,14 @@ class AuthController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'username' => 'required|string|max:255|unique:users',
+            'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
-            'phone' => 'nullable|string|max:15',
-            'address' => 'nullable|string',
-            'role' => 'in:customer,admin,superadmin,content-admin'
         ]);
 
         $user = User::create([
             'name' => $request->name,
-            'username' => $request->username,
+            'email' => $request->email,
             'password' => Hash::make($request->password),
-            'phone' => $request->phone,
-            'address' => $request->address,
-            'role' => $request->role ?? 'customer', // Default to customer
         ]);
 
         $token = $user->createToken('auth-token')->plainTextToken;
@@ -85,17 +85,10 @@ class AuthController extends Controller
             'success' => true,
             'message' => 'Registrasi berhasil',
             'data' => [
-                'user' => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'username' => $user->username,
-                    'role' => $user->role,
-                    'phone' => $user->phone,
-                    'address' => $user->address,
-                ],
+                'user' => $user,
                 'token' => $token,
             ]
-        ], 201);
+        ]);
     }
 
     public function logout(Request $request)
@@ -112,14 +105,7 @@ class AuthController extends Controller
     {
         return response()->json([
             'success' => true,
-            'data' => [
-                'id' => $request->user()->id,
-                'name' => $request->user()->name,
-                'username' => $request->user()->username,
-                'role' => $request->user()->role,
-                'phone' => $request->user()->phone,
-                'address' => $request->user()->address,
-            ]
+            'data' => $request->user()
         ]);
     }
 }

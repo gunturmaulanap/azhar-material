@@ -1,12 +1,12 @@
-import { useState, useEffect, createContext, useContext } from 'react';
-import { authService } from '../services/api';
+import { useState, useEffect, createContext, useContext } from "react";
+import { authService } from "../services/api";
 
 const AuthContext = createContext();
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
@@ -14,37 +14,49 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     checkAuth();
   }, []);
 
   const checkAuth = async () => {
-    const token = localStorage.getItem('auth_token');
-    if (token) {
-      try {
+    try {
+      const token = localStorage.getItem("auth_token");
+      if (token) {
         const response = await authService.getUser();
         setUser(response.data.data);
-      } catch (error) {
-        localStorage.removeItem('auth_token');
+        setIsAuthenticated(true);
       }
+    } catch (error) {
+      localStorage.removeItem("auth_token");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const login = async (credentials) => {
     try {
+      console.log("Attempting login with credentials:", credentials); // Debug log
       const response = await authService.login(credentials);
-      const { user, token } = response.data.data;
-      
-      localStorage.setItem('auth_token', token);
+      console.log("API response:", response.data); // Debug log
+
+      const { user, token, redirectUrl } = response.data.data;
+
+      if (token) {
+        localStorage.setItem("auth_token", token);
+        console.log("Token stored in localStorage"); // Debug log
+      }
       setUser(user);
-      
-      return { success: true, data: response.data };
+      setIsAuthenticated(true);
+      console.log("User authenticated:", user); // Debug log
+
+      return { success: true, redirectUrl };
     } catch (error) {
-      return { 
-        success: false, 
-        error: error.response?.data?.message || 'Login gagal' 
+      console.error("Login error in useAuth:", error); // Debug log
+      return {
+        success: false,
+        error: error.response?.data?.message || "Login failed",
       };
     }
   };
@@ -53,15 +65,16 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await authService.register(userData);
       const { user, token } = response.data.data;
-      
-      localStorage.setItem('auth_token', token);
+
+      localStorage.setItem("auth_token", token);
       setUser(user);
-      
-      return { success: true, data: response.data };
+      setIsAuthenticated(true);
+
+      return { success: true };
     } catch (error) {
-      return { 
-        success: false, 
-        error: error.response?.data?.message || 'Registrasi gagal' 
+      return {
+        success: false,
+        error: error.response?.data?.message || "Registration failed",
       };
     }
   };
@@ -70,27 +83,23 @@ export const AuthProvider = ({ children }) => {
     try {
       await authService.logout();
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error("Logout error:", error);
     } finally {
-      localStorage.removeItem('auth_token');
+      localStorage.removeItem("auth_token");
       setUser(null);
+      setIsAuthenticated(false);
     }
   };
 
   const value = {
     user,
     loading,
+    isAuthenticated,
     login,
     register,
     logout,
-    isAuthenticated: !!user,
-    hasRole: (role) => user?.role === role,
-    hasAnyRole: (roles) => roles.includes(user?.role),
+    checkAuth,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
-}; 
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};

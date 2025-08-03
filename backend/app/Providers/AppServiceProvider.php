@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\Customer;
+use App\Observers\CustomerObserver;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
@@ -21,6 +23,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Register Customer Observer
+        Customer::observe(CustomerObserver::class);
+
         Blade::directive('date', function ($expression) {
             return \Carbon\Carbon::parse($expression)->toFormattedDateString();
         });

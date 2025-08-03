@@ -3,7 +3,7 @@
 # Azhar Material - Run Migrations Script
 echo "🔄 Running Database Migrations..."
 
-cd backend
+cd inventory-azhar
 
 # Check if .env exists
 if [ ! -f .env ]; then

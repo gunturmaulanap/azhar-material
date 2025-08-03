@@ -47,6 +47,7 @@ class User extends Authenticatable
         'password' => 'hashed',
     ];
 
+
     public function scopeSearch($query, $term)
     {
         $term = "%$term%";

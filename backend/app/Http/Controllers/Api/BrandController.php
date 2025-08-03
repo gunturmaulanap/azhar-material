@@ -5,47 +5,128 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Brand;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 
 class BrandController extends Controller
 {
-    public function index()
+    public function index(): JsonResponse
     {
-        $brands = Brand::where('is_active', true)
-            ->orderBy('name', 'asc')
-            ->get();
+        try {
+            $brands = Brand::where('is_active', true)
+                ->orderBy('name', 'asc')
+                ->get();
 
-        return response()->json([
-            'success' => true,
-            'data' => $brands
-        ]);
-    }
-
-    public function show($id)
-    {
-        $brand = Brand::find($id);
-
-        if (!$brand) {
+            return response()->json([
+                'success' => true,
+                'data' => $brands,
+                'message' => 'Data brand berhasil diambil'
+            ]);
+        } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Brand not found'
-            ], 404);
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
         }
-
-        return response()->json([
-            'success' => true,
-            'data' => $brand
-        ]);
     }
 
-    public function active()
+    public function show($id): JsonResponse
     {
-        $brands = Brand::where('is_active', true)
-            ->orderBy('name', 'asc')
-            ->get();
+        try {
+            $brand = Brand::find($id);
 
-        return response()->json([
-            'success' => true,
-            'data' => $brands
-        ]);
+            if (!$brand) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Brand tidak ditemukan'
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $brand,
+                'message' => 'Data brand berhasil diambil'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function active(): JsonResponse
+    {
+        try {
+            $brands = Brand::where('is_active', true)
+                ->orderBy('name', 'asc')
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => $brands,
+                'message' => 'Data brand aktif berhasil diambil'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Update brand content fields (logo, website_url, is_active)
+     */
+    public function updateContent(Request $request, $id): JsonResponse
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'logo' => 'nullable|image|max:1024',
+                'website_url' => 'nullable|url|max:255',
+                'is_active' => 'boolean'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validasi gagal',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $brand = Brand::find($id);
+
+            if (!$brand) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Brand tidak ditemukan'
+                ], 404);
+            }
+
+            $data = $validator->validated();
+
+            if ($request->hasFile('logo')) {
+                // Delete old logo if exists
+                if ($brand->logo) {
+                    Storage::disk('public')->delete($brand->logo);
+                }
+                $data['logo'] = $request->file('logo')->store('brands', 'public');
+            }
+
+            $brand->update($data);
+
+            return response()->json([
+                'success' => true,
+                'data' => $brand,
+                'message' => 'Data brand berhasil diperbarui'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }
