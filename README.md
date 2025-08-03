@@ -1,58 +1,90 @@
-# Azhar Material - Unified Application
+# Azhar Material - Comprehensive Business Management System
 
 ## 🎯 Overview
 
-**Aplikasi Laravel Unified** yang menggabungkan **React SPA** (Company Profile) dan **Livewire Admin Panel** (Inventory Management) dalam **satu port (8000)** untuk mengatasi masalah session/cookie persistence dan CORS.
+**Azhar Material** adalah sistem manajemen bisnis komprehensif yang menggabungkan **React SPA** (Company Profile) dan **Livewire Admin Panel** (Inventory & Business Management) dalam satu aplikasi terintegrasi pada port 8000. Sistem ini dirancang untuk mengatasi masalah session/cookie persistence dan CORS dengan arsitektur unified yang powerful.
 
 ## ✨ Key Features
 
-### 🌐 Frontend (React SPA)
-- **Company Profile** dengan modern UI/UX
-- **Product Catalog** dengan filter dan search
-- **Contact Form** terintegrasi
-- **Responsive Design** untuk semua device
+### 🌐 Frontend (React SPA) - Company Profile
+- **Modern Company Profile** dengan responsive design
+- **Product Catalog** dengan advanced filtering dan search
+- **Brand Showcase** untuk partner dan supplier
+- **Service Portfolio** dengan detail lengkap
+- **Team Directory** dengan informasi lengkap
+- **Contact Integration** dengan form terintegrasi
+- **SEO Optimized** untuk search engine visibility
 
-### 🔧 Admin Panel (Livewire)
-- **Inventory Management** (Goods, Transaction, Order)
-- **Master Data Management** (Supplier, Customer, Employee)
-- **POS System** untuk penjualan
-- **Reports & Analytics**
+### 🔧 Admin Panel (Livewire) - Business Management
+- **Complete Inventory Management** (Goods, Categories, Brands, Stock Control)
+- **Transaction Processing** (POS, Sales, Credit Sales, Invoicing)
+- **Order Management** (Order tracking, fulfillment, delivery)
+- **Master Data Management** (Suppliers, Customers, Employees, Admins)
+- **Attendance System** (Employee attendance tracking)
+- **Delivery Management** (Shipping, tracking, status updates)
+- **Debt Management** (Credit tracking, payment management)
+- **Comprehensive Reports** (Sales, Inventory, Financial analytics)
+- **Multi-level User Management** dengan role-based permissions
 
-### 👥 Role-Based Access Control
-- **Super Admin**: Full access ke semua fitur sistem
-- **Admin**: Operasional (transactions, orders, goods, delivery)
-- **Content Admin**: Hanya content management (hero, brand, team, service, about)
-- **Owner**: Reports, dashboard, dan stock management saja
+### 👥 Advanced Role-Based Access Control
+
+#### 🔴 **Super Admin** (Username: `superadmin`, Password: `password`)
+**Full System Access** - Complete control over all features:
+- ✅ **Master Data**: Admin, Employee, Supplier, Customer management
+- ✅ **Inventory**: Goods, Categories, Brands, Stock management
+- ✅ **Transactions**: All sales, POS, credit sales, invoicing
+- ✅ **Orders**: Order management, fulfillment, tracking
+- ✅ **Delivery**: Shipping management, delivery tracking
+- ✅ **Attendance**: Employee attendance tracking
+- ✅ **Debt Management**: Credit tracking, payment management
+- ✅ **Reports**: All analytics and financial reports
+- ✅ **Content**: Website content management
+
+#### 🟡 **Admin** (Username: `admin`, Password: `password`)
+**Operational Management** - Day-to-day business operations:
+- ✅ **Transactions**: Create and manage sales transactions
+- ✅ **Orders**: Process and track customer orders
+- ✅ **Goods**: View and manage product inventory
+- ✅ **Delivery**: Handle shipping and delivery processes
+- ❌ **Master Data**: No access to user/supplier management
+- ❌ **Reports**: Limited reporting access
+- ❌ **System Settings**: No administrative privileges
+
+#### 🟢 **Content Admin** (Username: `contentadmin`, Password: `password`)
+**Website Content Management** - Frontend content control:
+- ✅ **Hero Sections**: Homepage banner management
+- ✅ **Brand Management**: Company and partner brands
+- ✅ **Team Management**: Team member profiles
+- ✅ **Service Management**: Service portfolio
+- ✅ **About Management**: Company information
+- ✅ **Analytics**: Website visitor analytics
+- ❌ **Business Operations**: No access to transactions/inventory
+- ❌ **Master Data**: No access to business data
+
+#### 🔵 **Owner** (Username: `guntur`, Password: `gugun1710`)
+**Business Intelligence** - Strategic oversight and reporting:
+- ✅ **Dashboard**: Business overview and KPIs
+- ✅ **Reports**: Sales, inventory, and financial reports
+- ✅ **Stock Management**: Inventory level adjustments
+- ✅ **Analytics**: Business performance metrics
+- ❌ **Daily Operations**: No transaction processing
+- ❌ **Master Data**: No user management access
+- ❌ **Content**: No website content access
 
 ## 🚀 Quick Start
 
+### Method 1: Automated Setup (Recommended)
 ```bash
 # Clone repository
 git clone <repository-url>
-cd azhar-material-unified
+cd azhar-material
 
-# Run unified application
+# Run automated setup
+chmod +x start-unified.sh
 ./start-unified.sh
 ```
 
-## 🌍 Application URLs
-
-| Fitur | URL | Role |
-|-------|-----|------|
-| Company Profile | `http://localhost:8000` | Public |
-| Admin Dashboard | `http://localhost:8000/admin/dashboard` | Superadmin |
-| Content Admin | `http://localhost:8000/admin/content` | Content-Admin |
-| Livewire Admin | `http://localhost:8000/admin-login` | All Admin |
-
-## 🔧 Manual Setup
-
-### Prerequisites
-- PHP 8.2+
-- Composer
-- Node.js 18+
-- MySQL/PostgreSQL
-
-### Installation
+### Method 2: Manual Setup
 ```bash
 # Install dependencies
 composer install
@@ -62,22 +94,126 @@ npm install
 cp .env.example .env
 php artisan key:generate
 
-# Database configuration in .env
-# DB_CONNECTION=mysql
-# DB_HOST=127.0.0.1  
-# DB_PORT=3306
-# DB_DATABASE=azhar_material
-# DB_USERNAME=root
-# DB_PASSWORD=
-
-# Run migrations and seeders
+# Database setup (configure .env first)
 php artisan migrate --seed
 
-# Build React assets
+# Build assets
 npm run build
 
 # Start server
 php artisan serve --host=0.0.0.0 --port=8000
+```
+
+## 🌍 Application Access Points
+
+### 🌐 Public Frontend (React SPA)
+| Feature | URL | Access |
+|---------|-----|--------|
+| **Company Profile** | `http://localhost:8000` | Public |
+| **Products** | `http://localhost:8000/products` | Public |
+| **Brands** | `http://localhost:8000/brands` | Public |
+| **Services** | `http://localhost:8000/services` | Public |
+| **Team** | `http://localhost:8000/team` | Public |
+| **Contact** | `http://localhost:8000/contact` | Public |
+
+### 🔐 Admin Panel Access
+| Role | Login URL | Dashboard URL |
+|------|-----------|---------------|
+| **All Admin Roles** | `http://localhost:8000/admin-login` | `http://localhost:8000/admin` |
+
+### 🎯 Role-Specific Feature Access
+
+#### Super Admin Routes
+```
+🏠 Dashboard: /admin
+👥 Master Data: /data-admin, /data-employee, /data-supplier, /data-customer
+📋 Attendance: /absensi, /absensi-baru, /detail-absensi/{id}
+📦 Inventory: /data-barang, /data-kategori, /data-brand
+💰 Transactions: /transaksi, /riwayat-transaksi, /point-of-sale
+📋 Orders: /data-order, /order, /detail-order/{id}
+🚚 Delivery: /pengiriman-barang, /pengiriman-barang/{id}
+💳 Debt: /data-hutang, /kredit-penjualan
+📊 Reports: /laporan-penjualan, /laporan-barang
+🎨 Content: /content/hero-sections, /content/brands, /content/teams
+```
+
+#### Admin Routes (Operational)
+```
+🏠 Dashboard: /admin
+📦 Goods: /admin/data-barang, /admin/tambah-data-barang
+💰 Transactions: /admin/transaksi, /admin/riwayat-transaksi
+📋 Orders: /admin/data-order, /admin/order
+🚚 Delivery: /admin/pengiriman-barang
+```
+
+#### Content Admin Routes
+```
+🏠 Dashboard: /admin
+🎨 Hero Sections: /content/hero-sections
+🏢 Brands: /content/brands
+👥 Teams: /content/teams
+🛠️ Services: /content/services
+ℹ️ About: /content/about
+📈 Analytics: /content/analytics
+```
+
+#### Owner Routes
+```
+🏠 Dashboard: /admin
+📊 Reports: /owner/laporan-penjualan, /owner/laporan-barang
+📦 Stock Management: /owner/data-barang, /owner/kelola-stok-barang
+```
+
+## 🔧 System Requirements
+
+### Prerequisites
+- **PHP**: 8.2+ with extensions (mbstring, xml, bcmath, pdo, tokenizer, json, openssl)
+- **Composer**: Latest version
+- **Node.js**: 18+ dengan npm
+- **Database**: MySQL 8.0+ atau PostgreSQL 13+
+- **Web Server**: Apache 2.4+ atau Nginx 1.18+
+- **Storage**: Minimum 2GB free space
+
+### Environment Configuration
+
+1. **Database Setup** (.env configuration)
+```bash
+# MySQL Configuration
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=azhar_material
+DB_USERNAME=root
+DB_PASSWORD=your_password
+
+# PostgreSQL Alternative
+# DB_CONNECTION=pgsql
+# DB_HOST=127.0.0.1
+# DB_PORT=5432
+# DB_DATABASE=azhar_material
+# DB_USERNAME=postgres
+# DB_PASSWORD=your_password
+```
+
+2. **Storage Configuration**
+```bash
+# File Storage
+FILESYSTEM_DISK=local
+
+# Mail Configuration (for notifications)
+MAIL_MAILER=smtp
+MAIL_HOST=mailpit
+MAIL_PORT=1025
+MAIL_USERNAME=null
+MAIL_PASSWORD=null
+```
+
+3. **Application Configuration**
+```bash
+APP_NAME="Azhar Material"
+APP_ENV=local
+APP_DEBUG=true
+APP_URL=http://localhost:8000
 ```
 
 ## 🏗️ Architecture
