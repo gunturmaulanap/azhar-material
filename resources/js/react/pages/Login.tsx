@@ -109,7 +109,7 @@ const Login = () => {
               redirectUrl = `http://localhost:8000/sso-login/${result.data?.data?.user?.id}`;
               break;
             default:
-              redirectUrl = "http://localhost:3000/";
+              redirectUrl = window.location.origin + "/";
           }
 
           console.log("Fallback redirect to:", redirectUrl); // Debug log
