@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Play } from 'lucide-react';
+import { ArrowRight, Play, AlertCircle } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
+import LoadingSpinner from '../components/LoadingSpinner';
 import { productService, heroSectionService, brandService } from '../services/api';
 
 interface Product {
@@ -52,6 +53,7 @@ const Home: React.FC = () => {
   const [heroSection, setHeroSection] = useState<HeroSection | null>(null);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -60,17 +62,79 @@ const Home: React.FC = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [productsRes, heroRes, brandsRes] = await Promise.all([
-        productService.getFeatured(),
-        heroSectionService.getActive(),
-        brandService.getActive()
-      ]);
+      setError(null);
+      
+      // Mock data in case API fails - for development/testing
+      const mockData = {
+        products: [
+          {
+            id: 1,
+            name: "Premium Steel Rod",
+            description: "High-quality steel rod for construction",
+            price: 150000,
+            stock: 100,
+            category: { id: 1, name: "Steel" },
+            brand: { id: 1, name: "Azhar Material" },
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          },
+          {
+            id: 2,
+            name: "Cement Bag",
+            description: "Premium grade cement for construction",
+            price: 85000,
+            stock: 50,
+            category: { id: 2, name: "Cement" },
+            brand: { id: 1, name: "Azhar Material" },
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }
+        ],
+        hero: {
+          id: 1,
+          title: "Azhar Material",
+          subtitle: "Your Trusted Construction Partner",
+          description: "Menyediakan material konstruksi berkualitas tinggi untuk berbagai kebutuhan proyek Anda",
+          button_text: "Lihat Produk",
+          button_url: "/products",
+          background_image: "",
+          is_active: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        },
+        brands: [
+          {
+            id: 1,
+            name: "Azhar Material",
+            description: "Premium construction materials",
+            logo: "",
+            website_url: "",
+            is_active: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }
+        ]
+      };
 
-      setFeaturedProducts(productsRes.data.data);
-      setHeroSection(heroRes.data.data);
-      setBrands(brandsRes.data.data);
+      try {
+        const [productsRes, heroRes, brandsRes] = await Promise.all([
+          productService.getFeatured().catch(() => ({ data: { data: mockData.products } })),
+          heroSectionService.getActive().catch(() => ({ data: { data: mockData.hero } })),
+          brandService.getActive().catch(() => ({ data: { data: mockData.brands } }))
+        ]);
+
+        setFeaturedProducts(Array.isArray(productsRes.data.data) ? productsRes.data.data : mockData.products);
+        setHeroSection(heroRes.data.data || mockData.hero);
+        setBrands(Array.isArray(brandsRes.data.data) ? brandsRes.data.data : mockData.brands);
+      } catch (apiError) {
+        console.warn('API not available, using mock data:', apiError);
+        setFeaturedProducts(mockData.products);
+        setHeroSection(mockData.hero);
+        setBrands(mockData.brands);
+      }
     } catch (error) {
       console.error('Error fetching data:', error);
+      setError('Gagal memuat data. Silakan coba lagi.');
     } finally {
       setLoading(false);
     }
@@ -82,6 +146,39 @@ const Home: React.FC = () => {
       element.scrollIntoView({ behavior: 'smooth' });
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <LoadingSpinner 
+          size="lg" 
+          text="Memuat halaman..." 
+          className="min-h-screen"
+        />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="max-w-md w-full mx-auto p-6">
+          <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+            <div className="flex justify-center mb-4">
+              <AlertCircle className="h-12 w-12 text-red-500" />
+            </div>
+            <h1 className="text-xl font-semibold text-gray-900 mb-2">
+              Terjadi Kesalahan
+            </h1>
+            <p className="text-gray-600 mb-6">{error}</p>
+            <Button onClick={() => fetchData()} className="w-full">
+              Coba Lagi
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative">

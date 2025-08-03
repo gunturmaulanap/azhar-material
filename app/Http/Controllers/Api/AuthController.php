@@ -154,7 +154,22 @@ class AuthController extends Controller
     {
         return response()->json([
             'success' => true,
-            'data' => $request->user()
+            'data' => [
+                'user' => $request->user()
+            ]
+        ]);
+    }
+
+    public function verify(Request $request)
+    {
+        // This endpoint is only accessible if the user is already authenticated via Sanctum
+        // So if we reach here, the token is valid
+        return response()->json([
+            'success' => true,
+            'message' => 'Token valid',
+            'data' => [
+                'user' => $request->user()
+            ]
         ]);
     }
 }
