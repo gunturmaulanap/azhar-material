@@ -63,6 +63,15 @@ class DashboardController extends Controller
             return view('customer.dashboard');
         }
 
-        return view('dashboard');
+        // Check if authenticated via web guard for admin roles
+        if (auth()->guard('web')->check()) {
+            $user = auth()->user();
+            if (in_array($user->role, ['admin', 'super_admin', 'content-admin'])) {
+                return view('dashboard');
+            }
+        }
+
+        // If not authenticated or no valid role, redirect to login
+        return redirect()->route('login')->withErrors(['auth' => 'Anda harus login terlebih dahulu.']);
     }
 }

@@ -19,12 +19,20 @@ Route::get('/', function () {
 // SSO Login route untuk redirect dari React
 Route::get('/sso-login/{userId}', [App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'ssoLogin'])->name('sso.login');
 
-// Customer routes (Livewire dashboard) - using customer guard
+// Customer routes (Livewire dashboard) - using both guards
+Route::get('/customer/dashboard', [DashboardController::class, 'index'])->name('customer.dashboard')->middleware(['auth:customer,web']);
 Route::middleware(['auth:customer'])->group(function () {
-    Route::get('/customer/dashboard', [DashboardController::class, 'index'])->name('customer.dashboard');
     Route::get('/customer/{id}', App\Http\Livewire\Master\CustomerDetail::class)->name('customer.detail');
     Route::get('/customer/detail-transaksi/{id}', App\Http\Livewire\Transaction\Detail::class)->name('customer.transaction.detail');
     Route::get('/customer/pengiriman-barang/{id}', App\Http\Livewire\Delivery\Detail::class)->name('customer.delivery.detail');
+});
+
+// Customer routes alternative - for web guard users with customer role
+Route::middleware(['auth:web'])->group(function () {
+    Route::get('/customer/dashboard', [DashboardController::class, 'index'])->name('customer.dashboard.web')->middleware('role:customer');
+    Route::get('/customer/{id}', App\Http\Livewire\Master\CustomerDetail::class)->name('customer.detail.web')->middleware('role:customer');
+    Route::get('/customer/detail-transaksi/{id}', App\Http\Livewire\Transaction\Detail::class)->name('customer.transaction.detail.web')->middleware('role:customer');
+    Route::get('/customer/pengiriman-barang/{id}', App\Http\Livewire\Delivery\Detail::class)->name('customer.delivery.detail.web')->middleware('role:customer');
 });
 
 // Main dashboard for Admin & Super Admin
