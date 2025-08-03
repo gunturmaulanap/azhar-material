@@ -192,12 +192,19 @@ Route::middleware('auth:web')->group(function () {
 |--------------------------------------------------------------------------
 | Content Admin Routes (Content Management Only)
 | Superadmin juga bisa akses, tapi content-admin hanya bisa akses ini
+| Brand juga bisa diakses content-admin untuk company profile
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth:web', 'role:content-admin|superadmin'])->prefix('content')->group(function () {
+Route::middleware(['auth:web', 'role:content-admin|super_admin'])->prefix('content')->group(function () {
     // Hero Section Management
     Route::get('/hero-sections', HeroSectionIndex::class)->name('content.hero-sections');
+    Route::get('/hero-sections/create', App\Http\Livewire\HeroSection\Form::class)->name('content.hero-sections.create');
+    Route::get('/hero-sections/{id}/edit', App\Http\Livewire\HeroSection\Form::class)->name('content.hero-sections.edit');
+    
+    // Brand Management (Content Admin for Company Profile)
     Route::get('/brands', BrandIndex::class)->name('content.brands');
+    Route::get('/brands/create', App\Http\Livewire\Brand\Form::class)->name('content.brands.create');
+    Route::get('/brands/{id}/edit', App\Http\Livewire\Brand\Form::class)->name('content.brands.edit');
     
     // Team Management
     Route::get('/teams', App\Http\Livewire\Team\Index::class)->name('content.teams');
