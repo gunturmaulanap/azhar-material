@@ -86,12 +86,18 @@ Route::middleware(['auth:web', 'role:super_admin'])->group(function () {
     Route::get('ubah-data-customer/{id}', App\Http\Livewire\Master\CustomerForm::class)->name('master.update-customer');
     Route::get('detail-data-customer/{id}', App\Http\Livewire\Master\CustomerDetail::class)->name('master.detail-customer');
 
+    // Attendance Management
+    Route::get('absensi', App\Http\Livewire\Attendace\Index::class)->name('attendance.index');
+    Route::get('absensi-baru', App\Http\Livewire\Attendace\Create::class)->name('attendance.create');
+    Route::get('absensi-hari-ini/{id}', App\Http\Livewire\Attendace\Create::class)->name('attendance.update');
+    Route::get('detail-absensi/{id}', App\Http\Livewire\Attendace\Detail::class)->name('attendance.detail');
+
     // Categories Management
     Route::get('data-kategori', App\Http\Livewire\Category\Index::class)->name('category.index');
     Route::get('kategori-baru', App\Http\Livewire\Category\Form::class)->name('category.create');
     Route::get('ubah-kategori/{id}', App\Http\Livewire\Category\Form::class)->name('category.update');
 
-    // Brand Management (Superadmin)
+    // Brand Management (Superadmin) - Also used in goods management
     Route::get('data-brand', App\Http\Livewire\Brand\Index::class)->name('brand.index');
     Route::get('brand-baru', App\Http\Livewire\Brand\Form::class)->name('brand.create');
     Route::get('ubah-brand/{id}', App\Http\Livewire\Brand\Form::class)->name('brand.update');
@@ -119,6 +125,17 @@ Route::middleware(['auth:web', 'role:super_admin'])->group(function () {
     Route::get('tambah-data-barang', App\Http\Livewire\Goods\Form::class)->name('goods.create');
     Route::get('ubah-data-barang/{id}', App\Http\Livewire\Goods\Form::class)->name('goods.update');
     Route::get('kelola-data-barang', App\Http\Livewire\Goods\Management::class)->name('goods.management');
+    
+    // Brand CRUD within goods management
+    Route::get('data-barang/brand', App\Http\Livewire\Brand\Index::class)->name('goods.brand.index');
+    Route::get('data-barang/brand-baru', App\Http\Livewire\Brand\Form::class)->name('goods.brand.create');
+    Route::get('data-barang/ubah-brand/{id}', App\Http\Livewire\Brand\Form::class)->name('goods.brand.update');
+    
+    // Category CRUD within goods management
+    Route::get('data-barang/kategori', App\Http\Livewire\Category\Index::class)->name('goods.category.index');
+    Route::get('data-barang/kategori-baru', App\Http\Livewire\Category\Form::class)->name('goods.category.create');
+    Route::get('data-barang/ubah-kategori/{id}', App\Http\Livewire\Category\Form::class)->name('goods.category.update');
+    
     Route::get('retur-barang', App\Http\Livewire\Retur\Create::class)->name('goods.retur');
     Route::get('detail-retur/{id}', App\Http\Livewire\Retur\Detail::class)->name('goods.retur-detail');
 
@@ -149,6 +166,10 @@ Route::middleware(['auth:web', 'role:admin'])->group(function () {
     Route::get('admin/data-barang', App\Http\Livewire\Goods\Data::class)->name('admin.goods.data');
     Route::get('admin/tambah-data-barang', App\Http\Livewire\Goods\Form::class)->name('admin.goods.create');
     Route::get('admin/ubah-data-barang/{id}', App\Http\Livewire\Goods\Form::class)->name('admin.goods.update');
+    
+    // Brand/Category management for Admin (limited)
+    Route::get('admin/data-barang/brand', App\Http\Livewire\Brand\Index::class)->name('admin.goods.brand.index');
+    Route::get('admin/data-barang/kategori', App\Http\Livewire\Category\Index::class)->name('admin.goods.category.index');
 
     // Delivery Management - Admin
     Route::get('admin/pengiriman-barang', App\Http\Livewire\Delivery\Index::class)->name('admin.delivery.index');

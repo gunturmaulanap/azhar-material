@@ -19,8 +19,10 @@
 - **Reports & Analytics**
 
 ### 👥 Role-Based Access Control
-- **Superadmin**: Akses ke semua fitur
-- **Content-Admin**: Hanya content management
+- **Super Admin**: Full access ke semua fitur sistem
+- **Admin**: Operasional (transactions, orders, goods, delivery)
+- **Content Admin**: Hanya content management (hero, brand, team, service, about)
+- **Owner**: Reports, dashboard, dan stock management saja
 
 ## 🚀 Quick Start
 

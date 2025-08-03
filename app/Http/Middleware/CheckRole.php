@@ -26,12 +26,24 @@ class CheckRole
         }
         // If user is authenticated via web guard, check their role using Spatie
         elseif (auth()->guard('web')->check() && $user) {
+            // Map role names for backward compatibility
+            $mappedRoles = array_map(function($role) {
+                switch($role) {
+                    case 'superadmin':
+                        return 'super_admin';
+                    case 'content-admin':
+                        return 'content-admin';
+                    default:
+                        return $role;
+                }
+            }, $roles);
+            
             // Use Spatie for role check if available
             if (method_exists($user, 'hasAnyRole')) {
-                if ($user->hasAnyRole($roles)) {
+                if ($user->hasAnyRole($mappedRoles)) {
                     return $next($request);
                 }
-            } else if (isset($user->role) && in_array($user->role, $roles)) {
+            } else if (isset($user->role) && in_array($user->role, $mappedRoles)) {
                 // Fallback to manual role property
                 return $next($request);
             }
