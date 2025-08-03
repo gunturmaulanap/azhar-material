@@ -5,6 +5,7 @@ namespace App\Http\Livewire\Master;
 use App\Models\User;
 use Livewire\Component;
 use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Role;
 
 class AdminForm extends Component
 {
@@ -80,15 +81,21 @@ class AdminForm extends Component
 
             $user->save();
 
+            // Update Spatie role
+            $user->syncRoles([$this->user['role']]);
+
             return redirect()->route('master.admin')->with('success', 'Data diubah!');
         } else {
             // Jika $userId tidak ada, berarti sedang melakukan create data
-            User::create([
+            $newUser = User::create([
                 'name' => $this->user['name'],
                 'username' => $this->user['username'],
                 'role' => $this->user['role'],
                 'password' => Hash::make($this->user['password']),
             ]);
+
+            // Assign Spatie role
+            $newUser->assignRole($this->user['role']);
 
             return redirect()->route('master.admin')->with('success', 'Data ditambahkan!');
         }
@@ -115,6 +122,11 @@ class AdminForm extends Component
 
     public function render()
     {
-        return view('livewire.master.admin-form');
+        // Get available roles untuk dropdown (excluding customer)
+        $roles = Role::whereIn('name', ['admin', 'super_admin', 'content-admin', 'owner'])->get();
+        
+        return view('livewire.master.admin-form', [
+            'roles' => $roles,
+        ]);
     }
 }

@@ -84,10 +84,10 @@ const Login = () => {
         // Gunakan redirectUrl dari response API jika tersedia
         if (result.redirectUrl) {
           console.log("Redirecting to:", result.redirectUrl); // Debug log
-          // Tambahkan delay kecil untuk memastikan state terupdate
+          // Pastikan session terset dengan baik sebelum redirect
           setTimeout(() => {
             window.location.href = result.redirectUrl;
-          }, 1500);
+          }, 1000);
         } else {
           // Fallback ke role-based routing
           const userRole = result.data?.data?.user?.role;
@@ -96,25 +96,26 @@ const Login = () => {
           let redirectUrl = "/";
           switch (userRole) {
             case "customer":
-              redirectUrl = "http://localhost:8000/customer/dashboard";
+              redirectUrl = `http://localhost:8000/customer/${result.data?.data?.user?.id}`;
               break;
             case "admin":
             case "super_admin":
-              redirectUrl =
-                "http://localhost:8000/sso-login/" +
-                result.data?.data?.user?.id;
+              redirectUrl = `http://localhost:8000/sso-login/${result.data?.data?.user?.id}`;
               break;
             case "content-admin":
-              redirectUrl = "http://localhost:3000/admin/content";
+              redirectUrl = `http://localhost:8000/sso-login/${result.data?.data?.user?.id}`;
+              break;
+            case "owner":
+              redirectUrl = `http://localhost:8000/sso-login/${result.data?.data?.user?.id}`;
               break;
             default:
-              redirectUrl = "/";
+              redirectUrl = "http://localhost:3000/";
           }
 
           console.log("Fallback redirect to:", redirectUrl); // Debug log
           setTimeout(() => {
             window.location.href = redirectUrl;
-          }, 1500);
+          }, 1000);
         }
       } else {
         // Error toast
@@ -196,6 +197,7 @@ const Login = () => {
     { value: "admin", label: "Admin - Administrator" },
     { value: "super_admin", label: "Super Admin - Super Administrator" },
     { value: "content-admin", label: "Content Admin - Pengelola Konten" },
+    { value: "owner", label: "Owner - Pemilik Bisnis (Opsional)" },
   ];
 
   return (
@@ -282,6 +284,7 @@ const Login = () => {
                 <div>Admin: admin / password</div>
                 <div>Super Admin: miura / password</div>
                 <div>Content Admin: contentadmin / password</div>
+                <div>Owner: owner / password (jika sudah ada)</div>
               </div>
             </div>
           </form>

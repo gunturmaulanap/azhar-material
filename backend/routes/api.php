@@ -25,6 +25,7 @@ use Illuminate\Support\Facades\Hash;
 */
 
 // Public routes
+Route::get('/csrf-token', [AuthController::class, 'csrf']);
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::post('/auth/register', [AuthController::class, 'register']);
 
