@@ -16,6 +16,14 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const initializeAuth = async () => {
       try {
+        // In development mode without Laravel backend, skip auth
+        if (window.mockAxios) {
+          setUser(null);
+          setIsAuthenticated(false);
+          setLoading(false);
+          return;
+        }
+        
         const token = Cookies.get("token");
         if (token) {
           // Instead of verifyToken, use getUser endpoint
