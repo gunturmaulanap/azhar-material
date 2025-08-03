@@ -38,7 +38,7 @@
 - ✅ **Attendance**: Employee attendance tracking
 - ✅ **Debt Management**: Credit tracking, payment management
 - ✅ **Reports**: All analytics and financial reports
-- ✅ **Content**: Website content management
+- ❌ **Hero Sections**: Content-admin exclusive access
 
 #### 🟡 **Admin** (Username: `admin`, Password: `password`)
 **Operational Management** - Day-to-day business operations:
@@ -134,7 +134,6 @@ php artisan serve --host=0.0.0.0 --port=8000
 🚚 Delivery: /pengiriman-barang, /pengiriman-barang/{id}
 💳 Debt: /data-hutang, /kredit-penjualan
 📊 Reports: /laporan-penjualan, /laporan-barang
-🎨 Content: /content/hero-sections, /content/brands, /content/teams
 ```
 
 #### Admin Routes (Operational)

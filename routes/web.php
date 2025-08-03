@@ -216,7 +216,7 @@ Route::middleware('auth:web')->group(function () {
 | Brand juga bisa diakses content-admin untuk company profile
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth:web', 'role:content-admin|super_admin'])->prefix('content')->group(function () {
+Route::middleware(['auth:web', 'role:content-admin'])->prefix('content')->group(function () {
     // Hero Section Management
     Route::get('/hero-sections', HeroSectionIndex::class)->name('content.hero-sections');
     Route::get('/hero-sections/create', App\Http\Livewire\HeroSection\Form::class)->name('content.hero-sections.create');
