@@ -59,11 +59,11 @@ Route::get('/customer/pengiriman-barang/{id}', App\Http\Livewire\Delivery\Detail
 
 /*
 |--------------------------------------------------------------------------
-| Admin Panel Routes (Livewire) - Superadmin Only
-| Content-admin tidak bisa akses fitur ini
+| Superadmin Only Routes
+| Full access to all master data, categories, transactions, orders, goods, reports, delivery, debt
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth:web', 'role:superadmin'])->group(function () {
+Route::middleware(['auth:web', 'role:super_admin'])->group(function () {
     
     // Master Data Management
     Route::get('data-admin', App\Http\Livewire\Master\Admin::class)->name('master.admin');
@@ -75,11 +75,6 @@ Route::middleware(['auth:web', 'role:superadmin'])->group(function () {
     Route::get('tambah-data-pegawai', App\Http\Livewire\Master\EmployeeForm::class)->name('master.create-employee');
     Route::get('ubah-data-pegawai/{id}', App\Http\Livewire\Master\EmployeeForm::class)->name('master.update-employee');
 
-    Route::get('absensi', App\Http\Livewire\Attendace\Index::class)->name('attendance.index');
-    Route::get('absensi-baru', App\Http\Livewire\Attendace\Create::class)->name('attendance.create');
-    Route::get('absensi-hari-ini/{id}', App\Http\Livewire\Attendace\Create::class)->name('attendance.update');
-    Route::get('detail-absensi/{id}', App\Http\Livewire\Attendace\Detail::class)->name('attendance.detail');
-
     // Supplier Management  
     Route::get('data-supplier', App\Http\Livewire\Master\Supplier::class)->name('master.supplier');
     Route::get('tambah-data-supplier', App\Http\Livewire\Master\SupplierForm::class)->name('master.create-supplier');
@@ -90,6 +85,16 @@ Route::middleware(['auth:web', 'role:superadmin'])->group(function () {
     Route::get('tambah-data-customer', App\Http\Livewire\Master\CustomerForm::class)->name('master.create-customer');
     Route::get('ubah-data-customer/{id}', App\Http\Livewire\Master\CustomerForm::class)->name('master.update-customer');
     Route::get('detail-data-customer/{id}', App\Http\Livewire\Master\CustomerDetail::class)->name('master.detail-customer');
+
+    // Categories Management
+    Route::get('data-kategori', App\Http\Livewire\Category\Index::class)->name('category.index');
+    Route::get('kategori-baru', App\Http\Livewire\Category\Form::class)->name('category.create');
+    Route::get('ubah-kategori/{id}', App\Http\Livewire\Category\Form::class)->name('category.update');
+
+    // Brand Management (Superadmin)
+    Route::get('data-brand', App\Http\Livewire\Brand\Index::class)->name('brand.index');
+    Route::get('brand-baru', App\Http\Livewire\Brand\Form::class)->name('brand.create');
+    Route::get('ubah-brand/{id}', App\Http\Livewire\Brand\Form::class)->name('brand.update');
 
     // Reports
     Route::get('laporan-penjualan', App\Http\Livewire\Report\Index::class)->name('report.index');
@@ -110,10 +115,6 @@ Route::middleware(['auth:web', 'role:superadmin'])->group(function () {
     Route::get('mini-invoice/{id}', App\Http\Livewire\Transaction\MiniInvoice::class)->name('transaction.mini-invoice');
 
     // Goods Management - HANYA SUPERADMIN
-    Route::get('brand-baru', App\Http\Livewire\Brand\Form::class)->name('goods.brand-create');
-    Route::get('ubah-brand/{id}', App\Http\Livewire\Brand\Form::class)->name('goods.brand-update');
-    Route::get('kategori-baru', App\Http\Livewire\Category\Form::class)->name('goods.category-create');
-    Route::get('ubah-kategori/{id}', App\Http\Livewire\Category\Form::class)->name('goods.category-update');
     Route::get('data-barang', App\Http\Livewire\Goods\Data::class)->name('goods.data');
     Route::get('tambah-data-barang', App\Http\Livewire\Goods\Form::class)->name('goods.create');
     Route::get('ubah-data-barang/{id}', App\Http\Livewire\Goods\Form::class)->name('goods.update');
@@ -125,6 +126,49 @@ Route::middleware(['auth:web', 'role:superadmin'])->group(function () {
     Route::get('data-order', App\Http\Livewire\Order\Index::class)->name('order.index');
     Route::get('order', App\Http\Livewire\Order\Create::class)->name('order.create');
     Route::get('detail-order/{id}', App\Http\Livewire\Order\Detail::class)->name('order.detail');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Admin Routes - Operational Work Only
+| Access: transactions, orders, goods, delivery
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth:web', 'role:admin'])->group(function () {
+    // Transaction Management - Admin
+    Route::get('admin/transaksi', App\Http\Livewire\Transaction\Create::class)->name('admin.transaction.create');
+    Route::get('admin/riwayat-transaksi', App\Http\Livewire\Transaction\History::class)->name('admin.transaction.history');
+    Route::get('admin/detail-transaksi/{id}', App\Http\Livewire\Transaction\Detail::class)->name('admin.transaction.detail');
+    
+    // Order Management - Admin
+    Route::get('admin/data-order', App\Http\Livewire\Order\Index::class)->name('admin.order.index');
+    Route::get('admin/order', App\Http\Livewire\Order\Create::class)->name('admin.order.create');
+    Route::get('admin/detail-order/{id}', App\Http\Livewire\Order\Detail::class)->name('admin.order.detail');
+
+    // Goods Management - Admin (View/Edit only)
+    Route::get('admin/data-barang', App\Http\Livewire\Goods\Data::class)->name('admin.goods.data');
+    Route::get('admin/tambah-data-barang', App\Http\Livewire\Goods\Form::class)->name('admin.goods.create');
+    Route::get('admin/ubah-data-barang/{id}', App\Http\Livewire\Goods\Form::class)->name('admin.goods.update');
+
+    // Delivery Management - Admin
+    Route::get('admin/pengiriman-barang', App\Http\Livewire\Delivery\Index::class)->name('admin.delivery.index');
+    Route::get('admin/pengiriman-barang/{id}', App\Http\Livewire\Delivery\Detail::class)->name('admin.delivery.detail');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Owner Routes
+| Access: reports, dashboard, goods stock management only
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth:web', 'role:owner'])->group(function () {
+    // Reports
+    Route::get('owner/laporan-penjualan', App\Http\Livewire\Report\Index::class)->name('owner.report.index');
+    Route::get('owner/laporan-barang', App\Http\Livewire\Report\Goods::class)->name('owner.report.goods');
+    
+    // Goods Stock Management - Owner can only edit stock
+    Route::get('owner/data-barang', App\Http\Livewire\Goods\Data::class)->name('owner.goods.data');
+    Route::get('owner/kelola-stok-barang', App\Http\Livewire\Goods\Management::class)->name('owner.goods.stock');
 });
 
 /*
