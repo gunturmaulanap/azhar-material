@@ -90,7 +90,7 @@ class AuthController extends Controller
                 // Regenerate session untuk security
                 Session::regenerate();
                 
-                $redirectUrl = 'http://localhost:3000/';
+                $redirectUrl = config('app.url') . '/';
                 if ($user->role === 'content-admin') {
                     $redirectUrl = 'http://localhost:8000/sso-login/' . $user->id;
                 } elseif ($user->role === 'admin' || $user->role === 'super_admin') {
