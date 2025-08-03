@@ -51,8 +51,13 @@
                                         class="text-2xl uppercase tracking-widest font-[1000] subpixel-antialiased">
                                         {{ __('inventory') }}
                                     </a>
+                                @elseif (Auth::guard('web')->check() && Auth::user()->role === 'customer')
+                                    <a href="{{ route('customer.detail', ['id' => Auth::user()->id]) }}"
+                                        class="text-2xl uppercase tracking-widest font-[1000] subpixel-antialiased">
+                                        {{ __('inventory') }}
+                                    </a>
                                 @else
-                                    <a href="{{ route('customer.dashboard') }}"
+                                    <a href="{{ route('dashboard') }}"
                                         class="text-2xl uppercase tracking-widest font-[1000] subpixel-antialiased">
                                         {{ __('inventory') }}
                                     </a>

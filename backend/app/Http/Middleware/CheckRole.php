@@ -30,6 +30,14 @@ class CheckRole
             }
         }
         
-        return back();
+        // Redirect to appropriate page if role doesn't match
+        if (auth()->guard('customer')->check()) {
+            $customer = auth()->guard('customer')->user();
+            return redirect()->route('customer.detail', ['id' => $customer->id]);
+        } elseif (auth()->guard('web')->check()) {
+            return redirect()->route('dashboard');
+        }
+        
+        return redirect()->route('login');
     }
 }

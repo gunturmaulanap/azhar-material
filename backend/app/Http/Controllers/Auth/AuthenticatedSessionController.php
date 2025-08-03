@@ -32,14 +32,15 @@ class AuthenticatedSessionController extends Controller
             // Try customer authentication first
             if (Auth::guard('customer')->attempt($request->only('username', 'password'))) {
                 $request->session()->regenerate();
-                return redirect()->route('customer.dashboard');
+                $customer = Auth::guard('customer')->user();
+                return redirect()->route('customer.detail', ['id' => $customer->id]);
             }
             // If customer auth fails, try user authentication as fallback for users with customer role
             if (Auth::guard('web')->attempt($request->only('username', 'password'))) {
                 $request->session()->regenerate();
                 $user = Auth::user();
                 if ($user->role === 'customer') {
-                    return redirect()->route('customer.dashboard');
+                    return redirect()->route('customer.detail', ['id' => $user->id]);
                 } elseif ($user->role === 'content-admin') {
                     return redirect()->route('content.dashboard');
                 } elseif ($user->role === 'admin' || $user->role === 'super_admin') {
@@ -58,7 +59,7 @@ class AuthenticatedSessionController extends Controller
                 } elseif ($user->role === 'admin' || $user->role === 'super_admin') {
                     return redirect()->route('dashboard');
                 } elseif ($user->role === 'customer') {
-                    return redirect()->route('customer.dashboard');
+                    return redirect()->route('customer.detail', ['id' => $user->id]);
                 } else {
                     return redirect(RouteServiceProvider::HOME);
                 }
@@ -66,7 +67,8 @@ class AuthenticatedSessionController extends Controller
             // If user auth fails, try customer authentication as fallback
             if (Auth::guard('customer')->attempt($request->only('username', 'password'))) {
                 $request->session()->regenerate();
-                return redirect()->route('customer.dashboard');
+                $customer = Auth::guard('customer')->user();
+                return redirect()->route('customer.detail', ['id' => $customer->id]);
             }
         }
 
@@ -110,8 +112,8 @@ class AuthenticatedSessionController extends Controller
         // Redirect berdasarkan role
         switch ($user->role) {
             case 'customer':
-                // Redirect customer back to React company profile
-                return redirect('http://localhost:3000');
+                // Redirect customer to their detail page
+                return redirect()->route('customer.detail', ['id' => $user->id]);
             case 'admin':
             case 'super_admin':
                 return redirect()->route('dashboard');

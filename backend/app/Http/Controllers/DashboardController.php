@@ -53,14 +53,17 @@ class DashboardController extends Controller
 
     public function index()
     {
+        // Customer tidak lagi menggunakan dashboard, langsung ke detail page
         // Check if authenticated via customer guard
         if (auth()->guard('customer')->check()) {
-            return view('customer.dashboard');
+            $customer = auth()->guard('customer')->user();
+            return redirect()->route('customer.detail', ['id' => $customer->id]);
         }
 
         // Check if authenticated via web guard and has customer role
         if (auth()->guard('web')->check() && auth()->user()->role === 'customer') {
-            return view('customer.dashboard');
+            $user = auth()->user();
+            return redirect()->route('customer.detail', ['id' => $user->id]);
         }
 
         // Check if authenticated via web guard for admin roles

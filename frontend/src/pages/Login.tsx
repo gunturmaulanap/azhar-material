@@ -91,18 +91,18 @@ const Login = () => {
         } else {
           // Fallback ke role-based routing
           const userRole = result.data?.data?.user?.role;
-          console.log("User role:", userRole); // Debug log
+          const userId = result.data?.data?.user?.id;
+          console.log("User role:", userRole, "User ID:", userId); // Debug log
 
           let redirectUrl = "/";
           switch (userRole) {
             case "customer":
-              redirectUrl = "http://localhost:8000/customer/dashboard";
+              redirectUrl = `http://localhost:8000/customer/${userId}`;
               break;
             case "admin":
             case "super_admin":
               redirectUrl =
-                "http://localhost:8000/sso-login/" +
-                result.data?.data?.user?.id;
+                "http://localhost:8000/sso-login/" + userId;
               break;
             case "content-admin":
               redirectUrl = "http://localhost:3000/admin/content";

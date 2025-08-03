@@ -47,8 +47,8 @@ class AuthController extends Controller
             } elseif ($user->role === 'admin' || $user->role === 'super_admin') {
                 $redirectUrl = 'http://localhost:8000/sso-login/' . $user->id; // SSO ke Laravel dashboard
             } elseif ($user->role === 'customer') {
-                // Customer langsung ke Laravel dashboard tanpa SSO
-                $redirectUrl = 'http://localhost:8000/customer/dashboard';
+                // Customer langsung ke halaman detail customer
+                $redirectUrl = 'http://localhost:8000/customer/' . $user->id;
             }
 
             // Generate token untuk API authentication
