@@ -115,5 +115,6 @@ Route::post('/contact', [ContactController::class, 'send']);
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [AuthController::class, 'user']);
+    Route::post('/auth/verify', [AuthController::class, 'verify']);
     Route::post('/auth/logout', [AuthController::class, 'logout']);
 });

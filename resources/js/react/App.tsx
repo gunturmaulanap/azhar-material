@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
 import Layout from './components/Layout';
+import LoadingSpinner from './components/LoadingSpinner';
 import Home from './pages/Home';
 import Products from './pages/Products';
 import Brands from './pages/Brands';
@@ -25,8 +26,12 @@ const ProtectedRoute = ({
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-gray-50">
+        <LoadingSpinner 
+          size="lg" 
+          text="Memuat aplikasi..." 
+          className="min-h-screen"
+        />
       </div>
     );
   }

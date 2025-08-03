@@ -1,5 +1,6 @@
 import axios from "axios";
 import { apiConfig, getCSRFToken, endpoints } from "../config/api";
+import Cookies from "js-cookie";
 
 // Create axios instance with default config
 const api = axios.create(apiConfig);
@@ -33,7 +34,7 @@ api.interceptors.request.use(
     }
 
     // Add Authorization header if user is authenticated
-    const authToken = localStorage.getItem("auth_token");
+    const authToken = Cookies.get("token");
     if (authToken) {
       config.headers["Authorization"] = `Bearer ${authToken}`;
     }
@@ -53,8 +54,9 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       // Handle unauthorized access
-      localStorage.removeItem("auth_token");
-      window.location.href = "/login";
+      Cookies.remove("token");
+      // Don't redirect automatically, let components handle the logout
+      console.warn('Authentication failed, token removed');
     }
     return Promise.reject(error);
   }
@@ -70,6 +72,7 @@ export const authService = {
   register: (userData) => api.post(endpoints.register, userData),
   logout: () => api.post(endpoints.logout),
   getUser: () => api.get(endpoints.user),
+  verifyToken: (token) => api.post(endpoints.verifyToken, { token }),
 };
 
 // Product services (from Laravel Goods model)

@@ -31,18 +31,33 @@ export const apiConfigWithCSRF = () => ({
 // API endpoints
 export const endpoints = {
   // Auth endpoints
-  csrf: "/sanctum/csrf-cookie",
+  csrf: "/csrf-token",
   login: "/auth/login",
   register: "/auth/register", 
   logout: "/auth/logout",
   user: "/user",
+  verifyToken: "/auth/verify",
 
   // Content management endpoints (for content-admin)
   heroSections: "/hero-sections",
+  heroSection: (id) => `/hero-sections/${id}`,
+  activeHeroSection: "/hero-sections/active",
+  
   brands: "/brands",
+  brand: (id) => `/brands/${id}`,
+  activeBrands: "/brands/active",
+  
   products: "/products",
+  product: (id) => `/products/${id}`,
+  featuredProducts: "/products/featured",
+  categories: "/categories",
+  
   services: "/services",
+  service: (id) => `/services/${id}`,
+  
   teams: "/teams",
+  team: (id) => `/teams/${id}`,
+  
   about: "/about",
   contact: "/contact",
 

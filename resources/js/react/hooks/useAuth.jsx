@@ -14,23 +14,26 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = Cookies.get("token");
-    if (token) {
-      authService
-        .verifyToken(token)
-        .then((response) => {
+    const initializeAuth = async () => {
+      try {
+        const token = Cookies.get("token");
+        if (token) {
+          // Instead of verifyToken, use getUser endpoint
+          const response = await authService.getUser();
           setUser(response.data.user);
           setIsAuthenticated(true);
-        })
-        .catch(() => {
-          Cookies.remove("token");
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    } else {
-      setLoading(false);
-    }
+        }
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+        Cookies.remove("token");
+        setUser(null);
+        setIsAuthenticated(false);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initializeAuth();
   }, []);
 
   const login = async (credentials) => {
