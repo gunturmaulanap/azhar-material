@@ -16,7 +16,7 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         // Pastikan roles sudah ada
-        $roles = ['super_admin', 'admin', 'content-admin'];
+        $roles = ['super_admin', 'admin', 'content-admin', 'owner'];
         foreach ($roles as $role) {
             Role::firstOrCreate(['name' => $role, 'guard_name' => 'web']);
         }
@@ -38,9 +38,9 @@ class UserSeeder extends Seeder
                 'role' => 'content-admin',
             ],
             [
-                'name' => 'Guntur Maulana',
+                'name' => 'Owner',
                 'username' => 'guntur',
-                'role' => 'customer',
+                'role' => 'owner',
             ],
         ];
 
@@ -51,14 +51,12 @@ class UserSeeder extends Seeder
                     'name' => $userData['name'],
                     'username' => $userData['username'],
                     'role' => $userData['role'],
-                    'password' => Hash::make('password'),
+                    'password' => $userData['username'] === 'guntur' ? Hash::make('gugun1710') : Hash::make('password'),
+                    'email' => $userData['username'] . '@azharmaterial.com', // Add email for completeness
                 ]
             );
 
-            // Assign Spatie role only for non-customer
-            if ($userData['role'] !== 'customer') {
-                $user->assignRole($userData['role']);
-            }
+            // Role assignment will be handled by RolePermissionSeeder
         }
     }
 }

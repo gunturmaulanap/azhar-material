@@ -1,56 +1,91 @@
-# Azhar Material - Unified Application
+# Azhar Material - Comprehensive Business Management System
 
 ## 🎯 Overview
 
-**Aplikasi Laravel Unified** yang menggabungkan **React SPA** (Company Profile) dan **Livewire Admin Panel** (Inventory Management) dalam **satu port (8000)** untuk mengatasi masalah session/cookie persistence dan CORS.
+**Azhar Material** adalah sistem manajemen bisnis komprehensif yang menggabungkan **React SPA** (Company Profile) dan **Livewire Admin Panel** (Inventory & Business Management) dalam satu aplikasi terintegrasi pada port 8000. Sistem ini dirancang untuk mengatasi masalah session/cookie persistence dan CORS dengan arsitektur unified yang powerful.
 
 ## ✨ Key Features
 
-### 🌐 Frontend (React SPA)
-- **Company Profile** dengan modern UI/UX
-- **Product Catalog** dengan filter dan search
-- **Contact Form** terintegrasi
-- **Responsive Design** untuk semua device
+### 🌐 Frontend (React SPA) - Company Profile
+- **Modern Company Profile** dengan responsive design
+- **Product Catalog** dengan advanced filtering dan search
+- **Brand Showcase** untuk partner dan supplier
+- **Service Portfolio** dengan detail lengkap
+- **Team Directory** dengan informasi lengkap
+- **Contact Integration** dengan form terintegrasi
+- **SEO Optimized** untuk search engine visibility
 
-### 🔧 Admin Panel (Livewire)
-- **Inventory Management** (Goods, Transaction, Order)
-- **Master Data Management** (Supplier, Customer, Employee)
-- **POS System** untuk penjualan
-- **Reports & Analytics**
+### 🔧 Admin Panel (Livewire) - Business Management
+- **Complete Inventory Management** (Goods, Categories, Brands, Stock Control)
+- **Transaction Processing** (POS, Sales, Credit Sales, Invoicing)
+- **Order Management** (Order tracking, fulfillment, delivery)
+- **Master Data Management** (Suppliers, Customers, Employees, Admins)
+- **Attendance System** (Employee attendance tracking)
+- **Delivery Management** (Shipping, tracking, status updates)
+- **Debt Management** (Credit tracking, payment management)
+- **Comprehensive Reports** (Sales, Inventory, Financial analytics)
+- **Multi-level User Management** dengan role-based permissions
 
-### 👥 Role-Based Access Control
-- **Superadmin**: Akses ke semua fitur
-- **Content-Admin**: Hanya content management
+### 👥 Advanced Role-Based Access Control
+
+#### 🔴 **Super Admin** (Username: `superadmin`, Password: `password`)
+**Full System Access** - Complete control over all features:
+- ✅ **Master Data**: Admin, Employee, Supplier, Customer management
+- ✅ **Inventory**: Goods, Categories, Brands, Stock management
+- ✅ **Transactions**: All sales, POS, credit sales, invoicing
+- ✅ **Orders**: Order management, fulfillment, tracking
+- ✅ **Delivery**: Shipping management, delivery tracking
+- ✅ **Attendance**: Employee attendance tracking
+- ✅ **Debt Management**: Credit tracking, payment management
+- ✅ **Reports**: All analytics and financial reports
+- ✅ **Brand Management**: Shared with content-admin (for goods & company profile)
+- ❌ **Hero Sections, Teams, Services, About**: Content-admin exclusive
+
+#### 🟡 **Admin** (Username: `admin`, Password: `password`)
+**Operational Management** - Day-to-day business operations:
+- ✅ **Transactions**: Create and manage sales transactions
+- ✅ **Orders**: Process and track customer orders
+- ✅ **Goods**: View and manage product inventory
+- ✅ **Delivery**: Handle shipping and delivery processes
+- ❌ **Master Data**: No access to user/supplier management
+- ❌ **Reports**: Limited reporting access
+- ❌ **System Settings**: No administrative privileges
+
+#### 🟢 **Content Admin** (Username: `contentadmin`, Password: `password`)
+**Website Content Management** - Frontend content control:
+- ✅ **Hero Sections**: Homepage banner management (exclusive access)
+- ✅ **Brand Management**: Company and partner brands (shared with super-admin)
+- ✅ **Team Management**: Team member profiles (exclusive access)
+- ✅ **Service Management**: Service portfolio (exclusive access)
+- ✅ **About Management**: Company information (exclusive access)
+- ✅ **Analytics**: Website visitor analytics (exclusive access)
+- ❌ **Business Operations**: No access to transactions/inventory
+- ❌ **Master Data**: No access to business data
+
+#### 🔵 **Owner** (Username: `guntur`, Password: `gugun1710`)
+**Business Intelligence** - Strategic oversight and reporting:
+- ✅ **Dashboard**: Business overview and KPIs
+- ✅ **Reports**: Sales, inventory, and financial reports
+- ✅ **Stock Management**: Inventory level adjustments
+- ✅ **Analytics**: Business performance metrics
+- ❌ **Daily Operations**: No transaction processing
+- ❌ **Master Data**: No user management access
+- ❌ **Content**: No website content access
 
 ## 🚀 Quick Start
 
+### Method 1: Automated Setup (Recommended)
 ```bash
 # Clone repository
 git clone <repository-url>
-cd azhar-material-unified
+cd azhar-material
 
-# Run unified application
+# Run automated setup
+chmod +x start-unified.sh
 ./start-unified.sh
 ```
 
-## 🌍 Application URLs
-
-| Fitur | URL | Role |
-|-------|-----|------|
-| Company Profile | `http://localhost:8000` | Public |
-| Admin Dashboard | `http://localhost:8000/admin/dashboard` | Superadmin |
-| Content Admin | `http://localhost:8000/admin/content` | Content-Admin |
-| Livewire Admin | `http://localhost:8000/admin-login` | All Admin |
-
-## 🔧 Manual Setup
-
-### Prerequisites
-- PHP 8.2+
-- Composer
-- Node.js 18+
-- MySQL/PostgreSQL
-
-### Installation
+### Method 2: Manual Setup
 ```bash
 # Install dependencies
 composer install
@@ -60,54 +95,354 @@ npm install
 cp .env.example .env
 php artisan key:generate
 
-# Database configuration in .env
-# DB_CONNECTION=mysql
-# DB_HOST=127.0.0.1  
-# DB_PORT=3306
-# DB_DATABASE=azhar_material
-# DB_USERNAME=root
-# DB_PASSWORD=
-
-# Run migrations and seeders
+# Database setup (configure .env first)
 php artisan migrate --seed
 
-# Build React assets
+# Build assets
 npm run build
 
 # Start server
 php artisan serve --host=0.0.0.0 --port=8000
 ```
 
-## 🏗️ Architecture
+## 🌍 Application Access Points
+
+### 🌐 Public Frontend (React SPA)
+| Feature | URL | Access |
+|---------|-----|--------|
+| **Company Profile** | `http://localhost:8000` | Public |
+| **Products** | `http://localhost:8000/products` | Public |
+| **Brands** | `http://localhost:8000/brands` | Public |
+| **Services** | `http://localhost:8000/services` | Public |
+| **Team** | `http://localhost:8000/team` | Public |
+| **Contact** | `http://localhost:8000/contact` | Public |
+
+### 🔐 Admin Panel Access
+| Role | Login URL | Dashboard URL |
+|------|-----------|---------------|
+| **All Admin Roles** | `http://localhost:8000/admin-login` | `http://localhost:8000/admin` |
+
+### 🎯 Role-Specific Feature Access
+
+#### Super Admin Routes
+```
+🏠 Dashboard: /admin
+👥 Master Data: /data-admin, /data-employee, /data-supplier, /data-customer
+📋 Attendance: /absensi, /absensi-baru, /detail-absensi/{id}
+📦 Inventory: /data-barang, /data-kategori, /data-brand
+💰 Transactions: /transaksi, /riwayat-transaksi, /point-of-sale
+📋 Orders: /data-order, /order, /detail-order/{id}
+🚚 Delivery: /pengiriman-barang, /pengiriman-barang/{id}
+💳 Debt: /data-hutang, /kredit-penjualan
+📊 Reports: /laporan-penjualan, /laporan-barang
+🏢 Brand (Shared): /content/brands, /data-brand, /data-barang/brand
+```
+
+#### Admin Routes (Operational)
+```
+🏠 Dashboard: /admin
+📦 Goods: /admin/data-barang, /admin/tambah-data-barang
+💰 Transactions: /admin/transaksi, /admin/riwayat-transaksi
+📋 Orders: /admin/data-order, /admin/order
+🚚 Delivery: /admin/pengiriman-barang
+```
+
+#### Content Admin Routes
+```
+🏠 Dashboard: /admin
+🎨 Hero Sections (Exclusive): /content/hero-sections
+🏢 Brands (Shared): /content/brands
+👥 Teams (Exclusive): /content/teams
+🛠️ Services (Exclusive): /content/services
+ℹ️ About (Exclusive): /content/about
+📈 Analytics (Exclusive): /content/analytics
+```
+
+#### Owner Routes
+```
+🏠 Dashboard: /admin
+📊 Reports: /owner/laporan-penjualan, /owner/laporan-barang
+📦 Stock Management: /owner/data-barang, /owner/kelola-stok-barang
+```
+
+## 🔧 System Requirements
+
+### Prerequisites
+- **PHP**: 8.2+ with extensions (mbstring, xml, bcmath, pdo, tokenizer, json, openssl)
+- **Composer**: Latest version
+- **Node.js**: 18+ dengan npm
+- **Database**: MySQL 8.0+ atau PostgreSQL 13+
+- **Web Server**: Apache 2.4+ atau Nginx 1.18+
+- **Storage**: Minimum 2GB free space
+
+### Environment Configuration
+
+1. **Database Setup** (.env configuration)
+```bash
+# MySQL Configuration
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=azhar_material
+DB_USERNAME=root
+DB_PASSWORD=your_password
+
+# PostgreSQL Alternative
+# DB_CONNECTION=pgsql
+# DB_HOST=127.0.0.1
+# DB_PORT=5432
+# DB_DATABASE=azhar_material
+# DB_USERNAME=postgres
+# DB_PASSWORD=your_password
+```
+
+2. **Storage Configuration**
+```bash
+# File Storage
+FILESYSTEM_DISK=local
+
+# Mail Configuration (for notifications)
+MAIL_MAILER=smtp
+MAIL_HOST=mailpit
+MAIL_PORT=1025
+MAIL_USERNAME=null
+MAIL_PASSWORD=null
+```
+
+3. **Application Configuration**
+```bash
+APP_NAME="Azhar Material"
+APP_ENV=local
+APP_DEBUG=true
+APP_URL=http://localhost:8000
+```
+
+## 🏗️ System Architecture
 
 ```
-Azhar Material Unified/
-├── 📁 app/Http/
-│   ├── 📁 Controllers/Api/    # API untuk React
-│   ├── 📁 Livewire/          # Livewire Components
-│   └── 📁 Middleware/        # Custom Middleware
+Azhar Material Business System/
+├── 📁 app/
+│   ├── 📁 Http/
+│   │   ├── 📁 Controllers/Api/     # React SPA API Controllers
+│   │   ├── 📁 Livewire/           # Business Logic Components
+│   │   │   ├── 📁 Master/         # Master Data (Users, Suppliers, etc.)
+│   │   │   ├── 📁 Goods/          # Inventory Management
+│   │   │   ├── 📁 Transaction/    # Sales & POS System
+│   │   │   ├── 📁 Order/          # Order Processing
+│   │   │   ├── 📁 Delivery/       # Shipping Management
+│   │   │   ├── 📁 Report/         # Analytics & Reports
+│   │   │   ├── 📁 Attendace/      # Employee Attendance
+│   │   │   ├── 📁 Debt/           # Credit Management
+│   │   │   └── 📁 Content/        # Website Content
+│   │   └── 📁 Middleware/         # Access Control
+│   └── 📁 Models/                 # Database Models
+├── 📁 database/
+│   ├── 📁 migrations/             # Database Schema
+│   └── 📁 seeders/               # Sample Data & User Roles
 ├── 📁 resources/
-│   ├── 📁 js/react/          # React SPA Source
-│   └── 📁 views/             # Blade Templates
+│   ├── 📁 js/react/              # Company Profile SPA
+│   └── 📁 views/livewire/        # Admin Panel Views
 ├── 📁 routes/
-│   ├── web.php               # Web & React Routes
-│   └── api.php               # API Routes
-└── 📁 public/build/          # Compiled Assets
+│   ├── web.php                   # Unified Routing System
+│   └── api.php                   # React SPA APIs
+└── 📁 public/build/              # Compiled Assets
 ```
 
-## 🔐 Access Control
+## 🔍 Functional Analysis & Testing
 
-### Superadmin Features:
-- ✅ Inventory Management (Transaction, Order, Goods)
-- ✅ Master Data (Admin, Employee, Supplier, Customer)  
-- ✅ Reports & Analytics
-- ✅ POS System
-- ✅ Content Management
+### ✅ Core System Validation
 
-### Content-Admin Features:
-- ❌ No access to Transaction, Order, Goods
-- ❌ No access to Master Data
-- ✅ Content Management only (Hero, Brand, Team, Service, About)
+#### 1. **Authentication & Authorization**
+- ✅ **Multi-role Authentication**: 4 distinct user roles with specific permissions
+- ✅ **Session Management**: Unified Laravel sessions for both React and Livewire
+- ✅ **Access Control**: Spatie Permission package with fallback role checking
+- ✅ **Route Protection**: Middleware-based route protection per role
+
+#### 2. **Database Integrity**
+- ✅ **Migration System**: Complete database schema with relationships
+- ✅ **Seeders**: Pre-populated users, sample data, and role permissions
+- ✅ **Model Relationships**: Proper Eloquent relationships between entities
+- ✅ **Data Validation**: Form validation on all user inputs
+
+#### 3. **Business Logic Components**
+- ✅ **Inventory Management**: Full CRUD for goods, categories, brands
+- ✅ **Transaction Processing**: POS system, sales tracking, invoicing
+- ✅ **Order Management**: Order lifecycle from creation to delivery
+- ✅ **Master Data**: Complete user, supplier, customer management
+- ✅ **Reporting System**: Sales and inventory analytics
+
+### 🎯 User Experience Testing
+
+#### **Super Admin Experience**
+```bash
+# Test Flow:
+1. Login: /admin-login (superadmin/password)
+2. Dashboard: /admin (complete overview)
+3. Master Data: Access all user/supplier/customer management
+4. Inventory: Full goods, category, brand management
+5. Transactions: Complete POS and sales system
+6. Reports: Full analytics access
+7. Shared Brand: Access via /content/brands and /data-brand
+```
+
+#### **Admin Experience**
+```bash
+# Test Flow:
+1. Login: /admin-login (admin/password)
+2. Dashboard: /admin (operational overview)
+3. Transactions: /admin/transaksi (sales processing)
+4. Orders: /admin/data-order (order management)
+5. Goods: /admin/data-barang (inventory updates)
+6. Delivery: /admin/pengiriman-barang (shipping)
+```
+
+#### **Content Admin Experience**
+```bash
+# Test Flow:
+1. Login: /admin-login (contentadmin/password)
+2. Dashboard: /admin (content overview)
+3. Hero Sections: /content/hero-sections (exclusive)
+4. Brands: /content/brands (shared with super-admin)
+5. Teams: /content/teams (exclusive)
+6. Services: /content/services (exclusive)
+7. About: /content/about (exclusive)
+8. Analytics: /content/analytics (exclusive)
+```
+
+#### **Owner Experience**
+```bash
+# Test Flow:
+1. Login: /admin-login (guntur/gugun1710)
+2. Dashboard: /admin (business intelligence)
+3. Reports: /owner/laporan-penjualan (sales reports)
+4. Inventory Reports: /owner/laporan-barang (stock analysis)
+5. Stock Management: /owner/kelola-stok-barang (stock adjustments)
+```
+
+## 🚀 Installation & Setup Guide
+
+### Step-by-Step Installation
+
+1. **Clone & Setup**
+```bash
+git clone <repository-url>
+cd azhar-material
+composer install
+npm install
+```
+
+2. **Environment Configuration**
+```bash
+cp .env.example .env
+php artisan key:generate
+```
+
+3. **Database Setup**
+```bash
+# Configure .env database settings
+php artisan migrate --seed
+```
+
+4. **Asset Building**
+```bash
+npm run build
+```
+
+5. **Start Application**
+```bash
+php artisan serve --host=0.0.0.0 --port=8000
+```
+
+### 🔐 Access Testing & Validation
+
+#### Database Setup Validation
+```bash
+# Run seeders with validation
+php artisan migrate:fresh --seed
+
+# Check if validation passes (should see ✅ for all items)
+# The TestValidationSeeder will automatically run and show:
+# - ✅ All roles exist (super_admin, admin, content-admin, owner)
+# - ✅ All users exist with correct roles
+# - ✅ Permissions are properly assigned
+```
+
+#### Quick Login Test
+```bash
+# Access Point: http://localhost:8000/admin-login
+
+# Super Admin (Full System Access)
+Username: superadmin | Password: password
+Dashboard: /admin
+
+# Admin (Operational Only)  
+Username: admin | Password: password
+Dashboard: /admin
+
+# Content Admin (Website Content Only)
+Username: contentadmin | Password: password  
+Dashboard: /admin
+
+# Owner (Reports & Stock Only)
+Username: guntur | Password: gugun1710
+Dashboard: /admin
+```
+
+#### Role-Based Access Validation
+
+**Test Super Admin Access:**
+```bash
+# Login as superadmin, then test these URLs:
+✅ /data-admin (Master Data)
+✅ /data-barang (Goods Management)  
+✅ /data-kategori (Categories)
+✅ /data-brand (Brand Management)
+✅ /transaksi (Transactions)
+✅ /data-order (Orders)
+✅ /pengiriman-barang (Delivery)
+✅ /data-hutang (Debt Management)
+✅ /laporan-penjualan (Reports)
+✅ /content/brands (Shared Brand Access)
+❌ /content/hero-sections (Content-Admin Only)
+❌ /content/teams (Content-Admin Only)
+```
+
+**Test Admin Access:**
+```bash
+# Login as admin, then test these URLs:
+✅ /admin/transaksi (Operational Transactions)
+✅ /admin/data-order (Order Management)
+✅ /admin/data-barang (Goods View/Edit)
+✅ /admin/pengiriman-barang (Delivery)
+❌ /data-admin (No Master Data Access)
+❌ /laporan-penjualan (No Reports Access)
+❌ /content/brands (No Content Access)
+```
+
+**Test Content Admin Access:**
+```bash
+# Login as contentadmin, then test these URLs:
+✅ /content/hero-sections (Exclusive)
+✅ /content/brands (Shared with Super Admin)
+✅ /content/teams (Exclusive)
+✅ /content/services (Exclusive)
+✅ /content/about (Exclusive)
+✅ /content/analytics (Exclusive)
+❌ /data-barang (No Business Operations)
+❌ /transaksi (No Transactions)
+```
+
+**Test Owner Access:**
+```bash
+# Login as guntur, then test these URLs:
+✅ /owner/laporan-penjualan (Sales Reports)
+✅ /owner/laporan-barang (Inventory Reports)
+✅ /owner/data-barang (Stock View)
+✅ /owner/kelola-stok-barang (Stock Management)
+❌ /transaksi (No Daily Operations)
+❌ /data-admin (No User Management)
+❌ /content/brands (No Content Access)
+```
 
 ## 🛠️ Development
 
@@ -166,14 +501,94 @@ Lihat [MIGRATION-GUIDE.md](MIGRATION-GUIDE.md) untuk detail lengkap.
 - [🔄 Migration Guide](MIGRATION-GUIDE.md) - Migration from separate ports
 - [📋 Original Structure](STRUCTURE.md) - Legacy structure reference
 
-## 🛠️ Troubleshooting
+## 🛠️ Troubleshooting & Common Issues
 
-### Common Issues:
+### Authentication & Role Issues
 
-1. **React tidak loading**: `npm run build`
-2. **Database error**: Check `.env` dan `php artisan migrate --seed`
-3. **Permission denied**: `chmod +x start-unified.sh`
-4. **API tidak accessible**: `php artisan route:list | grep api`
+**Problem**: User can't access certain routes after login
+```bash
+# Solution 1: Clear and rebuild roles
+php artisan permission:cache-reset
+php artisan db:seed --class=RolePermissionSeeder
+
+# Solution 2: Check user roles
+php artisan tinker
+>>> $user = App\Models\User::where('username', 'superadmin')->first();
+>>> $user->getRoleNames(); // Should show ['super_admin']
+>>> $user->role; // Should match Spatie role
+```
+
+**Problem**: "Role does not exist" error
+```bash
+# Solution: Rebuild roles and permissions
+php artisan migrate:fresh --seed
+# Look for ✅ validation messages
+```
+
+**Problem**: Access denied on valid routes
+```bash
+# Solution: Check middleware and route names
+php artisan route:list | grep "role:"
+# Verify route middleware matches user roles
+```
+
+### Database & Migration Issues
+
+**Problem**: Migration fails
+```bash
+# Solution: Fresh migration
+php artisan migrate:fresh --seed
+php artisan storage:link
+```
+
+**Problem**: Seeder validation fails
+```bash
+# Check specific seeder
+php artisan db:seed --class=UserSeeder
+php artisan db:seed --class=RolePermissionSeeder
+php artisan db:seed --class=TestValidationSeeder
+```
+
+### Application Issues
+
+**Problem**: React SPA not loading
+```bash
+# Solution: Rebuild assets
+npm run build
+php artisan view:clear
+php artisan config:clear
+```
+
+**Problem**: Livewire components not working
+```bash
+# Solution: Clear all caches
+php artisan optimize:clear
+php artisan livewire:publish --config
+```
+
+**Problem**: Session issues
+```bash
+# Solution: Check session configuration
+php artisan session:table
+php artisan migrate
+# Ensure APP_KEY is set: php artisan key:generate
+```
+
+### Quick System Validation
+```bash
+# Complete system validation script
+php artisan migrate:fresh --seed && \
+php artisan storage:link && \
+npm run build && \
+echo "🎉 System ready for testing!"
+
+# Test all user logins
+echo "Testing Super Admin..." && \
+echo "Testing Admin..." && \
+echo "Testing Content Admin..." && \
+echo "Testing Owner..." && \
+echo "✅ All accounts ready!"
+```
 
 ## 📈 Performance
 

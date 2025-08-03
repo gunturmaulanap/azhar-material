@@ -26,12 +26,24 @@ class CheckRole
         }
         // If user is authenticated via web guard, check their role using Spatie
         elseif (auth()->guard('web')->check() && $user) {
+            // Map role names for backward compatibility
+            $mappedRoles = array_map(function($role) {
+                switch($role) {
+                    case 'superadmin':
+                        return 'super_admin';
+                    case 'content-admin':
+                        return 'content-admin';
+                    default:
+                        return $role;
+                }
+            }, $roles);
+            
             // Use Spatie for role check if available
             if (method_exists($user, 'hasAnyRole')) {
-                if ($user->hasAnyRole($roles)) {
+                if ($user->hasAnyRole($mappedRoles)) {
                     return $next($request);
                 }
-            } else if (isset($user->role) && in_array($user->role, $roles)) {
+            } else if (isset($user->role) && in_array($user->role, $mappedRoles)) {
                 // Fallback to manual role property
                 return $next($request);
             }
@@ -40,11 +52,11 @@ class CheckRole
         // Redirect to appropriate page if role doesn't match
         if (auth()->guard('customer')->check()) {
             $customer = auth()->guard('customer')->user();
-            return redirect()->route('customer.detail', ['id' => $customer->id]);
+            return redirect()->route('customer.dashboard', ['id' => $customer->id]);
         } elseif (auth()->guard('web')->check()) {
-            return redirect()->route('dashboard');
+            return redirect()->route('admin.dashboard.livewire');
         }
 
-        return redirect()->route('login');
+        return redirect()->route('admin.login');
     }
 }
