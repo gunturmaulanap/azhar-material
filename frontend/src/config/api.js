@@ -9,6 +9,7 @@ export const apiConfig = {
     Accept: "application/json",
   },
   timeout: 10000,
+  withCredentials: false, // Set to false to avoid CORS issues
 };
 
 // CSRF Token configuration for Laravel
