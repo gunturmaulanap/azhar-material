@@ -3,8 +3,10 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
+
 use Illuminate\Support\Facades\Hash;
+use App\Models\User;
+use Spatie\Permission\Models\Role;
 
 class UserSeeder extends Seeder
 {
@@ -13,6 +15,12 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
+        // Pastikan roles sudah ada
+        $roles = ['super_admin', 'admin', 'content-admin'];
+        foreach ($roles as $role) {
+            Role::firstOrCreate(['name' => $role, 'guard_name' => 'web']);
+        }
+
         $data = [
             [
                 'name' => 'Super Admin',
@@ -36,18 +44,21 @@ class UserSeeder extends Seeder
             ],
         ];
 
-        foreach ($data as $user) {
-            DB::table('users')->updateOrInsert(
-                ['username' => $user['username']],
+        foreach ($data as $userData) {
+            $user = User::updateOrCreate(
+                ['username' => $userData['username']],
                 [
-                    'name' => $user['name'],
-                    'username' => $user['username'],
-                    'role' => $user['role'],
+                    'name' => $userData['name'],
+                    'username' => $userData['username'],
+                    'role' => $userData['role'],
                     'password' => Hash::make('password'),
-                    'created_at' => now(),
-                    'updated_at' => now(),
                 ]
             );
+
+            // Assign Spatie role only for non-customer
+            if ($userData['role'] !== 'customer') {
+                $user->assignRole($userData['role']);
+            }
         }
     }
 }

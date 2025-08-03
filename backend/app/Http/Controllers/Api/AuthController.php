@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Customer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -20,54 +21,81 @@ class AuthController extends Controller
             'role' => 'required|string',
         ]);
 
-        // Cek apakah user ada dan role sesuai
-        $user = User::where('username', $request->username)->first();
-
-        if (!$user) {
-            throw ValidationException::withMessages([
-                'username' => ['Username tidak ditemukan.'],
-            ]);
-        }
-
-        // Validasi role
-        if ($user->role !== $request->role) {
-            throw ValidationException::withMessages([
-                'role' => ['Role yang dipilih tidak sesuai dengan akun Anda.'],
-            ]);
-        }
-
-        // Coba login
-        if (Auth::guard('web')->attempt(['username' => $request->username, 'password' => $request->password])) {
-            $user = Auth::user();
-
-            // Tentukan redirect URL berdasarkan role
-            $redirectUrl = 'http://localhost:3000/'; // Default to React app root
-            if ($user->role === 'content-admin') {
-                $redirectUrl = 'http://localhost:8000/sso-login/' . $user->id; // SSO ke Laravel content dashboard
-            } elseif ($user->role === 'admin' || $user->role === 'super_admin') {
-                $redirectUrl = 'http://localhost:8000/sso-login/' . $user->id; // SSO ke Laravel dashboard
-            } elseif ($user->role === 'customer') {
-                // Customer langsung ke Laravel dashboard tanpa SSO
-                $redirectUrl = 'http://localhost:8000/customer/dashboard';
+        if ($request->role === 'customer') {
+            $customer = \App\Models\Customer::where('username', $request->username)->first();
+            if (!$customer) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Username customer tidak ditemukan.',
+                ], 401);
             }
-
-            // Generate token untuk API authentication
-            $token = $user->createToken('auth-token')->plainTextToken;
-
+            if (!\Hash::check($request->password, $customer->password)) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Password customer salah.',
+                ], 401);
+            }
+            if (\Auth::guard('customer')->attempt(['username' => $request->username, 'password' => $request->password])) {
+                $customer = \Auth::guard('customer')->user();
+                $redirectUrl = url('/customer/' . $customer->id);
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Login customer berhasil',
+                    'data' => [
+                        'user' => $customer,
+                        'redirectUrl' => $redirectUrl
+                    ]
+                ]);
+            }
             return response()->json([
-                'success' => true,
-                'message' => 'Login berhasil',
-                'data' => [
-                    'user' => $user,
-                    'token' => $token,
-                    'redirectUrl' => $redirectUrl
-                ]
-            ]);
+                'success' => false,
+                'error' => 'Gagal login customer.',
+            ], 401);
+        } else {
+            // Login untuk admin, super_admin, content-admin
+            $user = \App\Models\User::where('username', $request->username)->first();
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Username tidak ditemukan.',
+                ], 401);
+            }
+            if ($user->role !== $request->role) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Role tidak sesuai.',
+                ], 401);
+            }
+            if (!\Hash::check($request->password, $user->password)) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Password salah.',
+                ], 401);
+            }
+            if (\Auth::guard('web')->attempt(['username' => $request->username, 'password' => $request->password])) {
+                $user = \Auth::user();
+                $redirectUrl = 'http://localhost:3000/';
+                if ($user->role === 'content-admin') {
+                    $redirectUrl = 'http://localhost:8000/sso-login/' . $user->id;
+                } elseif ($user->role === 'admin' || $user->role === 'super_admin') {
+                    $redirectUrl = 'http://localhost:8000/sso-login/' . $user->id;
+                }
+                $token = $user->createToken('auth-token')->plainTextToken;
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Login berhasil',
+                    'data' => [
+                        'user' => $user,
+                        'token' => $token,
+                        'redirectUrl' => $redirectUrl
+                    ]
+                ]);
+            }
+            return response()->json([
+                'success' => false,
+                'error' => 'Gagal login user.',
+            ], 401);
         }
-
-        throw ValidationException::withMessages([
-            'password' => ['Password salah.'],
-        ]);
     }
 
     public function register(Request $request)

@@ -19,24 +19,18 @@ Route::get('/', function () {
 // SSO Login route untuk redirect dari React
 Route::get('/sso-login/{userId}', [App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'ssoLogin'])->name('sso.login');
 
-// Customer routes (Livewire dashboard) - using both guards
-Route::get('/customer/dashboard', [DashboardController::class, 'index'])->name('customer.dashboard')->middleware(['auth:customer,web']);
-Route::middleware(['auth:customer'])->group(function () {
-    Route::get('/customer/{id}', App\Http\Livewire\Master\CustomerDetail::class)->name('customer.detail');
+// Customer routes (Livewire) - hybrid for both guards
+Route::get('/customer/{id}', [App\Http\Livewire\Master\CustomerDetail::class, 'show'])->middleware('auth:customer,web')
+    ->name('customer.detail')
+    ->where('id', '[0-9]+');
+
+Route::middleware(['auth:customer,web'])->group(function () {
     Route::get('/customer/detail-transaksi/{id}', App\Http\Livewire\Transaction\Detail::class)->name('customer.transaction.detail');
     Route::get('/customer/pengiriman-barang/{id}', App\Http\Livewire\Delivery\Detail::class)->name('customer.delivery.detail');
 });
 
-// Customer routes alternative - for web guard users with customer role
-Route::middleware(['auth:web'])->group(function () {
-    Route::get('/customer/dashboard', [DashboardController::class, 'index'])->name('customer.dashboard.web')->middleware('role:customer');
-    Route::get('/customer/{id}', App\Http\Livewire\Master\CustomerDetail::class)->name('customer.detail.web')->middleware('role:customer');
-    Route::get('/customer/detail-transaksi/{id}', App\Http\Livewire\Transaction\Detail::class)->name('customer.transaction.detail.web')->middleware('role:customer');
-    Route::get('/customer/pengiriman-barang/{id}', App\Http\Livewire\Delivery\Detail::class)->name('customer.delivery.detail.web')->middleware('role:customer');
-});
-
 // Main dashboard for Admin & Super Admin
-Route::middleware(['auth', 'role:admin,super_admin'])->group(function () {
+Route::middleware(['auth', 'role:admin|super_admin'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/api/sales-percentage-by-category', [DashboardController::class, 'getSalesPercentageByCategory']);
 
@@ -75,7 +69,7 @@ Route::middleware(['auth', 'role:admin,super_admin'])->group(function () {
     });
 
     // ADMIN ACCESS
-    Route::middleware(['role:admin,super_admin'])->group(function () {
+    Route::middleware(['role:admin'])->group(function () {
 
         // Data Hutang
         Route::get('data-hutang', App\Http\Livewire\Debt\Index::class)->name('debt.index');
