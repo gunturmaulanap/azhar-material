@@ -21,7 +21,7 @@ class DatabaseSeeder extends Seeder
             // AttendanceSeeder::class,
             SupplierSeeder::class,
             CustomerSeeder::class,
-            CustomerUserSeeder::class, // Menjalankan CustomerUserSeeder setelah CustomerSeeder
+            // CustomerUserSeeder::class, // Menjalankan CustomerUserSeeder setelah CustomerSeeder
             GoodsSeeder::class,
             ContentSeeder::class, // Menambahkan ContentSeeder untuk data hero-section, brand, dll
             RolePermissionSeeder::class, // Menambahkan RolePermissionSeeder untuk setup roles dan permissions
