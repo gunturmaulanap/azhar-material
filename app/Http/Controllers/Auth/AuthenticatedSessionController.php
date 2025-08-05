@@ -4,129 +4,120 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
-use App\Providers\RouteServiceProvider;
 use App\Models\User;
+use App\Models\Customer;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
 {
     /**
-     * Display the login view.
-     */
-    /**
-     * Display the login view or redirect if already authenticated.
+     * Tampilkan tampilan login atau alihkan jika sudah terautentikasi.
      *
      * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
      */
-    public function create()
+    public function create(): View|RedirectResponse
     {
-        // Jika sudah login, redirect ke halaman sesuai role
-        if (Auth::guard('customer')->check()) {
-            $customer = Auth::guard('customer')->user();
-            return redirect()->route('customer.detail', ['id' => $customer->id]);
-        }
+        // Jika sudah login dengan guard 'web' atau 'customer', alihkan ke dashboard yang sesuai
         if (Auth::guard('web')->check()) {
-            $user = Auth::user();
-            if ($user->role === 'customer') {
-                return redirect()->route('customer.detail', ['id' => $user->id]);
-            } elseif ($user->role === 'content-admin') {
-                return redirect()->route('content.dashboard');
-            } elseif ($user->role === 'admin' || $user->role === 'super_admin') {
-                return redirect()->route('dashboard');
-            }
+            return $this->redirectBasedOnRole(Auth::guard('web')->user());
         }
-        // Jika belum login, redirect ke React login page (return View agar sesuai tipe return)
-        return redirect('/login');
+
+        if (Auth::guard('customer')->check()) {
+            return $this->redirectBasedOnRole(Auth::guard('customer')->user());
+        }
+
+        // Jika tidak ada yang terautentikasi, tampilkan halaman login
+        return view('auth.login');
     }
 
     /**
-     * Handle an incoming authentication request.
+     * Tangani permintaan otentikasi masuk.
+     *
+     * @param  \App\Http\Requests\Auth\LoginRequest  $request
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function store(LoginRequest $request): RedirectResponse
     {
-        $loginType = $request->input('login_type', 'user');
+        $request->authenticate();
 
-        if ($loginType === 'customer') {
-            // Try customer authentication first
-            if (Auth::guard('customer')->attempt($request->only('username', 'password'))) {
-                $request->session()->regenerate();
-                $customer = Auth::guard('customer')->user();
-                // Redirect ke detail customer hybrid
-                return redirect()->route('customer.detail', ['id' => $customer->id]);
-            } else {
-                // Jika gagal login customer, redirect ke React login page dengan pesan error
-                return redirect('/login')->with('toast', 'Username atau password customer salah.');
-            }
-        }
-        // Try user authentication (web guard)
-        if (Auth::guard('web')->attempt($request->only('username', 'password'))) {
-            $request->session()->regenerate();
-            $user = Auth::user();
-            if ($user->role === 'customer') {
-                // Redirect ke detail customer hybrid
-                return redirect()->route('customer.detail', ['id' => $user->id]);
-            } elseif ($user->role === 'content-admin') {
-                return redirect()->route('content.dashboard');
-            } elseif ($user->role === 'admin' || $user->role === 'super_admin') {
-                return redirect()->route('dashboard');
-            } else {
-                return redirect(RouteServiceProvider::HOME);
-            }
-        }
-        // If all auth fails, redirect ke React login page dengan pesan error
-        return redirect('/login')->with('toast', 'Username atau password salah.');
+        $request->session()->regenerate();
+
+        // Dapatkan user yang terautentikasi
+        $user = Auth::guard($request->getLoginGuard())->user();
+
+        // Alihkan berdasarkan peran
+        return $this->redirectBasedOnRole($user);
     }
 
+    /**
+     * Hancurkan sesi otentikasi.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function destroy(Request $request): RedirectResponse
     {
-        // Logout dari semua guard yang mungkin aktif
-        if (Auth::guard('customer')->check()) {
-            Auth::guard('customer')->logout();
-        }
+        // Cek guard mana yang digunakan untuk logout
         if (Auth::guard('web')->check()) {
             Auth::guard('web')->logout();
+        } elseif (Auth::guard('customer')->check()) {
+            Auth::guard('customer')->logout();
         }
 
-        // Hapus session sepenuhnya
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        // Redirect ke halaman company profile (React landing page) setelah logout
         return redirect('/');
     }
 
     /**
-     * SSO Login untuk redirect dari React
+     * Mengarahkan pengguna yang terautentikasi ke dashboard yang benar.
+     *
+     * @param  \App\Models\User|\App\Models\Customer  $user
+     * @return \Illuminate\Http\RedirectResponse
      */
-    public function ssoLogin(Request $request, $userId)
+    protected function redirectBasedOnRole($user): RedirectResponse
     {
-        $user = User::find($userId);
-
-        if (!$user) {
-            return redirect('/login')->withErrors(['username' => 'User tidak ditemukan.']);
+        // Jika peran 'customer', alihkan ke dashboard customer
+        if ($user instanceof Customer) {
+            if (Route::has('customer.dashboard')) {
+                return redirect()->route('customer.dashboard', ['id' => $user->id]);
+            }
         }
 
-        // Login user ke session Laravel
-        Auth::login($user);
-        $request->session()->regenerate();
-
-        // Redirect berdasarkan role
+        // Jika peran 'user' (admin, super_admin, dll.), alihkan berdasarkan perannya
         switch ($user->role) {
-            case 'customer':
-                // Redirect ke detail customer hybrid
-                return redirect()->route('customer.detail', ['id' => $user->id]);
-            case 'admin':
             case 'super_admin':
-            case 'owner':
-                return redirect()->route('dashboard');
+                if (Route::has('superadmin.dashboard')) {
+                    return redirect()->route('superadmin.dashboard');
+                }
+                break;
+            case 'admin':
+                if (Route::has('admin.transaction.create')) {
+                    return redirect()->route('admin.transaction.create');
+                }
+                break;
             case 'content-admin':
-                return redirect()->route('content.dashboard');
-            default:
-                // Jika tidak dalam halaman yang seharusnya, redirect ke React
-                return redirect('/');
+                if (Route::has('content.hero-sections')) {
+                    return redirect()->route('content.hero-sections');
+                }
+                break;
+            case 'owner':
+                if (Route::has('owner.report.index')) {
+                    return redirect()->route('owner.report.index');
+                }
+            case 'driver':
+                if (Route::has('driver.delivery.index')) {
+                    return redirect()->route('driver.delivery.index');
+                }
+                break;
         }
+
+        // Fallback yang aman
+        return redirect(url('/'));
     }
 }

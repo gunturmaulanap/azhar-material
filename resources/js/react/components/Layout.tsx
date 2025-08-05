@@ -39,6 +39,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { name: "Services", href: "/services" },
     { name: "Contact", href: "/contact" },
     { name: "Team", href: "/team" },
+    { name: "Dashboard", href: "/" },
   ];
 
   return (
@@ -69,7 +70,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                       ? "text-primary"
                       : isScrolled
                       ? "text-gray-700 hover:text-primary"
-                      : "text-white hover:text-accent"
+                      : "text-gray-400 hover:text-accent"
                   }`}
                 >
                   {item.name}
@@ -124,7 +125,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               ) : (
                 <Menu
                   className={`h-6 w-6 ${
-                    isScrolled ? "text-gray-700" : "text-white"
+                    isScrolled ? "text-gray-700" : "text-gray-600"
                   }`}
                 />
               )}

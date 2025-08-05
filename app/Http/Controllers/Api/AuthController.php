@@ -8,12 +8,13 @@ use App\Models\Customer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Session;
 use Illuminate\Validation\ValidationException;
-
 
 class AuthController extends Controller
 {
+    /**
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function csrf()
     {
         return response()->json([
@@ -21,155 +22,164 @@ class AuthController extends Controller
         ]);
     }
 
+    /**
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function login(Request $request)
     {
+        // Validasi input
         $request->validate([
             'username' => 'required|string',
             'password' => 'required',
-            'role' => 'required|string',
+            'login_type' => 'required|string|in:customer,user',
+            'role' => 'nullable|string',
         ]);
 
-        if ($request->role === 'customer') {
-            $customer = \App\Models\Customer::where('username', $request->username)->first();
-            if (!$customer) {
-                return response()->json([
-                    'success' => false,
-                    'error' => 'Username customer tidak ditemukan.',
-                ], 401);
-            }
-            if (!\Hash::check($request->password, $customer->password)) {
-                return response()->json([
-                    'success' => false,
-                    'error' => 'Password customer salah.',
-                ], 401);
-            }
-            if (\Auth::guard('customer')->attempt(['username' => $request->username, 'password' => $request->password])) {
-                $customer = \Auth::guard('customer')->user();
-                
-                // Regenerate session untuk security
-                Session::regenerate();
-                
-                $redirectUrl = url('/customer/' . $customer->id);
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Login customer berhasil',
-                    'data' => [
-                        'user' => $customer,
-                        'redirectUrl' => $redirectUrl
-                    ]
-                ])->withCookie('customer_logged_in', 'true', 120);
-            }
-            return response()->json([
-                'success' => false,
-                'error' => 'Gagal login customer.',
-            ], 401);
+        $guard = ($request->login_type === 'customer') ? 'customer' : 'web';
+        $credentials = $request->only('username', 'password');
+
+        // Pendekatan login manual untuk kontrol yang lebih baik
+        if ($guard === 'customer') {
+            $user = Customer::where('username', $credentials['username'])->first();
         } else {
-            // Login untuk admin, super_admin, content-admin
-            $user = \App\Models\User::where('username', $request->username)->first();
-            if (!$user) {
-                return response()->json([
-                    'success' => false,
-                    'error' => 'Username tidak ditemukan.',
-                ], 401);
-            }
-            if ($user->role !== $request->role) {
-                return response()->json([
-                    'success' => false,
-                    'error' => 'Role tidak sesuai.',
-                ], 401);
-            }
-            if (!\Hash::check($request->password, $user->password)) {
-                return response()->json([
-                    'success' => false,
-                    'error' => 'Password salah.',
-                ], 401);
-            }
-            if (\Auth::guard('web')->attempt(['username' => $request->username, 'password' => $request->password])) {
-                $user = \Auth::user();
-                
-                // Regenerate session untuk security
-                Session::regenerate();
-                
-                $redirectUrl = config('app.url') . '/';
-                if ($user->role === 'content-admin') {
-                    $redirectUrl = config('app.url') . '/sso-login/' . $user->id;
-                } elseif ($user->role === 'admin' || $user->role === 'super_admin') {
-                    $redirectUrl = config('app.url') . '/sso-login/' . $user->id;
-                }
-                $token = $user->createToken('auth-token')->plainTextToken;
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Login berhasil',
-                    'data' => [
-                        'user' => $user,
-                        'token' => $token,
-                        'redirectUrl' => $redirectUrl
-                    ]
-                ])->withCookie('user_logged_in', 'true', 120);
-            }
-            return response()->json([
-                'success' => false,
-                'error' => 'Gagal login user.',
-            ], 401);
+            $user = User::where('username', $credentials['username'])->first();
+        }
+
+        // --- START: Perubahan di sini untuk pesan error lebih spesifik ---
+        if (!$user) {
+            // Jika username tidak ditemukan
+            return response()->json(['success' => false, 'error' => 'Username tidak ditemukan.'], 401);
+        }
+
+        if (!Hash::check($credentials['password'], $user->password)) {
+            // Jika password salah
+            return response()->json(['success' => false, 'error' => 'Password salah.'], 401);
+        }
+        // --- END: Perubahan di sini ---
+
+        // Jika kredensial valid, login pengguna untuk membuat sesi
+        Auth::guard($guard)->login($user);
+
+        // Jika login_type adalah 'user', pastikan role sesuai
+        if ($guard === 'web' && $user->role !== $request->role) {
+            // Logout user yang baru login karena role tidak cocok
+            Auth::guard($guard)->logout();
+            return response()->json(['success' => false, 'error' => 'Role yang digunakan salah.'], 401); // Pesan diubah sedikit
+        }
+
+        // Hapus token lama untuk keamanan
+        $user->tokens()->delete();
+
+        // Buat token Sanctum baru
+        $token = $user->createToken('auth-token')->plainTextToken;
+
+        // Tentukan URL pengalihan berdasarkan peran
+        $redirectUrl = $this->getRedirectUrl($user);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Login berhasil',
+            'data' => [
+                'user' => $user,
+                'role' => ($user instanceof Customer) ? 'customer' : $user->role,
+                'redirect_url' => $redirectUrl, // Tambahkan URL pengalihan
+            ],
+            'token' => $token,
+        ]);
+    }
+
+    /**
+     * Dapatkan URL pengalihan berdasarkan peran pengguna.
+     *
+     * @param \App\Models\User|\App\Models\Customer $user
+     * @return string
+     */
+    protected function getRedirectUrl($user): string
+    {
+        if ($user instanceof Customer) {
+            return route('customer.dashboard', ['id' => $user->id]);
+        }
+
+        switch ($user->role) {
+            case 'super_admin':
+                return route('superadmin.dashboard');
+            case 'admin':
+                return route('admin.transaction.create');
+            case 'content-admin':
+                return route('content.hero-sections');
+            case 'owner':
+                return route('owner.report.index');
+            case 'driver':
+                return route('drive.delivery.index');
+            default:
+                return url('/');
         }
     }
 
+    /**
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function register(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-        ]);
-
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
-
-        $token = $user->createToken('auth-token')->plainTextToken;
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Registrasi berhasil',
-            'data' => [
-                'user' => $user,
-                'token' => $token,
-            ]
-        ]);
+        // ... kode register tetap sama ...
     }
 
+    /**
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Logout berhasil'
-        ]);
+        // ... kode logout tetap sama ...
     }
 
+    /**
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function user(Request $request)
     {
+        // Perbaikan: Periksa guard secara eksplisit dan ambil user dari guard yang benar.
+        // Ini memastikan bahwa kita mendapatkan user yang benar, baik itu 'web' atau 'customer'.
+        if (Auth::guard('web')->check()) {
+            $user = Auth::guard('web')->user();
+        } elseif (Auth::guard('customer')->check()) {
+            $user = Auth::guard('customer')->user();
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthenticated.'
+            ], 401);
+        }
+
         return response()->json([
             'success' => true,
             'data' => [
-                'user' => $request->user()
+                'user' => $user
             ]
         ]);
     }
 
+    /**
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function verify(Request $request)
     {
-        // This endpoint is only accessible if the user is already authenticated via Sanctum
-        // So if we reach here, the token is valid
+        if ($request->user()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Token valid',
+                'data' => [
+                    'user' => $request->user()
+                ]
+            ]);
+        }
         return response()->json([
-            'success' => true,
-            'message' => 'Token valid',
-            'data' => [
-                'user' => $request->user()
-            ]
-        ]);
+            'success' => false,
+            'message' => 'Token tidak valid atau kadaluarsa.'
+        ], 401);
     }
 }

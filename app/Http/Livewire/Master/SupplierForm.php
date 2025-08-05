@@ -48,13 +48,13 @@ class SupplierForm extends Component
             // Jika $supplierId ada, berarti sedang melakukan update data
             Supplier::where('id', $this->supplierId)->update($this->supplier);
 
-            return redirect()->route('master.supplier')->with('success', 'Data diubah!');
+            return redirect()->route('superadmin.master.supplier')->with('success', 'Data diubah!');
         } else {
             // Jika $supplierId tidak ada, berarti sedang melakukan create data
             Supplier::create($this->supplier);
             $this->supplier = [];
 
-            return redirect()->route('master.supplier')->with('success', 'Data ditambahkan!');
+            return redirect()->route('superadmin.master.supplier')->with('success', 'Data ditambahkan!');
         }
     }
 

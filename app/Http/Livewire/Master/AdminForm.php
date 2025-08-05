@@ -84,7 +84,7 @@ class AdminForm extends Component
             // Update Spatie role
             $user->syncRoles([$this->user['role']]);
 
-            return redirect()->route('master.admin')->with('success', 'Data diubah!');
+            return redirect()->route('superadmin.master.admin')->with('success', 'Data diubah!');
         } else {
             // Jika $userId tidak ada, berarti sedang melakukan create data
             $newUser = User::create([
@@ -97,7 +97,7 @@ class AdminForm extends Component
             // Assign Spatie role
             $newUser->assignRole($this->user['role']);
 
-            return redirect()->route('master.admin')->with('success', 'Data ditambahkan!');
+            return redirect()->route('superadmin.master.admin')->with('success', 'Data ditambahkan!');
         }
     }
 
@@ -124,7 +124,7 @@ class AdminForm extends Component
     {
         // Get available roles untuk dropdown (excluding customer)
         $roles = Role::whereIn('name', ['admin', 'super_admin', 'content-admin', 'owner'])->get();
-        
+
         return view('livewire.master.admin-form', [
             'roles' => $roles,
         ]);

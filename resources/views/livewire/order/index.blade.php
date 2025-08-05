@@ -50,7 +50,7 @@
                     <input wire:model="endDate" type="date" id="endDate"
                         class="flex rounded-r-md bg-white border-gray-300 px-3 py-1 text-xs sm:text-sm text-gray-800 shadow-sm transition-colors focus:ring-1 h-8 placeholder:text-xs placeholder:text-slate-600">
                 </label>
-                <a href="{{ route('order.create') }}"
+                <a href="{{ route(str_replace('_', '', auth()->user()->role) . '.order.create') }}"
                     class="inline-flex whitespace-nowrap items-center gap-x-2 px-2 py-1.5 text-xs bg-sky-500 text-white font-extrabold rounded-md shadow-md">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4">
                         <path fill-rule="evenodd"
@@ -110,7 +110,7 @@
                             </td>
                             <td class="py-2">
                                 <div class="flex items-center gap-x-4 justify-center">
-                                    <a href="{{ route('order.detail', ['id' => $item->id]) }}"
+                                    <a href="{{ route(str_replace('_', '', auth()->user()->role) . '.order.detail', ['id' => $item->id]) }}"
                                         class="px-2 py-1 flex items-center gap-x-2 rounded-md bg-sky-500 text-white text-xs">
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
                                             class="size-3">
@@ -171,7 +171,7 @@
                     <span class="font-bold">@currency($item->total)</span>
                 </div>
                 <div class="flex items-center gap-2 w-full justify-end mt-2">
-                    <a href="{{ route('order.detail', ['id' => $item->id]) }}"
+                    <a href="{{ route(str_replace('_', '', auth()->user()->role) . '.order.detail', ['id' => $item->id]) }}"
                         class="px-2 py-1 flex items-center gap-x-2 rounded-md bg-sky-500 text-white text-xs">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-3">
                             <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />

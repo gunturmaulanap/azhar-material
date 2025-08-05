@@ -53,36 +53,6 @@ class DashboardController extends Controller
 
     public function index()
     {
-        // Check if authenticated via customer guard
-        if (auth()->guard('customer')->check()) {
-            $customer = auth()->guard('customer')->user();
-            return redirect()->route('customer.detail', ['id' => $customer->id]);
-        }
-
-        // Check if authenticated via web guard and has customer role
-        if (auth()->guard('web')->check() && auth()->user()->role === 'customer') {
-            $user = auth()->user();
-            return redirect()->route('customer.detail', ['id' => $user->id]);
-        }
-
-        // Check if authenticated via web guard for admin roles
-        if (auth()->guard('web')->check()) {
-            $user = auth()->user();
-            if (in_array($user->role, ['admin', 'super_admin', 'content-admin'])) {
-                // Check if authenticated via web guard for admin roles
-                if (auth()->guard('web')->check()) {
-                    $user = auth()->user();
-                    if (in_array($user->role, ['admin', 'super_admin', 'content-admin'])) {
-                        return view('dashboard');
-                    }
-                }
-
-                // If not authenticated or no valid role, redirect to login
-                return redirect()->route('login')->withErrors(['auth' => 'Anda harus login terlebih dahulu.']);
-            }
-        }
-
-        // If not authenticated or no valid role, redirect to login
-        return redirect()->route('login')->withErrors(['auth' => 'Anda harus login terlebih dahulu.']);
+        return view('dashboard');
     }
 }

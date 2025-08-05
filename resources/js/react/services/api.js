@@ -1,42 +1,51 @@
 import axios from "axios";
-import { apiConfig, getCSRFToken, endpoints } from "../config/api";
+import { apiConfig, getCSRFToken, endpoints } from "../config/api"; // Path diperbaiki
 import Cookies from "js-cookie";
 
 // Create axios instance with default config
 const api = axios.create(apiConfig);
 
-// Request interceptor to add CSRF token
+// Request interceptor to add CSRF token and Authorization header
 api.interceptors.request.use(
   async (config) => {
-    // Get CSRF token from meta tag or API
-    let token = getCSRFToken();
-    if (!token && config.url !== endpoints.csrf) {
+    // --- Bagian Penanganan CSRF Token ---
+    let csrfToken = getCSRFToken(); // Ambil CSRF token dari meta tag
+
+    // Jika CSRF token belum ada dan ini bukan permintaan untuk mendapatkan CSRF token itu sendiri
+    if (!csrfToken && config.url !== endpoints.csrf) {
       try {
-        const response = await api.get(endpoints.csrf);
-        token = response.data.csrf_token;
-        // Set CSRF token in meta tag for future use
+        const response = await api.get(endpoints.csrf); // Minta CSRF token dari backend
+        csrfToken = response.data.csrf_token;
+        // Set CSRF token di meta tag untuk penggunaan di masa mendatang
         const metaTag = document.querySelector('meta[name="csrf-token"]');
         if (metaTag) {
-          metaTag.setAttribute('content', token);
+          metaTag.setAttribute("content", csrfToken);
         } else {
-          const meta = document.createElement('meta');
-          meta.name = 'csrf-token';
-          meta.content = token;
+          const meta = document.createElement("meta");
+          meta.name = "csrf-token";
+          meta.content = csrfToken;
           document.head.appendChild(meta);
         }
       } catch (error) {
-        console.error('Failed to get CSRF token:', error);
+        console.error("Failed to get CSRF token:", error);
       }
     }
-    
-    if (token) {
-      config.headers["X-CSRF-TOKEN"] = token;
+
+    // Tambahkan X-CSRF-TOKEN ke header jika ada
+    if (csrfToken) {
+      config.headers["X-CSRF-TOKEN"] = csrfToken;
     }
 
-    // Add Authorization header if user is authenticated
-    const authToken = Cookies.get("token");
+    // --- Bagian Penanganan Authorization Header (Bearer Token) ---
+    const authToken = Cookies.get("token"); // Ambil token autentikasi dari cookie
     if (authToken) {
-      config.headers["Authorization"] = `Bearer ${authToken}`;
+      config.headers["Authorization"] = `Bearer ${authToken}`; // Tambahkan header Authorization
+      console.log(
+        "Authorization header added:",
+        config.headers["Authorization"]
+      ); // Debug log
+    } else {
+      console.log("No auth token found in cookie for Authorization header."); // Debug log
     }
 
     return config;
@@ -54,9 +63,8 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       // Handle unauthorized access
-      Cookies.remove("token");
-      // Don't redirect automatically, let components handle the logout
-      console.warn('Authentication failed, token removed');
+      Cookies.remove("token"); // Hapus token jika 401
+      console.warn("Authentication failed, token removed");
     }
     return Promise.reject(error);
   }

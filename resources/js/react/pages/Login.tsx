@@ -21,17 +21,22 @@ import {
 import { useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
 
+// The Login component handles user authentication
 const Login = () => {
+  // State to manage form data (username, password, and role)
   const [formData, setFormData] = useState({
     username: "",
     password: "",
-    role: "",
+    role: "", // Stores the selected role from the dropdown
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Get the login function from the authentication context
   const { login } = useAuth();
   const navigate = useNavigate();
 
+  // Handle changes in the input fields
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
@@ -39,6 +44,7 @@ const Login = () => {
     });
   };
 
+  // Handle changes in the role select dropdown
   const handleRoleChange = (value: string) => {
     setFormData({
       ...formData,
@@ -46,11 +52,13 @@ const Login = () => {
     });
   };
 
+  // Handle form submission for login
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
+    // Validate that a role has been selected
     if (!formData.role) {
       toast.error("Silakan pilih role terlebih dahulu", {
         duration: 4000,
@@ -66,11 +74,20 @@ const Login = () => {
     }
 
     try {
-      const result = await login(formData);
-      console.log("Login result:", result); // Debug log
+      // Determine the login type for the API call based on the selected role
+      const loginType = formData.role === "customer" ? "customer" : "user";
+
+      // Call the login function from useAuth, which handles the API call and cookie storage
+      const result = await login({
+        username: formData.username,
+        password: formData.password,
+        login_type: loginType,
+        role: formData.role,
+      });
+
+      console.log("Login result:", result);
 
       if (result.success) {
-        // Success toast
         toast.success("Login berhasil! Mengarahkan ke dashboard...", {
           duration: 3000,
           position: "top-center",
@@ -81,45 +98,44 @@ const Login = () => {
           },
         });
 
-        // Gunakan redirectUrl dari response API jika tersedia
-        if (result.redirectUrl) {
-          console.log("Redirecting to:", result.redirectUrl); // Debug log
-          // Pastikan session terset dengan baik sebelum redirect
-          setTimeout(() => {
-            window.location.href = result.redirectUrl;
-          }, 1000);
-        } else {
-          // Fallback ke role-based routing
-          const userRole = result.data?.data?.user?.role;
-          console.log("User role:", userRole); // Debug log
+        // Ambil URL pengalihan dari respons API
+        const redirectUrl = result.data.redirect_url;
 
-          let redirectUrl = "/";
-          switch (userRole) {
-            case "customer":
-              redirectUrl = `http://localhost:8000/customer/${result.data?.data?.user?.id}`;
-              break;
-            case "admin":
-            case "super_admin":
-              redirectUrl = `http://localhost:8000/sso-login/${result.data?.data?.user?.id}`;
-              break;
-            case "content-admin":
-              redirectUrl = `http://localhost:8000/sso-login/${result.data?.data?.user?.id}`;
-              break;
-            case "owner":
-              redirectUrl = `http://localhost:8000/sso-login/${result.data?.data?.user?.id}`;
-              break;
-            default:
-              redirectUrl = window.location.origin + "/";
-          }
-
-          console.log("Fallback redirect to:", redirectUrl); // Debug log
+        if (redirectUrl) {
+          // Lakukan pengalihan halaman penuh ke URL yang diberikan oleh backend.
+          // Ini akan membuat sesi baru di server dan memuat halaman Livewire.
           setTimeout(() => {
             window.location.href = redirectUrl;
           }, 1000);
+        } else {
+          // Fallback jika URL tidak ada
+          setTimeout(() => {
+            navigate("/");
+          }, 1000);
         }
       } else {
-        // Error toast
-        toast.error(result.error || "Login gagal", {
+        // --- START: Perubahan di sini untuk pesan error lebih spesifik ---
+        let displayMessage: string;
+        const backendError = result.error; // Ambil pesan error dari backend
+
+        switch (backendError) {
+          case "Username tidak ditemukan.":
+            displayMessage = "Username tidak ditemukan. Mohon periksa kembali.";
+            break;
+          case "Password salah.":
+            displayMessage = "Password salah. Mohon periksa kembali.";
+            break;
+          case "Role yang digunakan salah.": // Sesuaikan dengan pesan dari backend
+            displayMessage =
+              "Role yang Anda pilih tidak sesuai dengan akun ini.";
+            break;
+          default:
+            displayMessage =
+              backendError || "Login gagal: Kredensial tidak valid.";
+            break;
+        }
+
+        toast.error(displayMessage, {
           duration: 4000,
           position: "top-center",
           style: {
@@ -128,65 +144,35 @@ const Login = () => {
             borderRadius: "8px",
           },
         });
-        setError(result.error);
+        setError(displayMessage);
+        // --- END: Perubahan di sini ---
       }
     } catch (err: any) {
-      // Handle specific error types
+      console.error("Login request failed in catch block:", err);
+      let displayMessage = "Terjadi kesalahan saat login.";
+
       if (err.response?.data?.errors) {
-        const errors = err.response.data.errors;
-        if (errors.role) {
-          toast.error(errors.role[0], {
-            duration: 4000,
-            position: "top-center",
-            style: {
-              background: "#ef4444",
-              color: "#fff",
-              borderRadius: "8px",
-            },
-          });
-        } else if (errors.username) {
-          toast.error(errors.username[0], {
-            duration: 4000,
-            position: "top-center",
-            style: {
-              background: "#ef4444",
-              color: "#fff",
-              borderRadius: "8px",
-            },
-          });
-        } else if (errors.password) {
-          toast.error(errors.password[0], {
-            duration: 4000,
-            position: "top-center",
-            style: {
-              background: "#ef4444",
-              color: "#fff",
-              borderRadius: "8px",
-            },
-          });
-        } else {
-          toast.error("Terjadi kesalahan saat login", {
-            duration: 4000,
-            position: "top-center",
-            style: {
-              background: "#ef4444",
-              color: "#fff",
-              borderRadius: "8px",
-            },
-          });
-        }
-      } else {
-        toast.error("Terjadi kesalahan saat login", {
-          duration: 4000,
-          position: "top-center",
-          style: {
-            background: "#ef4444",
-            color: "#fff",
-            borderRadius: "8px",
-          },
-        });
+        displayMessage = Object.values(
+          err.response.data.errors
+        ).flat()[0] as string;
+      } else if (err.response?.data?.error) {
+        displayMessage = err.response.data.error;
+      } else if (err.response?.data?.message) {
+        displayMessage = err.response.data.message;
+      } else if (err.message) {
+        displayMessage = err.message;
       }
-      setError("Terjadi kesalahan saat login");
+
+      toast.error(displayMessage, {
+        duration: 4000,
+        position: "top-center",
+        style: {
+          background: "#ef4444",
+          color: "#fff",
+          borderRadius: "8px",
+        },
+      });
+      setError(displayMessage);
     } finally {
       setLoading(false);
     }
@@ -194,10 +180,13 @@ const Login = () => {
 
   const roleOptions = [
     { value: "customer", label: "Customer - Pelanggan" },
-    { value: "admin", label: "Admin - Administrator" },
     { value: "super_admin", label: "Super Admin - Super Administrator" },
+    { value: "driver", label: "Driver - Supir Pengiriman" },
+
+    { value: "admin", label: "Admin - Administrator" },
     { value: "content-admin", label: "Content Admin - Pengelola Konten" },
-    { value: "owner", label: "Owner - Pemilik Bisnis (Opsional)" },
+
+    { value: "owner", label: "Owner - Pemilik Bisnis" },
   ];
 
   return (
@@ -231,7 +220,7 @@ const Login = () => {
                 <SelectTrigger>
                   <SelectValue placeholder="Pilih role Anda..." />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white">
                   {roleOptions.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
@@ -281,10 +270,11 @@ const Login = () => {
               <p className="text-xs text-gray-600 mb-2">Demo Accounts:</p>
               <div className="text-xs space-y-1 text-gray-500">
                 <div>Customer: customer / password</div>
+                <div>Super Admin: super / password</div>
                 <div>Admin: admin / password</div>
-                <div>Super Admin: miura / password</div>
+                <div>Driver: driver / password</div>
                 <div>Content Admin: contentadmin / password</div>
-                <div>Owner: owner / password (jika sudah ada)</div>
+                <div>Owner: owner / password </div>
               </div>
             </div>
           </form>

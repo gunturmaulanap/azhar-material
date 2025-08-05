@@ -117,7 +117,7 @@
                             </td>
                             <td class="py-2">
                                 <div class="flex items-center gap-x-4 justify-center">
-                                    <a href="{{ route('transaction.detail', ['id' => $item->id]) }}"
+                                    <a href="{{ route(str_replace('_', '', auth()->user()->role) . '.transaction.detail', ['id' => $item->id]) }}"
                                         class="px-2 py-1 flex items-center gap-x-2 rounded-md bg-sky-500 text-white text-xs">
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
                                             class="size-3">
@@ -199,7 +199,7 @@
                     @endif
                 </div>
                 <div class="flex items-center gap-2 w-full justify-end mt-2">
-                    <a href="{{ route('transaction.detail', ['id' => $item->id]) }}"
+                    <a href="{{ route(str_replace('_', '', auth()->user()->role) . '.transaction.detail', ['id' => $item->id]) }}"
                         class="px-2 py-1 flex items-center gap-x-2 rounded-md bg-sky-500 text-white text-xs">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
                             class="size-3">

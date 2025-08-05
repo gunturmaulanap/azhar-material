@@ -89,7 +89,7 @@ class CustomerForm extends Component
 
             Customer::where('id', $this->customerId)->update($customerData);
 
-            return redirect()->route('master.customer')->with('success', 'Data diubah!');
+            return redirect()->route('superadmin.master.customer')->with('success', 'Data diubah!');
         } else {
             // Jika $customerId tidak ada, berarti sedang melakukan create data
             $this->customer['password'] = !empty($this->customer['password'])
@@ -99,7 +99,7 @@ class CustomerForm extends Component
             Customer::create($this->customer);
             $this->customer = [];
 
-            return redirect()->route('master.customer')->with('success', 'Data ditambahkan!');
+            return redirect()->route('superadmin.master.customer')->with('success', 'Data ditambahkan!');
         }
     }
 

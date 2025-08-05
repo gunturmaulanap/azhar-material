@@ -37,7 +37,7 @@
                 <option value="250">250</option>
             </select>
         </div>
-        <a href="{{ route('master.create-supplier') }}"
+        <a href="{{ route('superadmin.master.create-supplier') }}"
             class="inline-flex items-center gap-x-2 px-2 py-1.5 text-xs bg-sky-500 text-white font-extrabold rounded-md shadow-md">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4">
                 <path fill-rule="evenodd"
@@ -104,7 +104,7 @@
                             </td>
                             <td class="py-2">
                                 <div class="flex items-center gap-x-4 justify-center">
-                                    <a href="{{ route('master.update-supplier', ['id' => $item->id]) }}"
+                                    <a href="{{ route('superadmin.master.update-supplier', ['id' => $item->id]) }}"
                                         class="px-2 py-1 flex items-center gap-x-2 rounded-md bg-gray-100 text-xs">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                             stroke-width="1.5" stroke="currentColor" class="size-3">
@@ -151,8 +151,8 @@
                     {{ $item->address }}
                 </div>
                 <div class="flex items-center gap-2 w-full justify-end mt-1">
-                    <a href="{{ route('master.update-supplier', ['id' => $item->id]) }}"
-                        class="px-2 py-1 flex items-center gap-x-2 rounded-md bg-gray-100 text-xs">
+                                                        <a href="{{ route('superadmin.master.update-supplier', ['id' => $item->id]) }}"
+                                        class="px-2 py-1 flex items-center gap-x-2 rounded-md bg-gray-100 text-xs">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="size-3">
                             <path stroke-linecap="round" stroke-linejoin="round"

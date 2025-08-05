@@ -5,6 +5,9 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Http\RedirectResponse;
 
 class CheckRole
 {
@@ -12,51 +15,79 @@ class CheckRole
      * Handle an incoming request.
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  string ...$roles
+     * @return \Symfony\Component\HttpFoundation\Response
      */
     public function handle(Request $request, Closure $next, ...$roles): Response
     {
-        $user = $request->user();
+        // 1. Dapatkan pengguna yang terautentikasi, baik dari guard 'web' maupun 'customer'.
+        // Jika tidak ada yang terautentikasi, alihkan ke halaman login.
+        $user = Auth::guard('web')->user() ?? Auth::guard('customer')->user();
 
-
-        // If user is authenticated via customer guard, treat as customer role
-        if (auth()->guard('customer')->check()) {
-            if (in_array('customer', $roles)) {
-                return $next($request);
-            }
+        if (!$user) {
+            return redirect(url('/login'));
         }
-        // If user is authenticated via web guard, check their role using Spatie
-        elseif (auth()->guard('web')->check() && $user) {
-            // Map role names for backward compatibility
-            $mappedRoles = array_map(function($role) {
-                switch($role) {
-                    case 'superadmin':
-                        return 'super_admin';
-                    case 'content-admin':
-                        return 'content-admin';
-                    default:
-                        return $role;
+
+        // 2. Periksa apakah peran pengguna termasuk dalam peran yang diizinkan untuk rute ini.
+        // Logika ini sekarang berlaku untuk semua pengguna yang terautentikasi, 
+        // termasuk 'customer' jika rute yang diakses memang memerlukan peran 'customer'.
+        if (in_array($user->role, $roles)) {
+            return $next($request);
+        }
+
+        // 3. Jika peran tidak cocok, alihkan pengguna ke dashboard yang sesuai.
+        // Ini berfungsi sebagai fallback yang aman.
+        return $this->redirectBasedOnRole($user);
+    }
+
+    /**
+     * Mengarahkan pengguna ke dashboard yang benar berdasarkan perannya.
+     *
+     * @param  \App\Models\User|\App\Models\Customer  $user
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    protected function redirectBasedOnRole($user): RedirectResponse
+    {
+        switch ($user->role) {
+            case 'super_admin':
+                // Cek rute dashboard super admin
+                if (Route::has('superadmin.dashboard')) {
+                    return redirect()->route('superadmin.dashboard');
                 }
-            }, $roles);
-            
-            // Use Spatie for role check if available
-            if (method_exists($user, 'hasAnyRole')) {
-                if ($user->hasAnyRole($mappedRoles)) {
-                    return $next($request);
+                break;
+            case 'admin':
+                // Cek rute dashboard admin
+                if (Route::has('admin.transaction.create')) {
+                    return redirect()->route('admin.transaction.create');
                 }
-            } else if (isset($user->role) && in_array($user->role, $mappedRoles)) {
-                // Fallback to manual role property
-                return $next($request);
-            }
+                break;
+            case 'content-admin':
+                // Cek rute dashboard content admin
+                if (Route::has('content.hero-sections')) {
+                    return redirect()->route('content.hero-sections');
+                }
+                break;
+            case 'owner':
+                // Cek rute dashboard owner
+                if (Route::has('owner.report.index')) {
+                    return redirect()->route('owner.report.index');
+                }
+            case 'driver':
+                // Cek rute dashboard driver
+                if (Route::has('driver.delivery.index')) {
+                    return redirect()->route('driver.delivery.index');
+                }
+                break;
+            case 'customer':
+                // Cek rute dashboard customer
+                if (Route::has('customer.dashboard')) {
+                    return redirect()->route('customer.dashboard', ['id' => $user->id]);
+                }
+                break;
         }
 
-        // Redirect to appropriate page if role doesn't match
-        if (auth()->guard('customer')->check()) {
-            $customer = auth()->guard('customer')->user();
-            return redirect()->route('customer.dashboard', ['id' => $customer->id]);
-        } elseif (auth()->guard('web')->check()) {
-            return redirect()->route('admin.dashboard.livewire');
-        }
-
-        return redirect()->route('admin.login');
+        // Fallback yang aman: jika tidak ada rute dashboard yang cocok, 
+        // alihkan ke halaman utama.
+        return redirect(url('/'));
     }
 }

@@ -84,7 +84,7 @@
                                         {{ \Carbon\Carbon::parse($item->created_at)->translatedFormat('d F Y') }}
                                     </td>
                                     <td class="p-2 px-4 text-sm text-gray-800">
-                                        <a href="{{ route('transaction.detail', ['id' => $item->id]) }}"
+                                        <a href="{{ route('superadmin.transaction.detail', ['id' => $item->id]) }}"
                                             class="text-blue-500 hover:underline whitespace-nowrap">
                                             @currency($item->total)
                                         </a>
@@ -139,7 +139,7 @@
                                         {{ \Carbon\Carbon::parse($item->created_at)->translatedFormat('d F Y') }}
                                     </td>
                                     <td class="p-2 px-4">
-                                        <a href="{{ route('order.detail', ['id' => $item->id]) }}"
+                                        <a href="{{ route('superadmin.order.detail', ['id' => $item->id]) }}"
                                             class="text-blue-500 hover:underline whitespace-nowrap">@currency($item->total)</a>
                                     </td>
                                 </tr>
@@ -193,7 +193,7 @@
                                         {{ \Carbon\Carbon::parse($item->created_at)->translatedFormat('d F Y') }}
                                     </td>
                                     <td class="p-2 px-4 text-sm text-gray-800">
-                                        <a href="{{ route('transaction.detail', ['id' => $item->id]) }}"
+                                        <a href="{{ route('superadmin.transaction.detail', ['id' => $item->id]) }}"
                                             class="text-blue-500 hover:underline whitespace-nowrap">
                                             @currency($item->total)
                                         </a>

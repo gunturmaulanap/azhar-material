@@ -1,20 +1,15 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="en">
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ config('app.name', 'Azhar Material') }}</title>
-
-    <!-- React SWC Preamble Fix -->
-    {{-- <script type="module">
-        window.global = window;
-        window.__vite_plugin_react_preamble_installed__ = true;
-    </script> --}}
-
+    <title>@yield('title', $title ?? config('app.name'))</title>
+    <link rel="icon" type="image/png" href="{{ asset('img/azhar.png') }}">
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+    @viteReactRefresh
     @vite(['resources/css/app.css', 'resources/js/react/main.tsx'])
 </head>
 

@@ -39,7 +39,7 @@
                     <div class="mt-2">
                         <input wire:model="user.name" type="text" id="user.name" autocomplete="given-name" autofocus
                             placeholder="Masukkan nama lengkap"
-                            class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6">
+                            class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6 px-3">
                         @error('user.name')
                             <span class="text-xs text-red-500">{{ $message }}</span>
                         @enderror
@@ -53,8 +53,8 @@
                         <select wire:model="user.role" id="user.role"
                             class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6">
                             <option value="">Pilih Role</option>
-                            @foreach($roles as $role)
-                                <option value="{{ $role->name }}" @if(old('user.role', $user['role'] ?? '') == $role->name) selected @endif>
+                            @foreach ($roles as $role)
+                                <option value="{{ $role->name }}" @if (old('user.role', $user['role'] ?? '') == $role->name) selected @endif>
                                     {{ ucwords(str_replace(['_', '-'], ' ', $role->name)) }}
                                 </option>
                             @endforeach
@@ -70,7 +70,7 @@
                             class="text-xs text-red-500">*</span></label>
                     <div class="mt-2">
                         <input wire:model="user.username" type="text" id="user.username" autocomplete="given-name"
-                            class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6">
+                            class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6 px-3">
                         @error('user.username')
                             <span class="text-xs text-red-500">{{ $message }}</span>
                         @enderror
@@ -86,7 +86,7 @@
                     </label>
                     <div class="mt-2 relative">
                         <input wire:model="user.password" id="user.password" type="{{ $type }}"
-                            class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6">
+                            class="block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6">
                         <button wire:click="togglePassword()" class="absolute bottom-2 right-2" type="button">
                             @if ($type === 'password')
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"

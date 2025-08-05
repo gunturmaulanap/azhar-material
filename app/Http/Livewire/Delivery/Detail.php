@@ -233,7 +233,7 @@ class Detail extends Component
                 ]);
             });
 
-            return redirect()->route('delivery.detail', ['id' => $this->deliveryId])->with('success', 'Pengiriman barang berhasil disimpan!');
+            return redirect()->route(str_replace('_', '', auth()->user()->role) . '.delivery.detail', ['id' => $this->deliveryId])->with('success', 'Pengiriman barang berhasil disimpan!');
         } else {
             $this->dispatchBrowserEvent('error', ['message' => 'Pilih barang yang sudah dikirim']);
         }

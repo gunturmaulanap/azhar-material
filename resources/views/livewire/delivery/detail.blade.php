@@ -379,7 +379,7 @@
         @if (in_array(auth()->user()->role, ['super_admin', 'admin']))
 
             <div class="flex items-center gap-x-6 w-full sm:w-fit justify-end">
-                <a href="{{ route('transaction.detail', ['id' => $delivery->transaction_id]) }}"
+                <a href="{{ route(str_replace('_', '', auth()->user()->role) . '.transaction.detail', ['id' => $delivery->transaction_id]) }}"
                     class="text-sm font-semibold leading-6 text-yellow-500">Lihat Transaksi</a>
                 @if ($delivery->status !== 'selesai')
                     <button wire:click="resetInput()" type="button"
@@ -390,7 +390,7 @@
             </div>
         @else
             <div class="flex items-center gap-x-6 w-full sm:w-fit justify-end">
-                <a href="{{ route('customer.transaction.detail', ['id' => $delivery->transaction_id]) }}"
+                <a href="{{ route(str_replace('_', '', auth()->user()->role) . '.customer.transaction.detail', ['id' => $delivery->transaction_id]) }}"
                     class="text-sm font-semibold leading-6 text-yellow-500">Lihat Transaksi</a>
 
             </div>

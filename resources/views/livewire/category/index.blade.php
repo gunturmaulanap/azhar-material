@@ -7,7 +7,7 @@
                 <h1 class="text-3xl font-bold text-gray-900">Kelola Kategori</h1>
                 <p class="text-gray-600">Kelola data kategori produk</p>
             </div>
-            <a href="{{ route('category.create') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md">
+            <a href="{{ route(str_replace('_', '', auth()->user()->role) . '.category.create') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md">
                 Tambah Kategori
             </a>
         </div>
@@ -73,7 +73,7 @@
                                     {{ $category->created_at->format('d M Y') }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <a href="{{ route('category.update', $category->id) }}"
+                                    <a href="{{ route(str_replace('_', '', auth()->user()->role) . '.category.update', $category->id) }}"
                                         class="text-blue-600 hover:text-blue-900 mr-3">
                                         Edit
                                     </a>
