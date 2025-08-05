@@ -97,7 +97,7 @@
                                 <h2 class="text-lg font-semibold">Daftar Merk</h2>
                                 <p class="">Setiap merk dimiliki beberapa barang.</p>
                             </div>
-                            <a href="{{ route('goods.brand-create') }}"
+                            <a href="{{ route(str_replace('_', '', auth()->user()->role) . '.brand.create') }}"
                                 class="inline-flex items-center gap-x-2 px-2 py-1.5 text-xs bg-sky-500 text-white font-extrabold rounded-md shadow-md">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
                                     class="size-4">
@@ -144,7 +144,7 @@
                                                 </td>
                                                 <td class="py-2">
                                                     <div class="flex items-center gap-x-4 justify-center">
-                                                        <a href="{{ route('goods.brand-update', ['id' => $brand->id]) }}"
+                                                        <a href="{{ route(str_replace('_', '', auth()->user()->role) . '.brand.update', ['id' => $brand->id]) }}"
                                                             class="px-2 py-1 flex items-center gap-x-2 rounded-md bg-gray-100 text-xs">
                                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                                                                 viewBox="0 0 24 24" stroke-width="1.5"
@@ -154,7 +154,8 @@
                                                             </svg>
                                                             Ubah
                                                         </a>
-                                                        <button wire:click="validationDelete({{ $brand->id }})"
+                                                        <button
+                                                            wire:click="validationDelete({{ $brand->id }}, 'brand')"
                                                             class="px-2 py-1 flex items-center gap-x-2 rounded-md bg-red-500 text-xs text-white">
                                                             <svg xmlns="http://www.w3.org/2000/svg"
                                                                 viewBox="0 0 24 24" fill="currentColor"
@@ -184,7 +185,7 @@
                     </div>
                 </div>
             </div>
-            <a href="{{ route('goods.create') }}"
+            <a href="{{ route(str_replace('_', '', auth()->user()->role) . '.goods.create') }}"
                 class="inline-flex items-center gap-x-2 px-2 py-1.5 text-xs bg-sky-500 text-white font-extrabold rounded-md shadow-md">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4">
                     <path fill-rule="evenodd"
@@ -216,7 +217,7 @@
                             <h2 class="text-lg font-semibold">Daftar Kategori</h2>
                             <p class="">Setiap kategori dimiliki beberapa barang.</p>
                         </div>
-                        <a href="{{ route('goods.category-create') }}"
+                        <a href="{{ route(str_replace('_', '', auth()->user()->role) . '.category.create') }}"
                             class="inline-flex items-center gap-x-2 px-2 py-1.5 text-xs bg-sky-500 text-white font-extrabold rounded-md shadow-md">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
                                 class="size-4">
@@ -263,7 +264,7 @@
                                             </td>
                                             <td class="py-2">
                                                 <div class="flex items-center gap-x-4 justify-center">
-                                                    <a href="{{ route('goods.category-update', ['id' => $category->id]) }}"
+                                                    <a href="{{ route(str_replace('_', '', auth()->user()->role) . '.category.update', ['id' => $category->id]) }}"
                                                         class="px-2 py-1 flex items-center gap-x-2 rounded-md bg-gray-100 text-xs">
                                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                                                             viewBox="0 0 24 24" stroke-width="1.5"
@@ -273,7 +274,8 @@
                                                         </svg>
                                                         Ubah
                                                     </a>
-                                                    <button wire:click="validationDelete({{ $category->id }})"
+                                                    <button
+                                                        wire:click="validationDelete({{ $category->id }}, 'category')"
                                                         class="px-2 py-1 flex items-center gap-x-2 rounded-md bg-red-500 text-xs text-white">
                                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
                                                             fill="currentColor" class="size-3">
@@ -384,7 +386,7 @@
                             </td>
                             <td class="py-2">
                                 <div class="flex items-center gap-x-4 justify-center">
-                                    <a href="{{ route('goods.update', ['id' => $item->id]) }}"
+                                    <a href="{{ route(str_replace('_', '', auth()->user()->role) . '.goods.update', ['id' => $item->id]) }}"
                                         class="px-2 py-1 flex items-center gap-x-2 rounded-md bg-gray-100 text-xs">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                             stroke-width="1.5" stroke="currentColor" class="size-3">
@@ -393,7 +395,7 @@
                                         </svg>
                                         Ubah
                                     </a>
-                                    <button wire:click="validationDelete({{ $item->id }})"
+                                    <button wire:click="validationDelete({{ $item->id }}, 'goods')"
                                         class="px-2 py-1 flex items-center gap-x-2 rounded-md bg-red-500 text-xs text-white">
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
                                             fill="currentColor" class="size-3">
@@ -451,7 +453,7 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-2 w-full justify-end mt-1">
-                    <a href="{{ route('goods.update', ['id' => $item->id]) }}"
+                    <a href="{{ route(str_replace('_', '', auth()->user()->role) . '.goods.update', ['id' => $item->id]) }}"
                         class="px-2 py-1 flex items-center gap-x-2 rounded-md bg-gray-100 text-xs">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                             stroke-width="1.5" stroke="currentColor" class="size-3">
@@ -460,7 +462,7 @@
                         </svg>
                         Ubah
                     </a>
-                    <a wire:click="validationDelete({{ $item->id }})"
+                    <a wire:click="validationDelete({{ $item->id }}, 'goods')"
                         class="px-2 py-1 flex items-center gap-x-2 rounded-md bg-red-500 text-xs text-white">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
                             class="size-3">

@@ -222,7 +222,7 @@ class Create extends Component
     }
     public function resetInput()
     {
-        return redirect()->route('order.create');
+        return redirect()->route(str_replace('_', '', auth()->user()->role) . '.order.create');
     }
 
     public function save()
@@ -282,7 +282,7 @@ class Create extends Component
         }
 
         if ($order) {
-            return redirect()->route('order.index')->with('success', 'Pesanan berhasil!');
+            return redirect()->route(str_replace('_', '', auth()->user()->role) . '.order.index')->with('success', 'Pesanan berhasil!');
         }
     }
 

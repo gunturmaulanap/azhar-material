@@ -213,7 +213,7 @@
                                 <td class="p-2 w-[5%]">
                                     <div class="flex items-center gap-x-4 justify-end">
                                         @if (auth()->user()->role === 'super_admin')
-                                            <a href="{{ route('transaction.detail', ['id' => $item->id]) }}"
+                                            <a href="{{ route('superadmin.transaction.detail', ['id' => $item->id]) }}"
                                                 class="px-2 py-1 flex items-center gap-x-2 rounded-md bg-sky-500 text-white text-xs">
                                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
                                                     fill="currentColor" class="size-3">

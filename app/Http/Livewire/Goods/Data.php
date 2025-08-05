@@ -4,7 +4,6 @@ namespace App\Http\Livewire\Goods;
 
 use App\Models\Brand;
 use App\Models\Category;
-
 use App\Models\Goods;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -27,20 +26,38 @@ class Data extends Component
         'perpage' => 'setPerPage',
     ];
 
-    public function validationDelete($id) // function menjalankan confirm delete
+    public $deleteId;
+    public $deleteType;
+
+    public function validationDelete($id, $type)
     {
-        $this->dispatchBrowserEvent('validation', [
-            'id' => $id
-        ]);
+        $this->deleteId = $id;
+        $this->deleteType = $type;
+
+        $this->dispatchBrowserEvent('validation');
     }
 
-    public function delete($id)
+    public function delete()
     {
-        $deleted = Goods::find($id)->delete();
-
-        if ($deleted) {
-            $this->dispatchBrowserEvent('deleted');
+        if ($this->deleteType === 'goods') {
+            $model = \App\Models\Goods::find($this->deleteId);
+        } elseif ($this->deleteType === 'brand') {
+            $model = \App\Models\Brand::find($this->deleteId);
+        } elseif ($this->deleteType === 'category') {
+            $model = \App\Models\Category::find($this->deleteId);
+        } else {
+            $model = null;
         }
+
+        if (!$model) {
+            $this->dispatchBrowserEvent('not-found');
+            return;
+        }
+
+        $model->delete();
+
+        $this->dispatchBrowserEvent('deleted');
+        $this->resetPage();
     }
 
     public function render()

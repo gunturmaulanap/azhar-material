@@ -42,13 +42,13 @@ class Form extends Component
             // Jika $brandId ada, berarti sedang melakukan update data
             Brand::where('id', $this->brandId)->update($this->brand);
 
-            return redirect()->route('goods.data')->with('success', 'Data diubah!');
+            return redirect()->route(str_replace('_', '', auth()->user()->role) . '.goods.data')->with('success', 'Data diubah!');
         } else {
             // Jika $brandId tidak ada, berarti sedang melakukan create data
             Brand::create($this->brand);
             $this->brand = [];
 
-            return redirect()->route('goods.data')->with('success', 'Data ditambahkan!');
+            return redirect()->route(str_replace('_', '', auth()->user()->role) . '.goods.data')->with('success', 'Data ditambahkan!');
         }
     }
 
@@ -76,4 +76,3 @@ class Form extends Component
         return view('livewire.brand.form');
     }
 }
-

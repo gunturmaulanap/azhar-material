@@ -56,13 +56,13 @@ class Form extends Component
             // Jika $goodId ada, berarti sedang melakukan update data
             Goods::where('id', $this->goodId)->update($this->good);
 
-            return redirect()->route('goods.data')->with('success', 'Data diubah!');
+            return redirect()->route(str_replace('_', '', auth()->user()->role) . '.goods.data')->with('success', 'Data diubah!');
         } else {
             // Jika $goodId tidak ada, berarti sedang melakukan create data
             Goods::create($this->good);
             $this->good = [];
 
-            return redirect()->route('goods.data')->with('success', 'Data ditambahkan!');
+            return redirect()->route(str_replace('_', '', auth()->user()->role) . '.goods.data')->with('success', 'Data ditambahkan!');
         }
     }
 

@@ -66,7 +66,7 @@ class Create extends Component
 
     public function resetInput()
     {
-        return redirect()->route('transaction.create');
+        return redirect()->route(str_replace('_', '', auth()->user()->role) . '.transaction.create');
     }
 
 
@@ -387,7 +387,7 @@ class Create extends Component
         }
 
         // Redirect setelah semua selesai
-        return redirect()->route('transaction.detail', ['id' => $transaction->id])
+        return redirect()->route(str_replace('_', '', auth()->user()->role) . '.transaction.detail', ['id' => $transaction->id])
             ->with('success', 'Transaksi berhasil!');
     }
 

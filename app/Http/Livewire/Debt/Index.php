@@ -23,9 +23,17 @@ class Index extends Component
         'perpage' => 'setPerPage',
     ];
 
-    public function delete($id)
+    public $deleteId;
+
+    public function validationDelete($id)
     {
-        $deleted = Transaction::find($id)->delete();
+        $this->deleteId = $id;
+        $this->dispatchBrowserEvent('validation');
+    }
+
+    public function delete()
+    {
+        $deleted = Transaction::find($this->deleteId)->delete();
 
         if ($deleted) {
             $this->dispatchBrowserEvent('deleted');

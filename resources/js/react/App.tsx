@@ -10,19 +10,15 @@ import Services from "./pages/Services";
 import Contact from "./pages/Contact";
 import Team from "./pages/Team";
 import Login from "./pages/Login";
-import AdminDashboard from "./pages/AdminDashboard";
-import ContentAdminDashboard from "./pages/ContentAdminDashboard";
-import "./App.css";
+// import AdminDashboard from "./pages/AdminDashboard"; // Keep commented as per original
+// import ContentAdminDashboard from "./pages/ContentAdminDashboard"; // Keep as per original
 
-// Komponen route yang memproteksi akses berdasarkan role
-const ProtectedRoute = ({
-  children,
-  allowedRoles = [],
-}: {
-  children: React.ReactNode;
-  allowedRoles: string[];
-}) => {
-  const { user, isAuthenticated, loading } = useAuth();
+// Komponen route yang memproteksi akses berdasarkan autentikasi
+// Tujuan: Hanya izinkan akses jika user terautentikasi.
+// Semua user yang terautentikasi akan tetap di landing page React,
+// kecuali jika Laravel mengarahkan mereka ke dashboard Livewire.
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated, loading } = useAuth();
 
   if (loading) {
     return (
@@ -40,35 +36,32 @@ const ProtectedRoute = ({
     return <Navigate to="/login" replace />;
   }
 
-  if (allowedRoles.length > 0 && !allowedRoles.includes(user?.role || "")) {
-    switch (user?.role) {
-      case "admin":
-      case "superadmin":
-        return <Navigate to="/admin/dashboard" replace />;
-      case "content-admin":
-        return <Navigate to="/admin/content" replace />;
-      default:
-        return <Navigate to="/" replace />;
-    }
-  }
-
+  // Jika terautentikasi, izinkan akses ke children.
+  // Redirect ke dashboard spesifik (Livewire) akan ditangani oleh Laravel setelah SSO.
+  // Di sini, kita hanya memastikan mereka login.
   return <>{children}</>;
 };
 
 // Komponen route untuk publik yang mengarahkan user yang sudah login
+// Tujuan: Jika user sudah login, jangan biarkan mereka mengakses halaman login lagi.
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
 
-  if (isAuthenticated && user) {
-    switch (user.role) {
-      case "admin":
-      case "superadmin":
-        return <Navigate to="/admin/dashboard" replace />;
-      case "content-admin":
-        return <Navigate to="/admin/content" replace />;
-      default:
-        return <Navigate to="/" replace />;
-    }
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <LoadingSpinner
+          size="lg"
+          text="Memuat aplikasi..."
+          className="min-h-screen"
+        />
+      </div>
+    );
+  }
+
+  if (isAuthenticated) {
+    // Jika user sudah login, arahkan mereka ke halaman utama React
+    return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;
@@ -79,39 +72,30 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {/* Login */}
-          <Route
-            path="/login"
-            element={
-              <PublicRoute>
-                <Login />
-              </PublicRoute>
-            }
-          />
-
-          {/* Admin */}
-          <Route
+          {/* Rute untuk halaman yang memerlukan autentikasi (jika ada halaman React admin) */}
+          {/* Contoh: Jika ada dashboard admin React terpisah */}
+          {/* <Route
             path="/admin/dashboard"
             element={
-              <ProtectedRoute allowedRoles={["admin", "superadmin"]}>
+              <ProtectedRoute>
                 <AdminDashboard />
               </ProtectedRoute>
             }
-          />
-
-          {/* Content Admin */}
-          <Route
-            path="/admin/content"
+          /> */}
+          {/* Contoh: Content Admin Dashboard React */}
+          {/* <Route
+            path="/content-admin-dashboard" // Ganti dengan rute React yang sesuai jika ada
             element={
-              <ProtectedRoute allowedRoles={["content-admin"]}>
+              <ProtectedRoute>
                 <ContentAdminDashboard />
               </ProtectedRoute>
             }
-          />
+          /> */}
 
-          {/* Halaman Publik */}
+          {/* Rute Publik yang dibungkus oleh Layout */}
+          {/* Ini akan menangani semua rute yang tidak cocok di atas */}
           <Route
-            path="/*"
+            path="/*" // Catch-all route for public pages
             element={
               <Layout>
                 <Routes>
@@ -121,6 +105,8 @@ function App() {
                   <Route path="/services" element={<Services />} />
                   <Route path="/contact" element={<Contact />} />
                   <Route path="/team" element={<Team />} />
+                  <Route path="/login" element={<Login />} />
+                  {/* Tambahkan rute publik lainnya di sini */}
                 </Routes>
               </Layout>
             }

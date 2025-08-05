@@ -42,13 +42,13 @@ class Form extends Component
             // Jika $categoryId ada, berarti sedang melakukan update data
             Category::where('id', $this->categoryId)->update($this->category);
 
-            return redirect()->route('goods.data')->with('success', 'Data diubah!');
+            return redirect()->route(str_replace('_', '', auth()->user()->role) . '.goods.data')->with('success', 'Data diubah!');
         } else {
             // Jika $categoryId tidak ada, berarti sedang melakukan create data
             Category::create($this->category);
             $this->category = [];
 
-            return redirect()->route('goods.data')->with('success', 'Data ditambahkan!');
+            return redirect()->route(str_replace('_', '', auth()->user()->role) . '.goods.data')->with('success', 'Data ditambahkan!');
         }
     }
 

@@ -35,34 +35,40 @@
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
                             </svg>
-                            @if (in_array(auth()->user()->role, ['super_admin', 'admin']))
-                                <a href="{{ route('dashboard') }}"
-                                    class="text-2xl uppercase tracking-widest font-[1000] subpixel-antialiased">
-                                    {{ __('inventory') }}
-                                </a>
-                            @elseif (auth()->user()->role === 'content-admin')
-                                <a href="{{ route('content.dashboard') }}"
-                                    class="text-2xl uppercase tracking-widest font-[1000] subpixel-antialiased">
-                                    {{ __('content') }}
-                                </a>
-                            @else
-                                @if (Auth::guard('customer')->check())
-                                    <a href="{{ route('customer.detail', ['id' => Auth::guard('customer')->user()->id]) }}"
-                                        class="text-2xl uppercase tracking-widest font-[1000] subpixel-antialiased">
-                                        {{ __('inventory') }}
-                                    </a>
-                                @elseif (Auth::guard('web')->check() && Auth::user()->role === 'customer')
-                                    <a href="{{ route('customer.detail', ['id' => Auth::user()->id]) }}"
-                                        class="text-2xl uppercase tracking-widest font-[1000] subpixel-antialiased">
-                                        {{ __('inventory') }}
-                                    </a>
-                                @else
-                                    <a href="{{ route('dashboard') }}"
-                                        class="text-2xl uppercase tracking-widest font-[1000] subpixel-antialiased">
-                                        {{ __('inventory') }}
-                                    </a>
-                                @endif
-                            @endif
+
+                            {{-- LOGIKA PENENTUAN RUTE DASHBOARD BERDASARKAN ROLE --}}
+                            @php
+                                $dashboardRoute = url('/'); // Default fallback
+                                $user = Auth::user();
+                                $customer = Auth::guard('customer')->user();
+
+                                if ($user) {
+                                    switch ($user->role) {
+                                        case 'super_admin':
+                                            $dashboardRoute = route('superadmin.dashboard');
+                                            break;
+                                        case 'admin':
+                                            $dashboardRoute = route('admin.transaction.create');
+                                            break;
+                                        case 'content-admin':
+                                            $dashboardRoute = route('content.hero-sections');
+                                            break;
+                                        case 'owner':
+                                            $dashboardRoute = route('owner.report.index');
+                                            break;
+                                        case 'driver':
+                                            $dashboardRoute = route('driver.delivery.index');
+                                            break;
+                                    }
+                                } elseif ($customer) {
+                                    $dashboardRoute = route('customer.dashboard', ['id' => $customer->id]);
+                                }
+                            @endphp
+
+                            <a href="{{ $dashboardRoute }}"
+                                class="text-2xl uppercase tracking-widest font-[1000] subpixel-antialiased">
+                                {{ __('inventory') }}
+                            </a>
 
                             <!-- Settings Dropdown -->
                             <div class="flex sm:hidden items-center ms-10">
@@ -80,7 +86,6 @@
                                                         d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                                                 </svg>
                                             </div>
-
                                             <div class="ms-1">
                                                 <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg"
                                                     viewBox="0 0 20 20">
@@ -91,16 +96,13 @@
                                             </div>
                                         </button>
                                     </x-slot>
-
                                     <x-slot name="content">
                                         <x-dropdown-link :href="route('profile.edit')">
                                             {{ __('Profile') }}
                                         </x-dropdown-link>
-
                                         <!-- Authentication -->
                                         <form method="POST" action="{{ route('logout') }}">
                                             @csrf
-
                                             <x-dropdown-link :href="route('logout')"
                                                 onclick="event.preventDefault();
                                                         this.closest('form').submit();">
@@ -128,7 +130,6 @@
                                                 d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                                         </svg>
                                     </div>
-
                                     <div class="ms-1">
                                         <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg"
                                             viewBox="0 0 20 20">
@@ -139,18 +140,15 @@
                                     </div>
                                 </button>
                             </x-slot>
-
                             <x-slot name="content">
-                                @if (in_array(auth()->user()->role, ['super_admin', 'admin']))
+                                @if (Auth::check() && in_array(Auth::user()->role, ['super_admin', 'admin', 'owner', 'content-admin']))
                                     <x-dropdown-link :href="route('profile.edit')">
                                         {{ __('Profile') }}
                                     </x-dropdown-link>
                                 @endif
-
                                 <!-- Authentication -->
                                 <form method="POST" action="{{ route('logout') }}">
                                     @csrf
-
                                     <x-dropdown-link :href="route('logout')"
                                         onclick="event.preventDefault();
                                                         this.closest('form').submit();">
@@ -166,12 +164,10 @@
 
         <div class="flex overflow-y-auto overflow-x-hidden">
             {{-- SIDEBAR --}}
-            @if (in_array(auth()->user()->role, ['super_admin', 'admin']))
+            @if (Auth::check() && in_array(Auth::user()->role, ['super_admin', 'admin']))
                 <aside :class="side ? 'block' : 'hidden'" class="w-[400px] bg-white shadow-lg xl:block">
-                    @include('layouts.sidebar')
+                    @include('layouts.sidebar', ['dashboardRoute' => $dashboardRoute])
                 </aside>
-            @elseif (auth()->user()->role === 'content-admin')
-                {{-- Content Admin doesn't need sidebar for now --}}
             @endif
             <div class="w-full">
                 {{-- HEADER --}}
@@ -183,18 +179,12 @@
                         <nav aria-label="Breadcrumb" class="ps-4 sm:ps-6">
                             <ol class="flex items-center gap-1 text-sm text-gray-600">
                                 <li>
-                                    @if (auth()->user()->role === 'content-admin')
-                                        <a href="{{ route('content.dashboard') }}"
-                                            class="block transition hover:text-gray-900">
-                                        @else
-                                            <a href="{{ route('dashboard') }}"
-                                                class="block transition hover:text-gray-900">
-                                    @endif
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-5 mb-1" fill="none"
-                                        viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                                    </svg>
+                                    <a href="{{ $dashboardRoute }}" class="block transition hover:text-gray-900">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="size-5 mb-1" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                                        </svg>
                                     </a>
                                 </li>
                                 @yield('breadcrumb', $breadcrumb ?? '')

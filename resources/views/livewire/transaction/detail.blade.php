@@ -41,7 +41,7 @@
         <div class="flex gap-4 w-full sm:w-fit">
             @if (in_array(auth()->user()->role, ['super_admin', 'admin']))
                 @if (isset($transaction->delivery->id))
-                    <a href="{{ route('delivery.detail', ['id' => $transaction->delivery->id]) }}"
+                    <a href="{{ route(str_replace('_', '', auth()->user()->role) . '.delivery.detail', ['id' => $transaction->delivery->id]) }}"
                         class="flex items-center gap-x-2 rounded-md bg-yellow-300 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-yellow-400 mb-6">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="size-5">
@@ -53,7 +53,7 @@
                 @endif
             @else
                 @if (isset($transaction->delivery->id))
-                    <a href="{{ route('customer.delivery.detail', ['id' => $transaction->delivery->id]) }}"
+                    <a href="{{ route(str_replace('_', '', auth()->user()->role) . '.customer.delivery.detail', ['id' => $transaction->delivery->id]) }}"
                         class="flex items-center gap-x-2 rounded-md bg-yellow-300 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-yellow-400 mb-6">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="size-5">
@@ -435,9 +435,12 @@
         <div x-data="{ modal: false }" class="mt-6 flex items-center justify-end gap-x-6">
             <button @click="modal = true" type="button" wire:click="setReturData"
                 class="text-sm font-semibold leading-6 text-red-600">Retur</button>
-            <a href="{{ route('transaction.mini-invoice', ['id' => $transaction->id]) }}" target="_blank"
+            <a href="{{ route(str_replace('_', '', auth()->user()->role) . '.transaction.mini-invoice', ['id' => $transaction->id]) }}"target="_blank"
                 class="text-sm font-semibold">Nota kecil</a>
-            <a href="{{ route('transaction.invoice', ['id' => $transaction->id]) }}" target="_blank"
+
+
+            <a href="{{ route(str_replace('_', '', auth()->user()->role) . '.transaction.invoice', ['id' => $transaction->id]) }}"
+                target="_blank"
                 class="rounded-md bg-sky-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-sky-400">Cetak</a>
 
             <div x-show="modal" class="fixed inset-0 flex items-center justify-center z-50"

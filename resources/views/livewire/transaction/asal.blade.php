@@ -36,7 +36,7 @@
 
             </x-slot>
             {{-- <x-slot name="content">
-                <x-side-dropdown-link :href="route('goods.data')" :active="request()->routeIs('goods.data') ||
+                <x-side-dropdown-link :href="route(str_replace('_', '', auth()->user()->role) . '.goods.data')" :active="request()->routeIs('*.goods.data') ||
                     request()->routeIs('goods.create') ||
                     request()->routeIs('goods.category-create')">
                     Data Barang

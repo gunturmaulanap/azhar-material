@@ -49,13 +49,13 @@ class EmployeeForm extends Component
             // Jika $employeeId ada, berarti sedang melakukan update data
             Employee::where('id', $this->employeeId)->update($this->employee);
 
-            return redirect()->route('master.employee')->with('success', 'Data diubah!');
+            return redirect()->route('superadmin.master.employee')->with('success', 'Data diubah!');
         } else {
             // Jika $employeeId tidak ada, berarti sedang melakukan create data
             Employee::create($this->employee);
             $this->employee = [];
 
-            return redirect()->route('master.employee')->with('success', 'Data ditambahkan!');
+            return redirect()->route('superadmin.master.employee')->with('success', 'Data ditambahkan!');
         }
     }
 
