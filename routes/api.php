@@ -23,22 +23,36 @@ use Illuminate\Support\Facades\Hash;
 Route::get('/csrf-token', [AuthController::class, 'csrf']);
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::post('/auth/register', [AuthController::class, 'register']);
+
+// Products API routes
 Route::get('/products', [ProductController::class, 'index']);
-Route::get('/products/{id}', [ProductController::class, 'show']);
 Route::get('/products/featured', [ProductController::class, 'featured']);
+Route::get('/products/{id}', [ProductController::class, 'show']);
 Route::get('/categories', [ProductController::class, 'categories']);
-Route::get('/brands', [ProductController::class, 'brands']);
-Route::get('/hero-sections', [HeroSectionController::class, 'index']);
-Route::get('/hero-sections/{id}', [HeroSectionController::class, 'show']);
-Route::get('/hero-sections/active', [HeroSectionController::class, 'active']);
-Route::get('/brands/{id}', [BrandController::class, 'show']);
+
+// Brands API routes - Fixed the route ordering
+Route::get('/brands', [BrandController::class, 'index']);
 Route::get('/brands/active', [BrandController::class, 'active']);
+Route::get('/brands/{id}', [BrandController::class, 'show']);
+
+// Hero sections API routes
+Route::get('/hero-sections', [HeroSectionController::class, 'index']);
+Route::get('/hero-sections/active', [HeroSectionController::class, 'active']);
+Route::get('/hero-sections/{id}', [HeroSectionController::class, 'show']);
+
+// Teams API routes  
 Route::get('/teams', [TeamController::class, 'index']);
 Route::get('/teams/{id}', [TeamController::class, 'show']);
+
+// Services API routes
 Route::get('/services', [ServiceController::class, 'index']);
 Route::get('/services/{id}', [ServiceController::class, 'show']);
+
+// About API routes
 Route::get('/about', [AboutController::class, 'index']);
 Route::get('/about/{id}', [AboutController::class, 'show']);
+
+// Contact routes
 Route::post('/contact', [ContactController::class, 'send']);
 
 // Protected routes (memerlukan token Sanctum)

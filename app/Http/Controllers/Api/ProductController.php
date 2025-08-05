@@ -48,6 +48,15 @@ class ProductController extends Controller
 
         $products = $query->paginate(12);
 
+        // Add image URLs and handle missing images
+        $products->getCollection()->transform(function ($product) {
+            $product->image_url = $product->image 
+                ? asset('storage/' . $product->image) 
+                : asset('images/no-image.svg');
+            
+            return $product;
+        });
+
         return response()->json([
             'success' => true,
             'data' => $products
@@ -65,6 +74,11 @@ class ProductController extends Controller
             ], 404);
         }
 
+        // Add image URL and handle missing image
+        $product->image_url = $product->image 
+            ? asset('storage/' . $product->image) 
+            : asset('images/no-image.svg');
+
         return response()->json([
             'success' => true,
             'data' => $product
@@ -77,6 +91,15 @@ class ProductController extends Controller
             ->inRandomOrder()
             ->limit(6)
             ->get();
+
+        // Add image URLs and handle missing images
+        $featuredProducts->transform(function ($product) {
+            $product->image_url = $product->image 
+                ? asset('storage/' . $product->image) 
+                : asset('images/no-image.svg');
+            
+            return $product;
+        });
 
         return response()->json([
             'success' => true,
@@ -91,16 +114,6 @@ class ProductController extends Controller
         return response()->json([
             'success' => true,
             'data' => $categories
-        ]);
-    }
-
-    public function brands()
-    {
-        $brands = Brand::orderBy('name', 'asc')->get();
-
-        return response()->json([
-            'success' => true,
-            'data' => $brands
         ]);
     }
 }

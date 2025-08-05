@@ -14,6 +14,15 @@ class HeroSectionController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
+        // Transform to include background image URLs
+        $heroSections->transform(function ($section) {
+            $section->background_image_url = $section->background_image 
+                ? asset('storage/' . $section->background_image) 
+                : null;
+            
+            return $section;
+        });
+
         return response()->json([
             'success' => true,
             'data' => $heroSections
@@ -30,6 +39,11 @@ class HeroSectionController extends Controller
                 'message' => 'Hero section not found'
             ], 404);
         }
+
+        // Transform to include background image URL
+        $heroSection->background_image_url = $heroSection->background_image 
+            ? asset('storage/' . $heroSection->background_image) 
+            : null;
 
         return response()->json([
             'success' => true,
@@ -49,6 +63,11 @@ class HeroSectionController extends Controller
                 'message' => 'No active hero section found'
             ], 404);
         }
+
+        // Transform to include background image URL
+        $heroSection->background_image_url = $heroSection->background_image 
+            ? asset('storage/' . $heroSection->background_image) 
+            : null;
 
         return response()->json([
             'success' => true,
