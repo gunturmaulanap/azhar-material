@@ -1,9 +1,57 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Handshake, Award, Users, Building2 } from "lucide-react";
 import { Card, CardContent } from "../components/ui/card";
-import { mockTeamPartners } from "../utils/mockData";
+
+interface Partner {
+  id: number;
+  name: string;
+  image_url?: string;
+  has_image: boolean;
+  position?: string;
+  description?: string;
+}
 
 const Team: React.FC = () => {
+  const [partners, setPartners] = useState<Partner[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchPartners = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/teams');
+        const data = await response.json();
+        
+        if (data.success) {
+          setPartners(data.data);
+        } else {
+          // If no team data, show placeholder partners
+          setPartners([]);
+        }
+      } catch (err) {
+        console.error('Error fetching partners:', err);
+        setError('Gagal memuat data mitra');
+        setPartners([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPartners();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600">Memuat data mitra...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Breadcrumb */}
@@ -30,27 +78,58 @@ const Team: React.FC = () => {
         </div>
 
         {/* Partners Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-          {mockTeamPartners.map((partner) => (
-            <Card
-              key={partner.id}
-              className="group border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 rounded-2xl overflow-hidden"
-            >
-              <CardContent className="p-8 text-center">
-                <div className="w-full h-20 flex items-center justify-center mb-6">
-                  <img
-                    src={partner.logo}
-                    alt={partner.name}
-                    className="max-w-full max-h-full object-contain grayscale group-hover:grayscale-0 transition-all duration-300"
-                  />
-                </div>
-                <h3 className="text-lg font-semibold text-neutral-800">
-                  {partner.name}
-                </h3>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        {partners.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+            {partners.map((partner) => (
+              <Card
+                key={partner.id}
+                className="group border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 rounded-2xl overflow-hidden"
+              >
+                <CardContent className="p-8 text-center">
+                  <div className="w-full h-20 flex items-center justify-center mb-6">
+                    {partner.has_image && partner.image_url ? (
+                      <img
+                        src={partner.image_url}
+                        alt={partner.name}
+                        className="max-w-full max-h-full object-contain grayscale group-hover:grayscale-0 transition-all duration-300"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          const parent = target.parentElement;
+                          if (parent) {
+                            parent.innerHTML = `<div class="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center text-gray-500 text-sm">Logo belum tersedia</div>`;
+                          }
+                        }}
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center text-gray-500 text-sm">
+                        Logo belum tersedia
+                      </div>
+                    )}
+                  </div>
+                  <h3 className="text-lg font-semibold text-neutral-800">
+                    {partner.name}
+                  </h3>
+                  {partner.position && (
+                    <p className="text-sm text-gray-600 mt-2">{partner.position}</p>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-16">
+            <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Users className="h-8 w-8 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-600 mb-2">
+              Data mitra akan segera tersedia
+            </h3>
+            <p className="text-gray-500">
+              Kami sedang mempersiapkan informasi lengkap tentang mitra-mitra terpercaya kami.
+            </p>
+          </div>
+        )}
 
         {/* Partnership Benefits */}
         <div className="bg-white rounded-2xl p-8 md:p-12 shadow-lg mb-16">

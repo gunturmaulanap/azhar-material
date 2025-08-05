@@ -13,7 +13,12 @@ class Brand extends Model
         'name',
         'description',
         'logo',
-        'website_url'
+        'website_url',
+        'is_active'
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
     ];
 
     public function goods()
@@ -27,5 +32,10 @@ class Brand extends Model
             return asset('storage/' . $this->logo);
         }
         return null;
+    }
+
+    public function getHasImageAttribute()
+    {
+        return !empty($this->logo);
     }
 }
