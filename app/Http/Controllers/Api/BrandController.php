@@ -18,6 +18,19 @@ class BrandController extends Controller
                 ->orderBy('name', 'asc')
                 ->get();
 
+            // Transform brands to include image status
+            $brands->transform(function ($brand) {
+                $brand->logo_url = $brand->logo 
+                    ? asset('storage/' . $brand->logo) 
+                    : null;
+                $brand->has_image = !empty($brand->logo);
+                $brand->image_message = $brand->has_image 
+                    ? 'Logo tersedia' 
+                    : 'Belum ada logo/gambar untuk brand ini';
+                
+                return $brand;
+            });
+
             return response()->json([
                 'success' => true,
                 'data' => $brands,
@@ -43,6 +56,15 @@ class BrandController extends Controller
                 ], 404);
             }
 
+            // Transform brand to include image status
+            $brand->logo_url = $brand->logo 
+                ? asset('storage/' . $brand->logo) 
+                : null;
+            $brand->has_image = !empty($brand->logo);
+            $brand->image_message = $brand->has_image 
+                ? 'Logo tersedia' 
+                : 'Belum ada logo/gambar untuk brand ini';
+
             return response()->json([
                 'success' => true,
                 'data' => $brand,
@@ -62,6 +84,19 @@ class BrandController extends Controller
             $brands = Brand::where('is_active', true)
                 ->orderBy('name', 'asc')
                 ->get();
+
+            // Transform brands to include image status
+            $brands->transform(function ($brand) {
+                $brand->logo_url = $brand->logo 
+                    ? asset('storage/' . $brand->logo) 
+                    : null;
+                $brand->has_image = !empty($brand->logo);
+                $brand->image_message = $brand->has_image 
+                    ? 'Logo tersedia' 
+                    : 'Belum ada logo/gambar untuk brand ini';
+                
+                return $brand;
+            });
 
             return response()->json([
                 'success' => true,

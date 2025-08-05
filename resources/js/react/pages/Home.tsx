@@ -212,18 +212,35 @@ const Home: React.FC = () => {
               className="w-full h-full object-cover"
             />
           ) : (
-            <video
-              autoPlay
-              loop
-              muted
-              playsInline
-              className="w-full h-full object-cover"
-            >
-              <source
-                src="https://cdn.pixabay.com/video/2021/08/04/84170-582657466_large.mp4"
-                type="video/mp4"
+            <div className="relative w-full h-full">
+              <video
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  const video = e.target as HTMLVideoElement;
+                  video.style.display = 'none';
+                  const fallbackImg = video.nextElementSibling as HTMLImageElement;
+                  if (fallbackImg) {
+                    fallbackImg.style.display = 'block';
+                  }
+                }}
+              >
+                <source
+                  src="https://cdn.pixabay.com/video/2021/08/04/84170-582657466_large.mp4"
+                  type="video/mp4"
+                />
+              </video>
+              {/* Fallback Image */}
+              <img
+                src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1920&h=1080&fit=crop"
+                alt="Construction Background"
+                className="w-full h-full object-cover hidden"
+                style={{ display: 'none' }}
               />
-            </video>
+            </div>
           )}
           {/* Video Overlay */}
           <div className="absolute inset-0 bg-black bg-opacity-40"></div>

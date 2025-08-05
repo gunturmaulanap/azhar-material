@@ -21,6 +21,16 @@ class TeamController extends Controller
                         ->orderBy('order', 'asc')
                         ->get();
 
+            // Transform to include image URLs
+            $teams->transform(function ($team) {
+                $team->image_url = $team->image 
+                    ? asset('storage/' . $team->image) 
+                    : null;
+                $team->has_image = !empty($team->image);
+                
+                return $team;
+            });
+
             return response()->json([
                 'success' => true,
                 'data' => $teams,
@@ -89,6 +99,12 @@ class TeamController extends Controller
     public function show(Team $team): JsonResponse
     {
         try {
+            // Transform to include image URL
+            $team->image_url = $team->image 
+                ? asset('storage/' . $team->image) 
+                : null;
+            $team->has_image = !empty($team->image);
+
             return response()->json([
                 'success' => true,
                 'data' => $team,
