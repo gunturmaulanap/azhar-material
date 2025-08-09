@@ -33,7 +33,7 @@
                     <div class="mt-2">
                         <div class="flex items-center gap-x-4">
                             <input wire:model="order.company" type="text" id="order.company" autocomplete="off"
-                                class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6">
+                                class="block w-full  px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6">
                             <button type="button"
                                 class="flex items-center gap-x-2 bg-blue-500 rounded-md px-3 py-2 text-white"
                                 @click="open = true">
@@ -75,7 +75,7 @@
                             <div class="flex items-center justify-between my-4">
                                 <div class="flex items-center gap-x-4">
                                     <input wire:model="searchSupplier"
-                                        class="flex rounded-md bg-white border-gray-300 px-3 py-1 w-64 text-sm text-gray-800 shadow-sm transition-colors focus:ring-1 h-8 placeholder:text-xs placeholder:text-slate-600"
+                                        class="flex  px-3 rounded-md bg-white border-gray-300 px-3 py-1 w-64 text-sm text-gray-800 shadow-sm transition-colors focus:ring-1 h-8 placeholder:text-xs placeholder:text-slate-600"
                                         placeholder="Cari Supplier...">
                                 </div>
                             </div>
@@ -184,7 +184,7 @@
                         <span class="text-xs text-red-500">*</span></label>
                     <div class="mt-2">
                         <input wire:model="order.name" id="order.name" type="text"
-                            class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6">
+                            class="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6">
                         @error('order.name')
                             <span class="text-xs text-red-500">{{ $message }}</span>
                         @enderror
@@ -197,7 +197,7 @@
                         <span class="text-xs text-red-500">*</span></label>
                     <div class="mt-2">
                         <input wire:model="order.phone" id="order.phone" type="number"
-                            class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6">
+                            class="block w-full  px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6">
                         @error('order.phone')
                             <span class="text-xs text-red-500">{{ $message }}</span>
                         @enderror
@@ -208,7 +208,7 @@
                         <span class="text-xs text-red-500">*</span></label>
                     <div class="mt-2">
                         <input wire:model="order.keterangan" id="order.keterangan" type="text"
-                            class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6">
+                            class="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6">
                         @error('order.keterangan')
                             <span class="text-xs text-red-500">{{ $message }}</span>
                         @enderror
@@ -219,7 +219,7 @@
                         class="block text-sm font-medium leading-6 text-gray-900">Alamat</label>
                     <div class="mt-2">
                         <textarea wire:model="order.address" id="order.address" rows="3"
-                            class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"></textarea>
+                            class="block w-full  px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"></textarea>
                     </div>
                 </div>
             </div>
@@ -233,7 +233,7 @@
                 </div>
             </div>
 
-            <div x-data="{ open: false }" x-init="open = false" class="rounded-md bg-white mt-0">
+            <div x-data="{ open: false }" x-init="open = false">
                 {{-- Main Table --}}
                 <div class="relative w-full overflow-auto hidden sm:block">
                     <table class="w-full text-sm">
@@ -297,7 +297,7 @@
                                                 </div>
                                                 <input type="text" id="cost-{{ $index }}"
                                                     wire:model="goodOrders.{{ $index }}.cost"
-                                                    class="block w-40 rounded-md border-0 py-1.5 pl-9 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                                                    class="block  px-3   px-3 w-40 rounded-md border-0 py-1.5 pl-9 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
                                             </div>
                                         </div>
                                     </td>

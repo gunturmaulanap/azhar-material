@@ -39,7 +39,7 @@
                     <div class="mt-2">
                         <input wire:model="customer.name" type="text" id="customer.name" autocomplete="off"
                             placeholder="Masukkan nama lengkap customer" autofocus
-                            class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6">
+                            class="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6">
                         @error('customer.name')
                             <span class="text-xs text-red-500">{{ $message }}</span>
                         @enderror
@@ -51,7 +51,7 @@
                         <span class="text-xs text-red-500">*</span></label>
                     <div class="mt-2">
                         <input wire:model="customer.phone" id="customer.phone" type="number"
-                            class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6">
+                            class="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6">
                         @error('customer.phone')
                             <span class="text-xs text-red-500">{{ $message }}</span>
                         @enderror
@@ -76,7 +76,7 @@
                     <div class="mt-2">
                         <input wire:model="customer.username" type="text" id="customer.username"
                             autocomplete="given-name"
-                            class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6">
+                            class="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6">
                         @error('customer.username')
                             <span class="text-xs text-red-500">{{ $message }}</span>
                         @enderror
@@ -95,7 +95,7 @@
                     <div class="mt-2 relative">
                         <input wire:model="customer.password" id="customer.password" type="{{ $type }}"
                             autocomplete="off"
-                            class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6">
+                            class="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6">
                         <button wire:click="togglePassword()" class="absolute bottom-2 right-2" type="button">
                             @if ($type === 'password')
                                 <!-- Icon Mata Terbuka -->

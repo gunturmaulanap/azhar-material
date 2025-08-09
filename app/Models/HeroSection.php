@@ -16,6 +16,8 @@ class HeroSection extends Model
         'button_text',
         'button_url',
         'background_image',
+        'background_video',
+        'background_type',
         'is_active'
     ];
 
@@ -27,6 +29,24 @@ class HeroSection extends Model
     {
         if ($this->background_image) {
             return asset('storage/' . $this->background_image);
+        }
+        return null;
+    }
+
+    public function getBackgroundVideoUrlAttribute()
+    {
+        if ($this->background_video) {
+            return asset('storage/' . $this->background_video);
+        }
+        return null;
+    }
+
+    public function getBackgroundUrlAttribute()
+    {
+        if ($this->background_type === 'video' && $this->background_video) {
+            return $this->background_video_url;
+        } elseif ($this->background_type === 'image' && $this->background_image) {
+            return $this->background_image_url;
         }
         return null;
     }

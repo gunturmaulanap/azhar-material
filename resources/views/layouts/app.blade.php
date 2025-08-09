@@ -21,11 +21,11 @@
 
 <body class="font-sans antialiased">
     <div x-data="{ side: false }" class="min-h-screen">
-        <nav x-data="{ open: false }" class="bg-red-500 py-4">
+        <nav x-data="{ open: false }" class="bg-white shadow-sm border-b py-4">
             <!-- Primary Navigation Menu -->
             <div class="mx-6 sm-mx-8">
                 <div class="flex justify-between sm:h-16">
-                    <div class="flex items-center text-white">
+                    <div class="flex items-center text-primary">
                         <!-- Heading -->
                         <div class="shrink-0 flex items-center">
                             <!-- Humburger -->
@@ -51,7 +51,7 @@
                                             $dashboardRoute = route('admin.transaction.create');
                                             break;
                                         case 'content-admin':
-                                            $dashboardRoute = route('content.hero-sections');
+                                            $dashboardRoute = route('content-admin.hero-sections');
                                             break;
                                         case 'owner':
                                             $dashboardRoute = route('owner.report.index');
@@ -66,8 +66,8 @@
                             @endphp
 
                             <a href="{{ $dashboardRoute }}"
-                                class="text-2xl uppercase tracking-widest font-[1000] subpixel-antialiased">
-                                {{ __('inventory') }}
+                                class="text-primary text-3xl font-bold tracking-wide hover:text-primary/80 transition-colors duration-200">
+                                {{ __('INVENTORY') }}
                             </a>
 
                             <!-- Settings Dropdown -->
@@ -75,7 +75,7 @@
                                 <x-dropdown align="right" width="48">
                                     <x-slot name="trigger">
                                         <button
-                                            class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
+                                            class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-lg text-gray-600 bg-gray-50 hover:bg-primary hover:text-white focus:outline-none transition-all ease-in-out duration-200">
                                             <div>
                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none"
                                                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
@@ -97,18 +97,25 @@
                                         </button>
                                     </x-slot>
                                     <x-slot name="content">
-                                        <x-dropdown-link :href="route('profile.edit')">
+                                        <x-dropdown-link :href="route('profile.edit')" class="flex items-center">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                                stroke-width="1.5" stroke="currentColor" class="w-4 h-4 mr-2">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                                            </svg>
                                             {{ __('Profile') }}
                                         </x-dropdown-link>
-                                        <!-- Authentication -->
-                                        <form method="POST" action="{{ route('logout') }}">
-                                            @csrf
-                                            <x-dropdown-link :href="route('logout')"
-                                                onclick="event.preventDefault();
-                                                        this.closest('form').submit();">
-                                                {{ __('Log Out') }}
-                                            </x-dropdown-link>
-                                        </form>
+
+                                        <!-- Go to React Homepage -->
+                                        <a href="/"
+                                            class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                                stroke-width="1.5" stroke="currentColor" class="w-4 h-4 mr-2">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+                                            </svg>
+                                            {{ __('Back to Home') }}
+                                        </a>
                                     </x-slot>
                                 </x-dropdown>
                             </div>
@@ -120,7 +127,7 @@
                         <x-dropdown align="right" width="48">
                             <x-slot name="trigger">
                                 <button
-                                    class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
+                                    class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-lg text-gray-600 bg-gray-50 hover:bg-primary hover:text-white focus:outline-none transition-all ease-in-out duration-200">
                                     <div>
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                             stroke-width="1.5" stroke="currentColor" class="size-5">
@@ -142,19 +149,26 @@
                             </x-slot>
                             <x-slot name="content">
                                 @if (Auth::check() && in_array(Auth::user()->role, ['super_admin', 'admin', 'owner', 'content-admin']))
-                                    <x-dropdown-link :href="route('profile.edit')">
+                                    <x-dropdown-link :href="route('profile.edit')" class="flex items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                            stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-3">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                                        </svg>
                                         {{ __('Profile') }}
                                     </x-dropdown-link>
                                 @endif
-                                <!-- Authentication -->
-                                <form method="POST" action="{{ route('logout') }}">
-                                    @csrf
-                                    <x-dropdown-link :href="route('logout')"
-                                        onclick="event.preventDefault();
-                                                        this.closest('form').submit();">
-                                        {{ __('Log Out') }}
-                                    </x-dropdown-link>
-                                </form>
+
+                                <!-- Go to React Homepage -->
+                                <a href="/"
+                                    class="w-full text-left block px-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:text-gray-800 focus:bg-gray-50 focus:border-gray-300 transition duration-150 ease-in-out flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                        stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-3">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+                                    </svg>
+                                    {{ __('Back to Home') }}
+                                </a>
                             </x-slot>
                         </x-dropdown>
                     </div>
@@ -164,27 +178,30 @@
 
         <div class="flex overflow-y-auto overflow-x-hidden">
             {{-- SIDEBAR --}}
-            @if (Auth::check() && in_array(Auth::user()->role, ['super_admin', 'admin']))
-                <aside :class="side ? 'block' : 'hidden'" class="w-[400px] bg-white shadow-lg xl:block">
+            @if (Auth::check() && in_array(Auth::user()->role, ['super_admin', 'admin', 'owner', 'content-admin', 'driver']))
+                <aside :class="side ? 'block' : 'hidden'"
+                    class="w-72 bg-white shadow-xl border-r border-gray-100 xl:block">
                     @include('layouts.sidebar', ['dashboardRoute' => $dashboardRoute])
                 </aside>
             @endif
             <div class="w-full">
                 {{-- HEADER --}}
-                <header class="bg-white shadow">
-                    <div class="max-w-7xl mx-auto sm:flex items-center py-6 px-4 sm:px-8 divide-x">
-                        <h2 class="font-semibold mb-4 sm:mb-0 text-xl text-gray-800 leading-tight pr-4">
+                <header class="bg-white shadow-sm border-b border-gray-100">
+                    <div class="max-w-7xl mx-auto sm:flex items-center py-6 px-4 sm:px-8 divide-x divide-gray-200">
+                        <h2 class="font-semibold mb-4 sm:mb-0 text-2xl text-gray-900 leading-tight pr-6">
                             @yield('title', $title ?? '')
                         </h2>
-                        <nav aria-label="Breadcrumb" class="ps-4 sm:ps-6">
-                            <ol class="flex items-center gap-1 text-sm text-gray-600">
+                        <nav aria-label="Breadcrumb" class="ps-6 sm:ps-8">
+                            <ol class="flex items-center gap-2 text-sm text-gray-600">
                                 <li>
-                                    <a href="{{ $dashboardRoute }}" class="block transition hover:text-gray-900">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="size-5 mb-1" fill="none"
+                                    <a href="{{ $dashboardRoute }}"
+                                        class="flex items-center text-primary hover:text-primary/80 transition-colors duration-200">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="size-4 mr-1" fill="none"
                                             viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                                         </svg>
+                                        Home
                                     </a>
                                 </li>
                                 @yield('breadcrumb', $breadcrumb ?? '')
@@ -194,8 +211,8 @@
                 </header>
 
                 {{-- MAIN CONTENT --}}
-                <main class="overflow-y-auto h-[78vh]">
-                    <div class="max-w-7xl mx-auto px-4 py-4 sm:px-8 sm:py-6">
+                <main class="overflow-y-auto h-[calc(100vh-200px)] bg-neutral-50">
+                    <div class="max-w-7xl mx-auto px-4 py-6 sm:px-8 sm:py-8">
                         @if (isset($slot))
                             {{ $slot }}
                         @else

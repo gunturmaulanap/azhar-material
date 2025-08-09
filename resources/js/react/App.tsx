@@ -3,8 +3,11 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuth, AuthProvider } from "./hooks/useAuth"; // relatif path
 import LoadingSpinner from "./components/LoadingSpinner";
 import Layout from "./components/Layout"; // Pastikan file ini ada
+import Notifications from "./components/Notifications";
+import ScrollToTop from "./components/ScrollToTop";
 import Home from "./pages/Home";
 import Products from "./pages/Products";
+import Projects from "./pages/Projects";
 import Brands from "./pages/Brands";
 import Services from "./pages/Services";
 import Contact from "./pages/Contact";
@@ -71,6 +74,9 @@ function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+        {/* Automatically scroll to top on route changes */}
+        <ScrollToTop smooth={true} delay={0} />
+        <Notifications />
         <Routes>
           {/* Rute untuk halaman yang memerlukan autentikasi (jika ada halaman React admin) */}
           {/* Contoh: Jika ada dashboard admin React terpisah */}
@@ -101,7 +107,7 @@ function App() {
                 <Routes>
                   <Route path="/" element={<Home />} />
                   <Route path="/products" element={<Products />} />
-                  <Route path="/brands" element={<Brands />} />
+                  <Route path="/projects" element={<Projects />} />
                   <Route path="/services" element={<Services />} />
                   <Route path="/contact" element={<Contact />} />
                   <Route path="/team" element={<Team />} />

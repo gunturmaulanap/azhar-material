@@ -15,24 +15,19 @@ class Visitor extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'visitor_id',
         'ip_address',
         'user_agent',
         'page_visited',
         'referrer',
         'visit_date',
         'visit_time',
-        'country',
-        'city',
-        'device_type',
-        'browser',
-        'os',
     ];
 
     protected $casts = [
         'visit_date' => 'date',
-        'visit_time' => 'datetime',
+        // 'visit_time' => 'datetime',
     ];
-
     public function scopeToday($query)
     {
         return $query->where('visit_date', today());

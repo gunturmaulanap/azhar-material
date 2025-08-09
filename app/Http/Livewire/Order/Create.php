@@ -6,12 +6,12 @@ use App\Models\Goods;
 use App\Models\Order;
 use Livewire\Component;
 use App\Models\Brand;
-
 use App\Models\Category;
 use App\Models\Supplier;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache; // ⬅️ tambahkan baris ini
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage; // ⬅️ Tambahkan baris ini
 
 class Create extends Component
 {
@@ -24,7 +24,7 @@ class Create extends Component
 
     public function updatedOrderImage()
     {
-        if ($this->order['image']) {
+        if (isset($this->order['image'])) {
             $this->imagePreview = $this->order['image']->temporaryUrl();
         }
     }
@@ -87,7 +87,7 @@ class Create extends Component
         }
     }
 
-    public function updetedOrderPhone()
+    public function updatedOrderPhone()
     {
         if (isset($this->order['supplier_id'])) {
             $this->order['supplier_id'] = null;
@@ -191,35 +191,18 @@ class Create extends Component
         $this->calculateTotal();
     }
 
+    // Metode ini telah diubah total untuk menggunakan Storage facade
     public function setImage()
     {
-        if (!empty($this->order['image'])) {
-            $extension = $this->order['image']->getClientOriginalExtension();
-
-            // Membuat nama file yang unik
-            $uniqueFileName = date('dmyHis') . '.' . $extension;
-
-            // Path tujuan langsung ke public_html di dalam folder /home/azha3438
-            $destinationPath = '/home/azha3438/public_html/storage/images/products';
-
-            // Buat folder jika belum ada
-            if (!file_exists($destinationPath)) {
-                mkdir($destinationPath, 0755, true);
-            }
-
-            // Simpan sementara lalu pindah ke public_html
-            $this->order['image']->storeAs('temp', $uniqueFileName);
-            $tempPath = storage_path("app/temp/{$uniqueFileName}");
-
-            if (file_exists($tempPath)) {
-                // Pindahkan file dari folder temporary ke /home/azha3438/public_html/storage/images/products
-                rename($tempPath, $destinationPath . '/' . $uniqueFileName);
-
-                // Simpan nama file di database dengan path yang sesuai
-                $this->order['image'] = "images/products/{$uniqueFileName}";
-            }
+        if (isset($this->order['image'])) {
+            // Gunakan metode `store` dari Livewire untuk menyimpan file
+            // Ini akan otomatis membuat folder `images/products` di dalam `storage/app/public`
+            $this->order['image'] = $this->order['image']->store('images/products', 'public');
+        } else {
+            $this->order['image'] = null;
         }
     }
+
     public function resetInput()
     {
         return redirect()->route(str_replace('_', '', auth()->user()->role) . '.order.create');
@@ -253,6 +236,7 @@ class Create extends Component
         // Mengatur supplier_id
         $this->order['supplier_id'] = $supplier->id;
 
+        // Panggil metode setImage yang sudah diperbaiki
         $this->setImage();
 
         // Membuat Order baru

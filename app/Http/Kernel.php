@@ -69,5 +69,9 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'role' => \App\Http\Middleware\CheckRole::class,
         'track.visitor' => \App\Http\Middleware\TrackVisitor::class,
+        'ensure.auth' => \App\Http\Middleware\EnsureAuthenticated::class,
+        'force.auth' => \App\Http\Middleware\ForceAuthentication::class,
+        'verify.customer' => \App\Http\Middleware\VerifyCustomerAccess::class,
+        'verify.customer.transaction' => \App\Http\Middleware\VerifyCustomerTransaction::class,
     ];
 }

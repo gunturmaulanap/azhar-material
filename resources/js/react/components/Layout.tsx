@@ -1,6 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Menu, X, Facebook, Instagram, Mail, User, LogOut } from "lucide-react";
+import {
+  Menu,
+  X,
+  Facebook,
+  Instagram,
+  Mail,
+  User,
+  LogOut,
+  LayoutDashboard,
+} from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { Button } from "./ui/button";
 
@@ -27,19 +36,86 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Listen for logout broadcast from other tabs
+  useEffect(() => {
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === "logout-broadcast") {
+        // Force logout in this tab when logout is triggered from another tab
+        if (isAuthenticated) {
+          // Clear auth state without calling API (already called from originating tab)
+          logout(true); // skipApiCall = true
+          // Redirect to homepage
+          navigate("/");
+        }
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, [isAuthenticated, logout, navigate]);
+
   const handleLogout = async () => {
-    await logout();
-    navigate("/");
+    // Broadcast logout to all other tabs
+    localStorage.setItem("logout-broadcast", Date.now().toString());
+
+    try {
+      // Perform logout API call which clears backend sessions and tokens
+      await logout();
+    } catch (error) {
+      console.error("Logout error:", error);
+      // Even if logout fails, we still clean local state in useAuth
+    }
+
+    // Always redirect to home after logout attempt
+    // The useAuth logout function handles all cleanup
+    setTimeout(() => {
+      window.location.href = "/";
+    }, 100);
+
+    // Clean up the broadcast item after a short delay
+    setTimeout(() => {
+      localStorage.removeItem("logout-broadcast");
+    }, 1000);
+  };
+
+  // Function to get dashboard route based on user role
+  // Routes selaras dengan Laravel backend routes
+  const getDashboardRoute = (role: string, userId?: number) => {
+    const dashboardRoutes: { [key: string]: string } = {
+      customer: userId ? `/customer/${userId}` : "/customer", // Route memerlukan ID customer
+      super_admin: "/superadmin/dashboard",
+      driver: "/admin/pengiriman-barang", // Use admin delivery route for driver
+      admin: "/admin/transactions/create",
+      "content-admin": "/content-admin/analytics",
+      owner: "/owner/laporan-penjualan",
+    };
+    return dashboardRoutes[role] || "/";
+  };
+
+  // Function to get dashboard label based on user role
+  const getDashboardLabel = (role: string) => {
+    const dashboardLabels: { [key: string]: string } = {
+      customer: "My Transactions",
+      super_admin: "Dashboard",
+      driver: "Dashboard",
+      admin: "Admin Panel",
+      "content-admin": "Content Panel",
+      owner: "Owner Panel",
+    };
+    return dashboardLabels[role] || "Dashboard";
   };
 
   const navigation = [
     { name: "Home", href: "/" },
+    { name: "Projects", href: "/projects" },
+
     { name: "Products", href: "/products" },
-    { name: "Brands", href: "/brands" },
     { name: "Services", href: "/services" },
     { name: "Contact", href: "/contact" },
-    { name: "Team", href: "/team" },
-    { name: "Dashboard", href: "/" },
+    // { name: "Team", href: "/team" },
+    // { name: "Dashboard", href: "/" },
   ];
 
   return (
@@ -82,27 +158,63 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             {/* Auth Section */}
             <div className="hidden md:flex items-center space-x-4">
               {isAuthenticated ? (
-                <div className="relative">
+                <>
+                  {/* Dashboard Button with session-aware redirect */}
                   <Button
                     variant="ghost"
-                    className="flex items-center space-x-2"
-                    onClick={() => setShowUserMenu(!showUserMenu)}
+                    className="flex items-center space-x-2 text-primary hover:bg-primary hover:text-white"
+                    onClick={() => {
+                      // Create a form to POST to Laravel for session-aware redirect
+                      const form = document.createElement("form");
+                      form.method = "GET";
+                      form.action = getDashboardRoute(
+                        user?.role || "customer",
+                        user?.id
+                      );
+
+                      // Add CSRF token if needed for POST
+                      const csrfToken = document
+                        .querySelector('meta[name="csrf-token"]')
+                        ?.getAttribute("content");
+                      if (csrfToken) {
+                        const csrfInput = document.createElement("input");
+                        csrfInput.type = "hidden";
+                        csrfInput.name = "_token";
+                        csrfInput.value = csrfToken;
+                        form.appendChild(csrfInput);
+                      }
+
+                      document.body.appendChild(form);
+                      form.submit();
+                    }}
                   >
-                    <User className="h-4 w-4" />
-                    <span>{user?.name || "User"}</span>
+                    <LayoutDashboard className="h-4 w-4" />
+                    <span>{getDashboardLabel(user?.role || "customer")}</span>
                   </Button>
-                  {showUserMenu && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
-                      <button
-                        onClick={handleLogout}
-                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        <LogOut className="mr-2 h-4 w-4" />
-                        <span>Logout</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
+
+                  {/* User Menu */}
+                  <div className="relative">
+                    <Button
+                      variant="ghost"
+                      className="flex items-center space-x-2"
+                      onClick={() => setShowUserMenu(!showUserMenu)}
+                    >
+                      <User className="h-4 w-4" />
+                      <span>{user?.name || "User"}</span>
+                    </Button>
+                    {showUserMenu && (
+                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                        <button
+                          onClick={handleLogout}
+                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          <LogOut className="mr-2 h-4 w-4" />
+                          <span>Logout</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </>
               ) : (
                 <Link to="/login">
                   <Button
@@ -154,10 +266,31 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 {/* Mobile Auth */}
                 <div className="pt-4 border-t border-gray-200">
                   {isAuthenticated ? (
-                    <div className="px-3 py-2">
+                    <div className="px-3 py-2 space-y-2">
                       <p className="text-sm text-gray-600 mb-2">
                         Welcome, {user && user.name ? user.name : "User"}
                       </p>
+
+                      {/* Mobile Dashboard Button */}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-full flex items-center justify-start space-x-2 text-primary hover:bg-primary hover:text-white mb-2"
+                        onClick={() => {
+                          setIsMobileMenuOpen(false);
+                          // Full page redirect to Laravel Livewire dashboard
+                          window.location.href = getDashboardRoute(
+                            user?.role || "customer",
+                            user?.id
+                          );
+                        }}
+                      >
+                        <LayoutDashboard className="h-4 w-4" />
+                        <span>
+                          {getDashboardLabel(user?.role || "customer")}
+                        </span>
+                      </Button>
+
                       <Button
                         variant="outline"
                         size="sm"

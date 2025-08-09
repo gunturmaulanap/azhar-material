@@ -43,8 +43,8 @@ class Admin extends Component
     public function render()
     {
         // Get admin roles (excluding customer role)
-        $adminRoles = ['admin', 'super_admin', 'content-admin', 'owner'];
-        
+        $adminRoles = ['admin', 'super_admin', 'content-admin', 'owner', 'driver'];
+
         $data = User::whereIn('role', $adminRoles)
             ->when($this->search, function ($query) {
                 $query->search($this->search);

@@ -23,7 +23,7 @@ use App\Http\Livewire\Category\Index as CategoryIndex;
 use App\Http\Livewire\Category\Form as CategoryForm;
 
 // Rute untuk Admin
-Route::middleware(['web', 'auth:web', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['web', 'ensure.auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     // Transaction Routes
     Route::get('/transactions/create', TransactionCreate::class)->name('transaction.create');
     Route::get('/riwayat-transaksi', TransactionHistory::class)->name('transaction.history');

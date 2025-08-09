@@ -16,7 +16,7 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         // Pastikan roles sudah ada
-        $roles = ['super_admin', 'admin', 'content-admin', 'owner'];
+        $roles = ['super_admin', 'admin', 'content-admin', 'owner', 'driver'];
         foreach ($roles as $role) {
             Role::firstOrCreate(['name' => $role, 'guard_name' => 'web']);
         }
@@ -41,6 +41,11 @@ class UserSeeder extends Seeder
                 'name' => 'Owner',
                 'username' => 'guntur',
                 'role' => 'owner',
+            ],
+            [
+                'name' => 'Driver',
+                'username' => 'driver',
+                'role' => 'driver',
             ],
         ];
 

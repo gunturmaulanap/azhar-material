@@ -40,7 +40,7 @@ interface AuthContextType {
     login_type: string;
     role?: string;
   }) => Promise<LoginResponseData>;
-  logout: () => void;
+  logout: (skipApiCall?: boolean) => void;
   register: (data: any) => Promise<LoginResponseData>;
 }
 
@@ -77,9 +77,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             setUser(null);
             setIsAuthenticated(false);
           }
+        } else {
+          // No token found, user is not authenticated
+          setUser(null);
+          setIsAuthenticated(false);
         }
       } catch (error) {
-        console.error("Auth initialization error:", error);
+        console.warn("Auth initialization failed, user not authenticated:", error);
+        // Clear any invalid tokens/cookies
         Cookies.remove("token");
         setUser(null);
         setIsAuthenticated(false);
@@ -130,18 +135,42 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const logout = async () => {
+  const logout = async (skipApiCall: boolean = false) => {
     try {
-      // Panggil endpoint API untuk menghapus token di backend
-      await authService.logout();
+      if (!skipApiCall) {
+        // Panggil endpoint API untuk menghapus token di backend hanya jika tidak skip
+        await authService.logout();
+      }
     } catch (error) {
-      console.error("Logout API call failed:", error);
-      toast.error("Terjadi kesalahan saat logout dari server.");
+      if (!skipApiCall) {
+        console.error("Logout API call failed:", error);
+        // Don't show error toast as it might confuse users
+        console.warn("API logout failed, proceeding with client-side cleanup");
+      }
     } finally {
-      // Hapus token di frontend tanpa peduli respons API
+      // Hapus semua token dan cookie di frontend
       Cookies.remove("token");
+      Cookies.remove("laravel_session");
+      Cookies.remove("XSRF-TOKEN");
+      
+      // Clear additional cookies that might exist
+      const cookies = document.cookie.split(";");
+      cookies.forEach(cookie => {
+        const eqPos = cookie.indexOf("=");
+        const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+        if (name.includes('session') || name.includes('token') || name.includes('csrf')) {
+          Cookies.remove(name);
+          // Also try to remove with different path and domain combinations
+          Cookies.remove(name, { path: '/' });
+          Cookies.remove(name, { domain: window.location.hostname });
+        }
+      });
+      
       setUser(null);
       setIsAuthenticated(false);
+      
+      // Don't rely on Laravel logout, just clean everything and redirect
+      // This avoids the 419 CSRF token expired error
     }
   };
 

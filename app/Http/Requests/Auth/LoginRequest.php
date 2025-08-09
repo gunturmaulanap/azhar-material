@@ -42,9 +42,17 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        // Authentication logic is now handled in the controller
-        // This method is kept for compatibility but logic moved to AuthenticatedSessionController
+        $credentials = $this->only('username', 'password');
         
+        // Try to authenticate with username
+        if (! Auth::attempt($credentials, $this->boolean('remember'))) {
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'username' => __('auth.failed'),
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 

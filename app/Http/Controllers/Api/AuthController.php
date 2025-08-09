@@ -58,21 +58,27 @@ class AuthController extends Controller
         }
         // --- END: Perubahan di sini ---
 
-        // Jika kredensial valid, login pengguna untuk membuat sesi
-        Auth::guard($guard)->login($user);
-
-        // Jika login_type adalah 'user', pastikan role sesuai
+        // Jika login_type adalah 'user', pastikan role sesuai sebelum login
         if ($guard === 'web' && $user->role !== $request->role) {
-            // Logout user yang baru login karena role tidak cocok
-            Auth::guard($guard)->logout();
-            return response()->json(['success' => false, 'error' => 'Role yang digunakan salah.'], 401); // Pesan diubah sedikit
+            return response()->json(['success' => false, 'error' => 'Role yang digunakan salah.'], 401);
         }
 
+        // Jika kredensial valid, login pengguna untuk membuat sesi
+        Auth::guard($guard)->login($user, true); // Remember user
+
+        // Force session regeneration dan persistence
+        request()->session()->regenerate();
+        request()->session()->put('user_authenticated_at', now());
+        request()->session()->put('auth_guard', $guard);
+        request()->session()->save(); // Force save session
+
         // Hapus token lama untuk keamanan
-        $user->tokens()->delete();
+        if (method_exists($user, 'tokens')) {
+            $user->tokens()->delete();
+        }
 
         // Buat token Sanctum baru
-        $token = $user->createToken('auth-token')->plainTextToken;
+        $token = $user->createToken('auth-token', ['*'])->plainTextToken;
 
         // Tentukan URL pengalihan berdasarkan peran
         $redirectUrl = $this->getRedirectUrl($user);
@@ -107,11 +113,11 @@ class AuthController extends Controller
             case 'admin':
                 return route('admin.transaction.create');
             case 'content-admin':
-                return route('content.hero-sections');
+                return route('content-admin.hero-sections');
             case 'owner':
                 return route('owner.report.index');
             case 'driver':
-                return route('drive.delivery.index');
+                return route('driver.delivery.index'); // Fallback to admin delivery for driver
             default:
                 return url('/');
         }
@@ -132,7 +138,42 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
-        // ... kode logout tetap sama ...
+        try {
+            // Logout dari semua guards
+            if (Auth::guard('web')->check()) {
+                $user = Auth::guard('web')->user();
+                Auth::guard('web')->logout();
+
+                // Delete all tokens for the user
+                if (method_exists($user, 'tokens')) {
+                    $user->tokens()->delete();
+                }
+            } elseif (Auth::guard('customer')->check()) {
+                $user = Auth::guard('customer')->user();
+                Auth::guard('customer')->logout();
+
+                // Delete all tokens for the customer
+                if (method_exists($user, 'tokens')) {
+                    $user->tokens()->delete();
+                }
+            }
+
+            // Clear session completely
+            $request->session()->flush();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            $request->session()->regenerate(true);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Logout berhasil'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Logout gagal: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

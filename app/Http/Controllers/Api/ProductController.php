@@ -7,29 +7,26 @@ use App\Models\Goods;
 use App\Models\Category;
 use App\Models\Brand;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
+    // app/Http/Controllers/Api/ProductController.php
+
     public function index(Request $request)
     {
         $query = Goods::with(['category', 'brand']);
 
-        // Search functionality
-        if ($request->has('search') && $request->search) {
+        if ($request->filled('search')) {
             $query->search($request->search);
         }
-
-        // Filter by category
-        if ($request->has('category_id') && $request->category_id != 'all') {
+        if ($request->filled('category_id') && $request->category_id !== 'all') {
             $query->where('category_id', $request->category_id);
         }
-
-        // Filter by brand
-        if ($request->has('brand_id') && $request->brand_id != 'all') {
+        if ($request->filled('brand_id') && $request->brand_id !== 'all') {
             $query->where('brand_id', $request->brand_id);
         }
 
-        // Sort functionality
         $sortBy = $request->get('sort_by', 'name');
         $sortOrder = $request->get('sort_order', 'asc');
 
@@ -40,27 +37,28 @@ class ProductController extends Controller
             case 'price-high':
                 $query->orderBy('price', 'desc');
                 break;
-            case 'name':
             default:
                 $query->orderBy('name', $sortOrder);
-                break;
         }
 
-        $products = $query->paginate(12);
+        $perPage = (int) $request->get('per_page', 8);
 
-        // Add image URLs and handle missing images
-        $products->getCollection()->transform(function ($product) {
-            $product->image_url = $product->image 
-                ? asset('storage/' . $product->image) 
-                : asset('images/no-image.svg');
-            
+        $products = $perPage === -1 ? $query->get() : $query->paginate($perPage);
+
+        $mapImage = function ($product) {
+            $product->image_url = $product->image
+                ? url(Storage::url($product->image))
+                : url('images/no-image.svg');
             return $product;
-        });
+        };
 
-        return response()->json([
-            'success' => true,
-            'data' => $products
-        ]);
+        if ($perPage === -1) {
+            $products = $products->transform($mapImage);
+        } else {
+            $products->getCollection()->transform($mapImage);
+        }
+
+        return response()->json(['success' => true, 'data' => $products]);
     }
 
     public function show($id)
@@ -68,21 +66,14 @@ class ProductController extends Controller
         $product = Goods::with(['category', 'brand'])->find($id);
 
         if (!$product) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Product not found'
-            ], 404);
+            return response()->json(['success' => false, 'message' => 'Product not found'], 404);
         }
 
-        // Add image URL and handle missing image
-        $product->image_url = $product->image 
-            ? asset('storage/' . $product->image) 
-            : asset('images/no-image.svg');
+        $product->image_url = $product->image
+            ? url(Storage::url($product->image))
+            : url('images/no-image.svg');
 
-        return response()->json([
-            'success' => true,
-            'data' => $product
-        ]);
+        return response()->json(['success' => true, 'data' => $product]);
     }
 
     public function featured()
@@ -90,23 +81,40 @@ class ProductController extends Controller
         $featuredProducts = Goods::with(['category', 'brand'])
             ->inRandomOrder()
             ->limit(6)
-            ->get();
+            ->get()
+            ->transform(function ($product) {
+                $product->image_url = $product->image
+                    ? url(Storage::url($product->image))
+                    : url('images/no-image.svg');
+                return $product;
+            });
 
-        // Add image URLs and handle missing images
-        $featuredProducts->transform(function ($product) {
-            $product->image_url = $product->image 
-                ? asset('storage/' . $product->image) 
-                : asset('images/no-image.svg');
-            
-            return $product;
-        });
+        return response()->json(['success' => true, 'data' => $featuredProducts]);
+    }
+
+    /**
+     * Endpoint khusus buat ambil URL gambar produk.
+     * Bisa dipakai front-end kalau cuma perlu URL doang.
+     */
+    public function image($id)
+    {
+        $product = Goods::find($id);
+
+        if (!$product || !$product->image) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Image not found'
+            ], 404);
+        }
 
         return response()->json([
             'success' => true,
-            'data' => $featuredProducts
+            'data' => [
+                'image_url' => url(Storage::url($product->image)),
+                'filename'  => $product->image,
+            ],
         ]);
     }
-
     public function categories()
     {
         $categories = Category::orderBy('name', 'asc')->get();

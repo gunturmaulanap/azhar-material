@@ -123,7 +123,7 @@ class AdminForm extends Component
     public function render()
     {
         // Get available roles untuk dropdown (excluding customer)
-        $roles = Role::whereIn('name', ['admin', 'super_admin', 'content-admin', 'owner'])->get();
+        $roles = Role::whereIn('name', ['admin', 'super_admin', 'content-admin', 'owner', 'driver'])->get();
 
         return view('livewire.master.admin-form', [
             'roles' => $roles,

@@ -1,16 +1,12 @@
-@section('title', 'Kelola Brand')
-
-@section('content')
-    <div class="container mx-auto px-4 py-8">
+<div class="container mx-auto px-4 py-8">
         <div class="flex justify-between items-center mb-6">
             <div>
                 <h1 class="text-3xl font-bold text-gray-900">Kelola Brand</h1>
                 <p class="text-gray-600">Kelola data brand perusahaan</p>
             </div>
-            <button wire:click="create" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
-                data-bs-toggle="modal" data-bs-target="#brandModal">
-                Tambah Brand
-            </button>
+            <a href="{{ route('content.brand.form-logo') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md">
+                Upload Logo Brand
+            </a>
         </div>
 
         @if (session()->has('message'))
@@ -82,11 +78,10 @@
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <button wire:click="edit({{ $brand->id }})"
-                                        class="text-blue-600 hover:text-blue-900 mr-3" data-bs-toggle="modal"
-                                        data-bs-target="#brandModal">
+                                    <a href="{{ route('content.brand.form-logo.edit', ['id' => $brand->id]) }}"
+                                        class="text-blue-600 hover:text-blue-900 mr-3">
                                         Edit
-                                    </button>
+                                    </a>
                                     <button wire:click="delete({{ $brand->id }})"
                                         class="text-red-600 hover:text-red-900"
                                         onclick="return confirm('Apakah Anda yakin ingin menghapus brand ini?')">
@@ -112,74 +107,3 @@
     </div>
 
     <!-- Modal -->
-    <div class="modal fade" id="brandModal" tabindex="-1" aria-labelledby="brandModalLabel" aria-hidden="true"
-        wire:ignore.self>
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="brandModalLabel">
-                        {{ $isEdit ? 'Edit Brand' : 'Tambah Brand' }}
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form wire:submit.prevent="{{ $isEdit ? 'update' : 'store' }}">
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label for="name" class="form-label">Nama Brand *</label>
-                            <input type="text" class="form-control @error('name') is-invalid @enderror" wire:model="name"
-                                id="name" required>
-                            @error('name')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="description" class="form-label">Deskripsi</label>
-                            <textarea class="form-control @error('description') is-invalid @enderror" wire:model="description" id="description"
-                                rows="3"></textarea>
-                            @error('description')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="logo" class="form-label">Logo</label>
-                            <input type="file" class="form-control @error('logo') is-invalid @enderror" wire:model="logo"
-                                id="logo" accept="image/*">
-                            @error('logo')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-
-                            @if ($logo)
-                                <div class="mt-2">
-                                    <img src="{{ $logo->temporaryUrl() }}" class="img-thumbnail" style="max-width: 200px;">
-                                </div>
-                            @endif
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="website_url" class="form-label">Website URL</label>
-                            <input type="url" class="form-control @error('website_url') is-invalid @enderror"
-                                wire:model="website_url" id="website_url" placeholder="https://example.com">
-                            @error('website_url')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="mb-3 form-check">
-                            <input type="checkbox" class="form-check-input" wire:model="is_active" id="is_active">
-                            <label class="form-check-label" for="is_active">
-                                Aktif
-                            </label>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-primary">
-                            {{ $isEdit ? 'Update' : 'Simpan' }}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>

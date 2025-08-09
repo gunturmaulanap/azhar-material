@@ -5,23 +5,49 @@ namespace App\Http\Livewire\HeroSection;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use App\Models\HeroSection;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class Form extends Component
 {
     use WithFileUploads;
 
     public $heroId;
-    public $title, $subtitle, $description, $button_text, $button_url, $background_image;
+    public $title, $subtitle, $description, $button_text, $background_image, $background_video, $background_type;
     public $isEdit = false;
 
-    protected $rules = [
-        'title' => 'required|string|max:255',
-        'subtitle' => 'required|string|max:255',
-        'description' => 'required|string',
-        'button_text' => 'required|string|max:100',
-        'button_url' => 'required|url|max:255',
-        'background_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
-    ];
+    // Perbaikan: Hapus properti yang tidak lagi dibutuhkan
+    public $existing_background_image_path;
+    public $existing_background_video_path;
+
+    // Perbaikan: Pindahkan rules ke metode agar dapat diakses oleh $this
+    protected function rules()
+    {
+        return [
+            'title' => 'required|string|max:255',
+            'subtitle' => 'required|string|max:255',
+            'description' => 'required|string',
+            'button_text' => 'required|string|max:100',
+            // Perbaikan: Hapus aturan validasi untuk button_url
+            'background_type' => 'required|in:image,video',
+            'background_image' => [
+                'nullable',
+                Rule::requiredIf($this->background_type === 'image' && !$this->existing_background_image_path),
+                'image',
+                'mimes:jpeg,png,jpg,gif',
+                'max:5120',
+            ],
+            'background_video' => [
+                'nullable',
+                Rule::requiredIf($this->background_type === 'video' && !$this->existing_background_video_path),
+                'mimes:mp4,avi,mov,wmv,webm',
+                'max:51200',
+            ],
+        ];
+    }
+
+    // Perbaikan: Hapus properti messages atau perbaiki sintaksnya jika masih dibutuhkan
+    // Menghapus properti $messages karena tidak lagi dibutuhkan.
 
     public function mount($id = null)
     {
@@ -29,6 +55,8 @@ class Form extends Component
             $this->heroId = $id;
             $this->isEdit = true;
             $this->loadHeroSection();
+        } else {
+            $this->background_type = 'image';
         }
     }
 
@@ -39,41 +67,73 @@ class Form extends Component
         $this->subtitle = $hero->subtitle;
         $this->description = $hero->description;
         $this->button_text = $hero->button_text;
-        $this->button_url = $hero->button_url;
+        // Perbaikan: Hapus inisialisasi $button_url
+        $this->background_type = $hero->background_type ?? 'image';
+
+        $this->existing_background_image_path = $hero->background_image;
+        $this->existing_background_video_path = $hero->background_video;
+    }
+
+    public function updatedBackgroundType()
+    {
+        $this->background_image = null;
+        $this->background_video = null;
     }
 
     public function save()
     {
-        $this->validate();
+        // Perbaikan: Panggil metode rules() untuk mendapatkan aturan validasi
+        $this->validate($this->rules());
 
         $data = [
             'title' => $this->title,
             'subtitle' => $this->subtitle,
             'description' => $this->description,
             'button_text' => $this->button_text,
-            'button_url' => $this->button_url,
+            // Perbaikan: Set button_url menjadi nilai default yang tetap, karena tidak ada input dari form
+            'button_url' => '#product-preview',
+            'background_type' => $this->background_type,
         ];
-
-        if ($this->background_image) {
-            if ($this->isEdit) {
-                $hero = HeroSection::findOrFail($this->heroId);
-                if ($hero->background_image) {
-                    \Storage::disk('public')->delete($hero->background_image);
-                }
-            }
-            $data['background_image'] = $this->background_image->store('hero-sections', 'public');
-        }
 
         if ($this->isEdit) {
             $hero = HeroSection::findOrFail($this->heroId);
+
+            if ($this->background_type === 'image' && $this->background_image) {
+                if ($hero->background_image) Storage::disk('public')->delete($hero->background_image);
+                if ($hero->background_video) Storage::disk('public')->delete($hero->background_video);
+                $data['background_image'] = $this->background_image->store('hero-sections/images', 'public');
+                $data['background_video'] = null;
+            } elseif ($this->background_type === 'video' && $this->background_video) {
+                if ($hero->background_image) Storage::disk('public')->delete($hero->background_image);
+                if ($hero->background_video) Storage::disk('public')->delete($hero->background_video);
+                $data['background_video'] = $this->background_video->store('hero-sections/videos', 'public');
+                $data['background_image'] = null;
+            } else {
+                if ($this->background_type === 'image') {
+                    $data['background_video'] = null;
+                } else {
+                    $data['background_image'] = null;
+                }
+            }
+
             $hero->update($data);
             session()->flash('success', 'Hero section berhasil diperbarui.');
         } else {
+            $data['is_active'] = true;
+
+            if ($this->background_type === 'image' && $this->background_image) {
+                $data['background_image'] = $this->background_image->store('hero-sections/images', 'public');
+                $data['background_video'] = null;
+            } elseif ($this->background_type === 'video' && $this->background_video) {
+                $data['background_video'] = $this->background_video->store('hero-sections/videos', 'public');
+                $data['background_image'] = null;
+            }
+
             HeroSection::create($data);
             session()->flash('success', 'Hero section berhasil dibuat.');
         }
 
-        return redirect()->route('content.hero-sections');
+        return redirect()->route('content-admin.hero-sections');
     }
 
     public function render()

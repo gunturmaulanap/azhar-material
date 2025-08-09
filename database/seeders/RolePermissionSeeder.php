@@ -79,15 +79,15 @@ class RolePermissionSeeder extends Seeder
             'edit-employee',
             'delete-employee',
             'manage-attendance',
-            
+
             // Stock management
             'edit-stock',
             'view-stock-reports',
-            
+
             // Delivery management
             'view-deliveries',
             'manage-deliveries',
-            
+
             // Debt management
             'view-debts',
         ];
@@ -131,6 +131,10 @@ class RolePermissionSeeder extends Seeder
             'edit-teams',
             'view-visitors',
             'view-analytics',
+            'view-products',
+            'create-product',
+            'edit-product',
+
         ]);
 
         // Owner - reports, dashboard, and goods stock management only
@@ -144,12 +148,20 @@ class RolePermissionSeeder extends Seeder
             'view-stock-reports',
         ]);
 
+        // Driver - delivery management only
+        $driverRole = Role::firstOrCreate(['name' => 'driver', 'guard_name' => 'web']);
+        $driverRole->givePermissionTo([
+            'view-deliveries',
+            'manage-deliveries',
+        ]);
+
         // Assign roles to existing users
         $users = [
             'superadmin' => 'super_admin',
             'admin' => 'admin',
             'contentadmin' => 'content-admin',
             'guntur' => 'owner',
+            'driver' => 'driver',
         ];
 
         foreach ($users as $username => $roleName) {

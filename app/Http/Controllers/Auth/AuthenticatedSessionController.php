@@ -21,17 +21,14 @@ class AuthenticatedSessionController extends Controller
      */
     public function create(): View|RedirectResponse
     {
-        // Jika sudah login dengan guard 'web' atau 'customer', alihkan ke dashboard yang sesuai
-        if (Auth::guard('web')->check()) {
-            return $this->redirectBasedOnRole(Auth::guard('web')->user());
+        // Jika sudah login dengan guard 'web' atau 'customer', alihkan ke homepage
+        // User bisa akses dashboard melalui button dashboard di React SPA
+        if (Auth::guard('web')->check() || Auth::guard('customer')->check()) {
+            return redirect('/');
         }
 
-        if (Auth::guard('customer')->check()) {
-            return $this->redirectBasedOnRole(Auth::guard('customer')->user());
-        }
-
-        // Jika tidak ada yang terautentikasi, tampilkan halaman login
-        return view('auth.login');
+        // Jika tidak ada yang terautentikasi, tampilkan halaman login React
+        return view('react');
     }
 
     /**
@@ -46,11 +43,9 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        // Dapatkan user yang terautentikasi
-        $user = Auth::guard($request->getLoginGuard())->user();
-
-        // Alihkan berdasarkan peran
-        return $this->redirectBasedOnRole($user);
+        // Untuk API/React login, redirect ke halaman utama
+        // User bisa akses dashboard melalui button di React SPA
+        return redirect('/');
     }
 
     /**
@@ -68,10 +63,20 @@ class AuthenticatedSessionController extends Controller
             Auth::guard('customer')->logout();
         }
 
+        // Flush semua session data
+        $request->session()->flush();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+        $request->session()->regenerate(true);
 
-        return redirect('/');
+        // Pastikan semua cookies authentication terhapus
+        $response = redirect('/');
+
+        // Clear authentication cookies manually
+        $response->withCookie(\Cookie::forget('laravel_session'));
+        $response->withCookie(\Cookie::forget('XSRF-TOKEN'));
+
+        return $response;
     }
 
     /**
@@ -102,8 +107,8 @@ class AuthenticatedSessionController extends Controller
                 }
                 break;
             case 'content-admin':
-                if (Route::has('content.hero-sections')) {
-                    return redirect()->route('content.hero-sections');
+                if (Route::has('content-admin.hero-sections')) {
+                    return redirect()->route('content-admin.hero-sections');
                 }
                 break;
             case 'owner':

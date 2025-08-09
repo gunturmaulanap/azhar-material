@@ -33,11 +33,27 @@ class Goods extends Model
         return $this->belongsTo(Brand::class);
     }
 
+    public function goodsTransactions()
+    {
+        return $this->hasMany(GoodsTransaction::class);
+    }
+
+    public function transactions()
+    {
+        return $this->belongsToMany(Transaction::class)->withPivot('price', 'qty', 'subtotal', 'delivery');
+    }
+
     public function scopeSearch($query, $term)
     {
-        $term = "%$term%";
-        $query->where(function ($query) use ($term) {
-            $query->where('name', 'like', $term);
+        $term = "%{$term}%";
+        return $query->where(function ($q) use ($term) {
+            $q->where('name', 'like', $term)
+              ->orWhereHas('brand', function ($b) use ($term) {
+                  $b->where('name', 'like', $term);
+              })
+              ->orWhereHas('category', function ($c) use ($term) {
+                  $c->where('name', 'like', $term);
+              });
         });
     }
 }

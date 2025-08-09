@@ -76,7 +76,7 @@
                                 <td class="px-4 py-2 text-center">
                                     <select
                                         wire:change="updateAttendance({{ $attendance['employee_id'] }}, '{{ $date }}', $event.target.value)"
-                                        class="mt-1 block xl:w-full pl-3 pr-10 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                        class="mt-1 block 3xl:w-full pl-3 pr-10 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
                                         <option value=""></option>
                                         <option value="Full Day" {{ $status === 'Full Day' ? 'selected' : '' }}>Full Day
                                         </option>

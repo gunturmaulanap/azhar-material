@@ -11,6 +11,7 @@ use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
@@ -53,6 +54,32 @@ class DashboardController extends Controller
 
     public function index()
     {
+        // Double check authentication - force strict checking
+        if (!Auth::guard('web')->check()) {
+            \Log::warning('Unauthenticated access attempt to superadmin dashboard', [
+                'ip' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+                'url' => request()->fullUrl()
+            ]);
+            
+            // Clear any existing session
+            request()->session()->flush();
+            request()->session()->regenerate();
+            
+            return redirect()->route('login')->with('error', 'You must be logged in to access this page.');
+        }
+        
+        // Pastikan hanya user dengan role super_admin atau owner yang bisa akses
+        $user = Auth::guard('web')->user();
+        if (!$user || !in_array($user->role, ['super_admin', 'owner'])) {
+            \Log::warning('Unauthorized role access attempt to dashboard', [
+                'user_id' => $user ? $user->id : null,
+                'role' => $user ? $user->role : 'none',
+                'ip' => request()->ip(),
+            ]);
+            abort(403, 'Unauthorized access - insufficient privileges');
+        }
+        
         return view('dashboard');
     }
 }

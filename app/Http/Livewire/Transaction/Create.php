@@ -14,6 +14,7 @@ use App\Models\Transaction;
 use Livewire\WithPagination;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage; // Tambahkan ini
 
 class Create extends Component
 {
@@ -23,12 +24,12 @@ class Create extends Component
     public $searchCustomer, $search, $byCategory, $byBrand;
 
     public $goodTransaction = [];
-    // public $isSaving = false;
     public $imagePreview;
     public $query;
+
     public function updatedTransactionImage()
     {
-        if ($this->transaction['image']) {
+        if (isset($this->transaction['image'])) {
             $this->imagePreview = $this->transaction['image']->temporaryUrl();
         }
     }
@@ -97,8 +98,6 @@ class Create extends Component
             $this->transaction['discount'] = 0;
         }
         $this->calculateTotal();
-
-        $this->validate();
     }
 
     public function addGood($good_id)
@@ -212,7 +211,7 @@ class Create extends Component
     public function preparation()
     {
         // Validasi: Jika customer_id == 1 dan return < 0, hentikan proses di awal
-        if ($this->transaction['customer_id'] == 1 && $this->transaction['return'] < 0) {
+        if (isset($this->transaction['customer_id']) && $this->transaction['customer_id'] == 1 && ($this->transaction['return'] ?? 0) < 0) {
             $this->dispatchBrowserEvent('error', [
                 'message' => 'Customer tanpa nama dan nomor telepon tidak dapat berhutang'
             ]);
@@ -233,43 +232,24 @@ class Create extends Component
             : 'selesai';
 
         // Validasi tambahan untuk status 'hutang' pada customer_id == 1
-        if ($this->transaction['customer_id'] == 1 && $this->transaction['status'] === 'hutang') {
+        if (isset($this->transaction['customer_id']) && $this->transaction['customer_id'] == 1 && $this->transaction['status'] === 'hutang') {
             $this->dispatchBrowserEvent('error', [
                 'message' => 'Transaksi tidak dapat dilakukan karena status hutang'
             ]);
             return false; // Hentikan proses
         }
 
-        // Proses pengunggahan gambar (jika ada)
+        // --- PERBAIKAN UTAMA ADA DI BAGIAN INI ---
         if (isset($this->transaction['image']) && !empty($this->transaction['image'])) {
-            $extension = $this->transaction['image']->getClientOriginalExtension();
-
-            // Nama file unik
-            $uniqueFileName = date('dmyHis') . '.' . $extension;
-
-            // Path tujuan langsung ke public_html di dalam folder /home/azha3438
-            $destinationPath = '/home/azha3438/public_html/storage/images/products';
-
-            // Buat folder jika belum ada
-            if (!file_exists($destinationPath)) {
-                mkdir($destinationPath, 0755, true);
-            }
-
-            // Simpan sementara lalu pindah ke public_html
-            $this->transaction['image']->storeAs('temp', $uniqueFileName);
-            $tempPath = storage_path("app/temp/{$uniqueFileName}");
-
-            if (file_exists($tempPath)) {
-                // Pindahkan file dari folder temporary ke /home/azha3438/public_html/storage/images/products
-                rename($tempPath, $destinationPath . '/' . $uniqueFileName);
-
-                // Simpan nama file di database dengan path yang sesuai
-                $this->transaction['image'] = "images/products/{$uniqueFileName}";
-            }
+            // Gunakan Storage facade Livewire untuk menyimpan file
+            // Ini akan otomatis membuat folder jika belum ada
+            $this->transaction['image'] = $this->transaction['image']->store('images/products', 'public');
+        } else {
+            $this->transaction['image'] = null;
         }
+
         return true; // Kembali true jika semua validasi lolos
     }
-
 
     public function decrementBalance()
     {
@@ -289,7 +269,6 @@ class Create extends Component
                 ->increment('debt', abs($this->transaction['return']));
         }
     }
-
 
 
     public function save()
@@ -381,7 +360,7 @@ class Create extends Component
         }
 
         // Logika untuk customer bukan anonim
-        if ($this->transaction['customer_id'] !== 1) {
+        if (isset($this->transaction['customer_id']) && $this->transaction['customer_id'] !== 1) {
             $this->decrementBalance();
             $this->incrementDebt();
         }

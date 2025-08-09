@@ -1,5 +1,5 @@
 // API Configuration for Laravel Integration
-const API_BASE_URL = "/api"; // Same domain, no CORS issues
+const API_BASE_URL = window.location.origin + "/api"; // Full URL to avoid CORS
 
 export const apiConfig = {
   baseURL: API_BASE_URL,
@@ -8,8 +8,18 @@ export const apiConfig = {
     Accept: "application/json",
     "X-Requested-With": "XMLHttpRequest",
   },
-  timeout: 10000,
+  timeout: 15000,
   withCredentials: true, // Enable cookies for Laravel session
+};
+
+// Configuration for public endpoints that don't need authentication
+export const publicApiConfig = {
+  ...apiConfig,
+  headers: {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+    "X-Requested-With": "XMLHttpRequest",
+  },
 };
 
 // CSRF Token configuration for Laravel

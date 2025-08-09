@@ -7,6 +7,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log; // Tambahkan namespace Log
+use Illuminate\Support\Facades\Route;
 use Symfony\Component\HttpFoundation\Response;
 
 class RedirectIfAuthenticated
@@ -22,11 +23,23 @@ class RedirectIfAuthenticated
 
         foreach ($guards as $guard) {
             if (Auth::guard($guard)->check()) {
+                // If request is for login page and user is authenticated, redirect to home
+                if ($request->is('login') || $request->is('login/*')) {
+                    return redirect('/');
+                }
+                
+                // Default redirects for different guards
                 switch ($guard) {
                     case 'customer':
-                        return redirect()->route('customer.detail', ['id' => Auth::guard('customer')->user()->id]);
+                        $customer = Auth::guard('customer')->user();
+                        if (Route::has('customer.dashboard')) {
+                            return redirect()->route('customer.dashboard', ['id' => $customer->id]);
+                        }
+                        return redirect('/');
                     case 'web':
                         return redirect(RouteServiceProvider::HOME);
+                    default:
+                        return redirect('/');
                 }
             }
         }

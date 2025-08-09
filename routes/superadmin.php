@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\ChartController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Livewire\Chart;
 use App\Http\Livewire\Master\Admin as MasterAdmin;
 use App\Http\Livewire\Master\AdminForm as MasterAdminForm;
 use App\Http\Livewire\Master\Employee as MasterEmployee;
@@ -40,11 +41,10 @@ use App\Http\Livewire\Order\Create as OrderCreate;
 use App\Http\Livewire\Order\Detail as OrderDetail;
 
 // Rute untuk Superadmin
-Route::middleware(['web', 'auth:web', 'role:super_admin'])->prefix('superadmin')->name('superadmin.')->group(function () {
+Route::middleware(['web', 'force.auth:super_admin'])->prefix('superadmin')->name('superadmin.')->group(function () {
     // Dashboard Routes
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/chart', [ChartController::class, 'index'])->name('chart');
-    Route::get('/chart', [ChartController::class, 'index'])->name('chart');
+    Route::get('/chart', Chart::class)->name('chart');
     Route::get('/api/sales-percentage-by-category', [DashboardController::class, 'getSalesPercentageByCategory']);
 
     // Master Data Routes

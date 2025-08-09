@@ -14,6 +14,7 @@ use Carbon\Carbon;
 use Livewire\WithFileUploads;
 
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage; // Tambahkan ini
 
 class Detail extends Component
 {
@@ -26,11 +27,14 @@ class Detail extends Component
     public $imagePreview;
     public $detail = [
         'images' => [],
+        'image' => null, // Tambahkan ini untuk file tunggal
+        'input' => 0, // Tambahkan ini agar tidak error saat pertama kali load
     ];
     public $detailInput = ['input' => 0];
 
 
     protected $table = 'act_deliveries_details';
+
 
     public function incrementInput()
     {
@@ -74,33 +78,18 @@ class Detail extends Component
         $this->detail['images'] = array_values($this->detail['images']); // Reset array index
     }
 
-    public function setImage()
-    {
-        if (!empty($this->detail['image'])) {
-            $extension = $this->detail['image']->getClientOriginalExtension();
-            $uniqueFileName = date('dmyHis') . '.' . $extension;
+    // Method ini tidak lagi diperlukan karena kita akan menanganinya langsung di metode save()
+    // public function setImage()
+    // {
+    //     if (!empty($this->detail['image'])) {
+    //         $basePath = public_path('delivery/storage/images/products'); // Perbaikan utama di sini!
 
-            // Buat path untuk menyimpan gambar di public_html/storage/images/products
-            $destinationPath = base_path('../public_html/storage/images/products');
-
-            // Cek jika folder belum ada, buat folder baru
-            if (!file_exists($destinationPath)) {
-                mkdir($destinationPath, 0755, true);
-            }
-
-            // Simpan sementara di folder temp
-            $this->detail['image']->storeAs('temp', $uniqueFileName);
-
-            // Pindahkan gambar dari temp ke direktori tujuan
-            rename(
-                storage_path("app/temp/{$uniqueFileName}"),
-                $destinationPath . '/' . $uniqueFileName
-            );
-
-            // Simpan path gambar yang bisa diakses dari browser
-            $this->detail['image'] = "images/products/{$uniqueFileName}";
-        }
-    }
+    //         // Cek jika folder belum ada, buat folder baru
+    //         if (!file_exists($basePath)) {
+    //             mkdir($basePath, 0755, true);
+    //         }
+    //     }
+    // }
 
 
     public function setDetail($index)
@@ -177,66 +166,63 @@ class Detail extends Component
 
     public function save()
     {
-        $this->setImage();
+        if (empty($this->actDeliveries)) {
+            $this->dispatchBrowserEvent('error', ['message' => 'Pilih barang yang sudah dikirim']);
+            return;
+        }
 
-        if ($this->actDeliveries !== []) {
-            $created_at = Carbon::now();
+        $created_at = Carbon::now();
 
-            // Proses penyimpanan ActDelivery
-            foreach ($this->actDeliveries as $activity) {
-                DB::transaction(function () use ($created_at, $activity) {
-                    ActDelivery::create([
-                        'delivery_id' => $this->deliveryId,
-                        'user_id' => $activity['user_id'],
-                        'goods_id' => $activity['goods_id'],
-                        'qty' => $activity['qty'],
-                        'created_at' => $created_at,
-                    ]);
-                });
-
-                // Update delivered qty for deliveryGoods
-                $deliveryGood = DeliveryGoods::where('delivery_id', $this->deliveryId)
-                    ->where('goods_id', $activity['goods_id'])
-                    ->first();
-
-                if ($deliveryGood) {
-                    $deliveryGood->increment('delivered', $activity['qty']);
-                }
-            }
-
-            // Proses penyimpanan ActDeliveryDetails dengan banyak gambar
-            $images = [];
-            if (isset($this->detail['images']) && is_array($this->detail['images'])) {
-                foreach ($this->detail['images'] as $image) {
-                    $extension = $image->getClientOriginalExtension();
-                    $uniqueFileName = uniqid() . '.' . $extension;
-
-                    $destinationPath = '/home/azha3438/public_html/storage/images/products';
-                    if (!file_exists($destinationPath)) {
-                        mkdir($destinationPath, 0755, true);
-                    }
-
-                    $image->storeAs('tmp', $uniqueFileName); // Sementara
-                    $tempPath = storage_path("app/tmp/{$uniqueFileName}");
-                    if (file_exists($tempPath)) {
-                        rename($tempPath, $destinationPath . '/' . $uniqueFileName);
-                        $images[] = "images/products/{$uniqueFileName}";
-                    }
-                }
-            }
-
-            DB::transaction(function () use ($created_at, $images) {
-                ActDeliveryDetails::create([
+        // Proses penyimpanan ActDelivery
+        foreach ($this->actDeliveries as $activity) {
+            DB::transaction(function () use ($created_at, $activity) {
+                ActDelivery::create([
                     'delivery_id' => $this->deliveryId,
-                    'image' => $images, // Simpan array gambar
+                    'user_id' => $activity['user_id'],
+                    'goods_id' => $activity['goods_id'],
+                    'qty' => $activity['qty'],
                     'created_at' => $created_at,
                 ]);
             });
 
-            return redirect()->route(str_replace('_', '', auth()->user()->role) . '.delivery.detail', ['id' => $this->deliveryId])->with('success', 'Pengiriman barang berhasil disimpan!');
-        } else {
-            $this->dispatchBrowserEvent('error', ['message' => 'Pilih barang yang sudah dikirim']);
+            // Update delivered qty for deliveryGoods
+            $deliveryGood = DeliveryGoods::where('delivery_id', $this->deliveryId)
+                ->where('goods_id', $activity['goods_id'])
+                ->first();
+
+            if ($deliveryGood) {
+                $deliveryGood->increment('delivered', $activity['qty']);
+            }
         }
+
+        // Proses penyimpanan ActDeliveryDetails dengan banyak gambar
+        $images = [];
+        if (isset($this->detail['images']) && is_array($this->detail['images'])) {
+            foreach ($this->detail['images'] as $image) {
+                // Perbaikan utama: Menggunakan Storage facade
+                $uniqueFileName = $image->getFileName(); // Livewire sudah menghasilkan nama file unik di tmp
+
+                // Simpan file ke folder `delivery/storage/images/products` di dalam `public`
+                // Metode ini akan otomatis membuat direktori jika belum ada
+                $path = $image->storeAs('delivery/storage/images/products', $uniqueFileName, 'public');
+                $images[] = $path;
+            }
+        }
+
+        DB::transaction(function () use ($created_at, $images) {
+            ActDeliveryDetails::create([
+                'delivery_id' => $this->deliveryId,
+                'image' => $images, // Simpan array gambar
+                'created_at' => $created_at,
+            ]);
+        });
+
+        // Perbarui: Cek apakah `detail['images']` ada sebelum melakukan unset
+        if (isset($this->detail['images'])) {
+            $this->detail['images'] = [];
+        }
+
+        return redirect()->route(str_replace('_', '', auth()->user()->role) . '.delivery.detail', ['id' => $this->deliveryId])->with('success', 'Pengiriman barang berhasil disimpan!');
     }
 
 

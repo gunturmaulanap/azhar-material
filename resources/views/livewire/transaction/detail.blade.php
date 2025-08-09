@@ -1,5 +1,5 @@
 <div>
-    <x-slot name="title">{{ __('Detail Transaksi') }}</x-slot>
+    <x-slot name="title">{{ __('Detail Transaksi ') }}</x-slot>
 
     <x-slot name="breadcrumb">
         @php
@@ -23,11 +23,53 @@
         @endforeach
     </x-slot>
 
-    <div class="flex flex-col sm:flex-row items-start sm:justify-between">
-        <h2 class="text-2xl font-semibold tracking-tight">{{ $transaction->name }}</h2>
-        <div class="sm:max-w-xs sm:text-right mt-3 sm:mt-0">
-            <span class="text-md">{{ $transaction->phone }}</span><br>
-            <span class="text-sm text-gray-500">{{ $transaction->address }}</span>
+    <!-- Customer Info Card -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+        <div class="flex flex-col lg:flex-row items-start lg:justify-between gap-4">
+            <div class="flex items-start gap-4">
+                <div
+                    class="w-12 h-12 bg-gradient-to-r from-primary to-accent rounded-full flex items-center justify-center shadow-lg flex-shrink-0">
+                    <span class="text-lg font-bold text-white">{{ strtoupper(substr($transaction->name, 0, 1)) }}</span>
+                </div>
+                <div>
+                    <h2 class="text-xl font-bold text-gray-900">{{ $transaction->name }}</h2>
+                    <p class="text-sm text-gray-600 flex items-center gap-2 mt-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                        </svg>
+                        {{ $transaction->phone }}
+                    </p>
+                    @if ($transaction->address)
+                        <p class="text-sm text-gray-600 flex items-start gap-2 mt-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mt-0.5 flex-shrink-0" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            {{ $transaction->address }}
+                        </p>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Transaction Status & Info -->
+            <div class="text-right">
+                <div class="flex items-center gap-2 justify-end mb-2">
+                    <span
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                        @if ($transaction->status === 'completed') bg-green-100 text-green-800
+                        @elseif($transaction->status === 'pending') bg-yellow-100 text-yellow-800
+                        @else bg-gray-100 text-gray-800 @endif">
+                        {{ ucfirst($transaction->status) }}
+                    </span>
+                </div>
+                <p class="text-sm text-gray-500">ID Transaksi: #{{ $transaction->id }}</p>
+                <p class="text-sm text-gray-500">{{ $transaction->created_at->format('d M Y, H:i') }}</p>
+            </div>
         </div>
     </div>
 
@@ -137,7 +179,8 @@
                                                 <tbody>
                                                     @foreach ($returTransactions as $retur)
                                                         <tr class="border-b transition-colors hover:bg-gray-50">
-                                                            <td class="p-2 px-4 w-[20%]">{{ $retur->goods->name }}</td>
+                                                            <td class="p-2 px-4 w-[20%]">{{ $retur->goods->name }}
+                                                            </td>
                                                             <td class="p-2 text-center">@currency($retur->price)</td>
                                                             <td class="p-2 text-center">{{ $retur->retur_qty }}
                                                                 {{ $retur->goods->unit }}</td>

@@ -20,12 +20,26 @@ class CheckRole
      */
     public function handle(Request $request, Closure $next, ...$roles): Response
     {
+        // Periksa terlebih dahulu apakah ada session yang aktif
+        if (!$request->hasSession() || !$request->session()->isStarted()) {
+            return redirect(route('login'));
+        }
+
         // 1. Dapatkan pengguna yang terautentikasi, baik dari guard 'web' maupun 'customer'.
         // Jika tidak ada yang terautentikasi, alihkan ke halaman login.
         $user = Auth::guard('web')->user() ?? Auth::guard('customer')->user();
 
         if (!$user) {
-            return redirect(url('/login'));
+            // Clear any existing session data
+            $request->session()->flush();
+            $request->session()->regenerate();
+
+            // Jika ini adalah request AJAX atau JSON, return 401
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['message' => 'Unauthenticated.'], 401);
+            }
+
+            return redirect(route('login'));
         }
 
         // 2. Periksa apakah peran pengguna termasuk dalam peran yang diizinkan untuk rute ini.
@@ -63,8 +77,8 @@ class CheckRole
                 break;
             case 'content-admin':
                 // Cek rute dashboard content admin
-                if (Route::has('content.hero-sections')) {
-                    return redirect()->route('content.hero-sections');
+                if (Route::has('content.analytics')) {
+                    return redirect()->route('content.analytics');
                 }
                 break;
             case 'owner':

@@ -18,14 +18,17 @@ class DatabaseSeeder extends Seeder
         $this->call([
             UserSeeder::class,              // Create users first
             RolePermissionSeeder::class,    // Then create roles and assign them
-            EmployeeSeeder::class,
+            // EmployeeSeeder::class,
             // AttendanceSeeder::class,
-            SupplierSeeder::class,
-            CustomerSeeder::class,
+            // SupplierSeeder::class,
+            // CustomerSeeder::class,
             // CustomerUserSeeder::class, // Menjalankan CustomerUserSeeder setelah CustomerSeeder
-            GoodsSeeder::class,
+            // GoodsSeeder::class,
             ContentSeeder::class,           // Content data (hero-section, brand, dll)
-            TestValidationSeeder::class,    // Validate setup
+            HeroSectionSeeder::class,       // Hero section with video background
+            ProjectSeeder::class,           // Projects with external image URLs
+            TestValidationSeeder::class,
+            HistoricalTransactionSeeder::class,   // Validate setup
         ]);
     }
 }

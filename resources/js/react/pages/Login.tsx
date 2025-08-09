@@ -33,8 +33,16 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
 
   // Get the login function from the authentication context
-  const { login } = useAuth();
+  const { login, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
+
+  // Redirect if already authenticated
+  React.useEffect(() => {
+    if (isAuthenticated && user) {
+      // User is already logged in, redirect to home
+      navigate('/', { replace: true });
+    }
+  }, [isAuthenticated, user, navigate]);
 
   // Handle changes in the input fields
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -87,32 +95,27 @@ const Login = () => {
 
       console.log("Login result:", result);
 
-      if (result.success) {
-        toast.success("Login berhasil! Mengarahkan ke dashboard...", {
-          duration: 3000,
-          position: "top-center",
-          style: {
-            background: "#10b981",
-            color: "#fff",
-            borderRadius: "8px",
-          },
-        });
+        if (result.success) {
+          toast.success("Login berhasil! Selamat datang!", {
+            duration: 3000,
+            position: "top-center",
+            style: {
+              background: "#10b981",
+              color: "#fff",
+              borderRadius: "8px",
+            },
+          });
 
-        // Ambil URL pengalihan dari respons API
-        const redirectUrl = result.data.redirect_url;
-
-        if (redirectUrl) {
-          // Lakukan pengalihan halaman penuh ke URL yang diberikan oleh backend.
-          // Ini akan membuat sesi baru di server dan memuat halaman Livewire.
+          // Redirect all users to main React page first for better UX
+          // The dashboard link will be available in the navigation
           setTimeout(() => {
-            window.location.href = redirectUrl;
+            // Navigate to home page where users can see dashboard link
+            navigate('/');
+            // Force page refresh to ensure session state is properly loaded
+            setTimeout(() => {
+              window.location.reload();
+            }, 100);
           }, 1000);
-        } else {
-          // Fallback jika URL tidak ada
-          setTimeout(() => {
-            navigate("/");
-          }, 1000);
-        }
       } else {
         // --- START: Perubahan di sini untuk pesan error lebih spesifik ---
         let displayMessage: string;

@@ -249,7 +249,7 @@
                 </div>
             </div>
 
-            <div x-data="{ open: false }" x-init="open = false" class="rounded-md bg-white mt-0">
+            <div x-data="{ open: false }" x-init="open = false">
                 {{-- Main Tabel --}}
                 <div class="relative w-full overflow-auto hidden sm:block">
                     <table class="w-full text-sm">

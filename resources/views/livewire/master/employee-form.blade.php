@@ -39,7 +39,7 @@
                     <div class="mt-2">
                         <input wire:model="employee.name" type="text" id="employee.name" autocomplete="given-name"
                             autofocus
-                            class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6">
+                            class="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6">
                         @error('employee.name')
                             <span class="text-xs text-red-500">{{ $message }}</span>
                         @enderror
@@ -51,7 +51,7 @@
                         <span class="text-xs text-red-500">*</span></label>
                     <div class="mt-2">
                         <input wire:model="employee.phone" id="employee.phone" type="number"
-                            class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6">
+                            class="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6">
                         @error('employee.phone')
                             <span class="text-xs text-red-500">{{ $message }}</span>
                         @enderror
@@ -62,7 +62,7 @@
                         <span class="text-xs text-red-500">*</span></label>
                     <div class="mt-2">
                         <input wire:model="employee.position" id="employee.position" type="text"
-                            class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6">
+                            class="block w-full rounded-md px-3 border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6">
                         @error('employee.position')
                             <span class="text-xs text-red-500">{{ $message }}</span>
                         @enderror
@@ -77,12 +77,12 @@
                 <div class="mt-6 space-y-6">
                     <div class="flex items-center gap-x-3">
                         <input wire:model="employee.active" name="customerStatus" id="active" type="radio"
-                            class="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600" value="1">
+                            class="h-4 w-4 border-gray-300 px-3 text-indigo-600 focus:ring-indigo-600" value="1">
                         <label for="active" class="block text-sm font-medium leading-6 text-gray-900">Aktif</label>
                     </div>
                     <div class="flex items-center gap-x-3">
                         <input wire:model="employee.active" name="customerStatus" id="nonMember" type="radio"
-                            class="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600" value="0">
+                            class="h-4 w-4 px-3 border-gray-300 text-indigo-600 focus:ring-indigo-600" value="0">
                         <label for="nonMember" class="block text-sm font-medium leading-6 text-gray-900">Non
                             Aktif</label>
                     </div>

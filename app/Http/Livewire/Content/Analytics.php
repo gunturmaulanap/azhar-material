@@ -9,16 +9,20 @@ use Illuminate\Support\Facades\Http;
 
 class Analytics extends Component
 {
-    public $totalVisitors;
-    public $todayVisitors;
-    public $thisWeekVisitors;
-    public $thisMonthVisitors;
-    public $topPages;
-    public $visitorsByDay;
+    public $totalVisitors = 0;
+    public $todayVisitors = 0;
+    public $thisWeekVisitors = 0;
+    public $thisMonthVisitors = 0;
+    public $topPages = [];
+    public $visitorsByDay = [];
     public $isConnected = false;
-    public $lastUpdate;
+    public $lastUpdate = null;
+    public $onlineVisitors = 0;
+    // Realtime indicators
+    public $rtEvents = 0;
+    public $rtLastAt = null;
 
-    protected $listeners = ['echo:analytics,analytics-update' => 'handleRealTimeUpdate'];
+    protected $listeners = ['realTimeUpdate' => 'handleRealTimeUpdate'];
 
     public function mount()
     {
@@ -49,8 +53,8 @@ class Analytics extends Component
             ->get();
 
         // Visitors by day (last 7 days)
-        $this->visitorsByDay = Visitor::selectRaw('visit_date, COUNT(*) as count')
-            ->whereBetween('visit_date', [now()->subDays(6), now()])
+        $this->visitorsByDay = Visitor::selectRaw('DATE(visit_date) as visit_date, COUNT(*) as count')
+            ->whereBetween('visit_date', [now()->subDays(6)->startOfDay(), now()->endOfDay()])
             ->groupBy('visit_date')
             ->orderBy('visit_date')
             ->get();
@@ -60,33 +64,36 @@ class Analytics extends Component
 
     public function updateSocketServer()
     {
-        try {
-            $response = Http::post('http://localhost:3001/api/analytics/update', [
-                'totalVisitors' => $this->totalVisitors,
-                'todayVisitors' => $this->todayVisitors,
-                'thisWeekVisitors' => $this->thisWeekVisitors,
-                'thisMonthVisitors' => $this->thisMonthVisitors,
-                'topPages' => $this->topPages->toArray(),
-                'visitorsByDay' => $this->visitorsByDay->toArray(),
-            ]);
-
-            if ($response->successful()) {
-                $this->isConnected = true;
-            }
-        } catch (\Exception $e) {
-            $this->isConnected = false;
-        }
+        // No-op in production (using polling fallback instead of socket server)
+        return;
     }
 
     public function handleRealTimeUpdate($data)
     {
-        $this->totalVisitors = $data['totalVisitors'] ?? $this->totalVisitors;
-        $this->todayVisitors = $data['todayVisitors'] ?? $this->todayVisitors;
-        $this->thisWeekVisitors = $data['thisWeekVisitors'] ?? $this->thisWeekVisitors;
-        $this->thisMonthVisitors = $data['thisMonthVisitors'] ?? $this->thisMonthVisitors;
-        $this->topPages = collect($data['topPages'] ?? []);
-        $this->visitorsByDay = collect($data['visitorsByDay'] ?? []);
+        // numbers
+        // numbers (cast to int to ensure Blade prints reliably)
+        if (array_key_exists('totalVisitors', $data))      $this->totalVisitors    = (int) $data['totalVisitors'];
+        if (array_key_exists('todayVisitors', $data))      $this->todayVisitors    = (int) $data['todayVisitors'];
+        if (array_key_exists('thisWeekVisitors', $data))   $this->thisWeekVisitors = (int) $data['thisWeekVisitors'];
+        if (array_key_exists('thisMonthVisitors', $data))  $this->thisMonthVisitors = (int) $data['thisMonthVisitors'];
+        if (array_key_exists('onlineVisitors', $data))     $this->onlineVisitors   = (int) $data['onlineVisitors'];
+
+        // normalize arrays -> objects for Blade (`$x->field`)
+        $tp = collect($data['topPages'] ?? [])
+            ->map(function ($item) {
+                return is_array($item) ? (object) $item : $item;
+            });
+        $vb = collect($data['visitorsByDay'] ?? [])
+            ->map(function ($item) {
+                return is_array($item) ? (object) $item : $item;
+            });
+
+        $this->topPages      = $tp;
+        $this->visitorsByDay = $vb;
+
         $this->lastUpdate = now()->format('H:i:s');
+        $this->rtEvents   = ($this->rtEvents ?? 0) + 1;
+        $this->rtLastAt   = now()->format('H:i:s');
     }
 
     public function render()

@@ -20,7 +20,6 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
-        'email',
         'username',
         'password',
         'role',
@@ -56,5 +55,23 @@ class User extends Authenticatable
             $query->where('name', 'like', $term)
                 ->orWhere('username', 'like', $term);
         });
+    }
+    
+    /**
+     * Get the name of the unique identifier for the user.
+     *
+     * @return string
+     */
+    public function getAuthIdentifierName()
+    {
+        return 'username';
+    }
+    
+    /**
+     * Find the user instance for the given username.
+     */
+    public function findForPassport($username)
+    {
+        return $this->where('username', $username)->first();
     }
 }

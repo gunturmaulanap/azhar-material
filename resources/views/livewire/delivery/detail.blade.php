@@ -40,7 +40,7 @@
         </div>
     </div>
 
-    <div x-data="{ open: false }" x-init="open = false" class="rounded-md bg-white mt-0 border-b pb-4">
+    <div x-data="{ open: false }" x-init="open = false" class="rounded-md p-5 bg-white mt-0 border-b pb-4">
         <div class="relative w-full overflow-auto">
             <table class="w-full text-sm whitespace-nowrap">
                 <thead>
@@ -86,7 +86,7 @@
                                 {{ $good['unit'] }}
                             </td>
                             <td class="p-4 px-2 text-center w-[20%]">
-                                @if (in_array(auth()->user()->role, ['super_admin', 'admin']))
+                                @if (in_array(auth()->user()->role, ['super_admin', 'admin', 'driver']))
                                     @if ($good['delivered'] < $good['qty'])
                                         <button type="button" @click="open = true"
                                             wire:click="setDetail({{ $index }})"
@@ -149,7 +149,7 @@
                                     <div class="flex items-center gap-x-2">
                                         {{-- Untuk tampilan desktop --}}
                                         <input type="number" value="0" wire:model="detail.input"
-                                            class="hidden sm:block w-20 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                                            class="hidden px-2 sm:block w-20 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
 
                                         {{-- Untuk tampilan mobile --}}
                                         <div class="flex items-center sm:hidden gap-x-1">
@@ -381,6 +381,17 @@
             <div class="flex items-center gap-x-6 w-full sm:w-fit justify-end">
                 <a href="{{ route(str_replace('_', '', auth()->user()->role) . '.transaction.detail', ['id' => $delivery->transaction_id]) }}"
                     class="text-sm font-semibold leading-6 text-yellow-500">Lihat Transaksi</a>
+                @if ($delivery->status !== 'selesai')
+                    <button wire:click="resetInput()" type="button"
+                        class="text-sm font-semibold leading-6 text-gray-900">Reset</button>
+                    <button type="button" wire:click="save"
+                        class="rounded-md bg-sky-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-sky-400">Simpan</button>
+                @endif
+            </div>
+        @elseif (auth()->user()->role === 'driver')
+            <div class="flex items-center gap-x-6 w-full sm:w-fit justify-end">
+                <a href="{{ route('driver.delivery.index') }}"
+                    class="rounded-md bg-gray-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-400">Kembali</a>
                 @if ($delivery->status !== 'selesai')
                     <button wire:click="resetInput()" type="button"
                         class="text-sm font-semibold leading-6 text-gray-900">Reset</button>
