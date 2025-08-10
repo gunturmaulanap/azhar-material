@@ -114,3 +114,5 @@ docs/_build/
 # React development
 .eslintrc.js
 .eslintrc.json
+# large videos
+public/videos/*.mp4
