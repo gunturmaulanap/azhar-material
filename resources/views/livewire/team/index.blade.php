@@ -7,7 +7,7 @@
                 <h1 class="text-3xl font-bold text-gray-900">Kelola Tim</h1>
                 <p class="text-gray-600">Kelola data tim perusahaan</p>
             </div>
-            <a href="{{ route('content.teams.create') }}"
+            <a href="{{ route('content-admin.teams.create') }}"
                 class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md">
                 Tambah Tim
             </a>
@@ -113,7 +113,7 @@
                                     </button>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <a href="{{ route('content.teams.edit', $team->id) }}"
+                                    <a href="{{ route('content-admin.teams.edit', $team->id) }}"
                                         class="text-blue-600 hover:text-blue-900 mr-3">Edit</a>
                                     <button wire:click="delete({{ $team->id }})"
                                         class="text-red-600 hover:text-red-900"

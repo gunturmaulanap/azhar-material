@@ -1,3 +1,4 @@
+// server.js (ESM, Node >= 18)
 import express from "express";
 import { Server } from "socket.io";
 import http from "http";
@@ -5,31 +6,27 @@ import "dotenv/config";
 
 const PORT = process.env.SOCKET_PORT || 3001;
 const PREFIX = process.env.SOCKET_PREFIX || "Jbrad2023";
-const LARAVEL_API = process.env.LARAVEL_API || "https://azharmaterial.com"; // your Laravel app URL
-// must match Laravel .env
-const TRACK_TOKEN = process.env.TRACK_API_TOKEN;
-if (!TRACK_TOKEN) {
-  throw new Error("TRACK_API_TOKEN is required (set it in .env or environment variables)");
-}
+const LARAVEL_API = process.env.LARAVEL_API; // e.g. https://azharmaterial.com
+const TRACK_TOKEN = process.env.TRACK_API_TOKEN; // must match Laravel
+const CORS_ORIGIN = process.env.CORS_ORIGIN || "*";
+
+if (!LARAVEL_API) throw new Error("LARAVEL_API is required");
+if (!TRACK_TOKEN) throw new Error("TRACK_API_TOKEN is required");
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, {
-  cors: { origin: process.env.CORS_ORIGIN || "*" },
-});
+const io = new Server(server, { cors: { origin: CORS_ORIGIN } });
 
-// Count ONLY public visitors (those who emit `public-online`) with a heartbeat
-const publicLastSeen = new Map(); // socket.id -> timestamp (ms)
-function onlinePublicCount() {
+// presence counter via heartbeat
+const publicLastSeen = new Map(); // socket.id -> ts
+const onlinePublicCount = () => {
   const now = Date.now();
-  // drop any socket that hasn't heartbeated in the last 60s
   for (const [id, ts] of publicLastSeen.entries()) {
     if (now - ts > 60000) publicLastSeen.delete(id);
   }
   return publicLastSeen.size;
-}
+};
 
-// --- helpers ---
 async function persistVisit(payload = {}) {
   try {
     await fetch(`${LARAVEL_API}/api/visits`, {
@@ -57,19 +54,19 @@ async function fetchSnapshot() {
     const resp = await fetch(`${LARAVEL_API}/api/analytics/snapshot`, {
       headers: { "X-Track-Token": TRACK_TOKEN },
     });
-    const data = await resp.json();
-    return data;
+    return await resp.json();
   } catch (e) {
     console.warn("Snapshot fetch error:", e?.message || e);
     return null;
   }
 }
 
-function withPresence(snap) {
-  return { ...(snap || {}), onlineVisitors: onlinePublicCount() };
-}
+const withPresence = (snap) => ({
+  ...(snap || {}),
+  onlineVisitors: onlinePublicCount(),
+});
 
-// Simple health & snapshot endpoints
+// health & debug
 app.get("/health", (_req, res) => res.send("ok"));
 app.get("/snapshot", async (_req, res) => {
   const snap = await fetchSnapshot();
@@ -77,11 +74,8 @@ app.get("/snapshot", async (_req, res) => {
 });
 
 io.on("connection", (socket) => {
-  console.log("✅ Client connected", socket.id);
-
   socket.on("join", ({ room }) => room && socket.join(room));
 
-  // First snapshot on connect
   (async () => {
     const snap = await fetchSnapshot();
     socket.emit("analytics-update", withPresence(snap || {}));
@@ -95,7 +89,6 @@ io.on("connection", (socket) => {
   socket.on("public-online", () => {
     publicLastSeen.set(socket.id, Date.now());
     socket.join(`${PREFIX}-public`);
-    // notify dashboards that presence changed
     (async () => {
       const snap = await fetchSnapshot();
       io.to(`${PREFIX}-analytics`).emit(
@@ -106,9 +99,8 @@ io.on("connection", (socket) => {
   });
 
   socket.on("track-visitor", async (payload = {}) => {
-    // Always persist visit; DISTINCT(visitor_id) di Laravel yang bikin unik
-    await persistVisit(payload);
-    const snap = await fetchSnapshot();
+    await persistVisit(payload); // disimpan ke Laravel (unique di DB)
+    const snap = await fetchSnapshot(); // angka dihitung dari DB -> stabil
     io.to(`${PREFIX}-analytics`).emit(
       "analytics-update",
       withPresence(snap || {})
@@ -127,6 +119,4 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen(PORT, () => {
-  console.log(`🚀 Server listening on :${PORT}`);
-});
+server.listen(PORT, () => console.log(`🚀 Socket server on :${PORT}`));

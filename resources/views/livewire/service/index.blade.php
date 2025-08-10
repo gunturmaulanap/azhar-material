@@ -7,7 +7,7 @@
                 <h1 class="text-3xl font-bold text-gray-900">Kelola Layanan</h1>
                 <p class="text-gray-600">Kelola layanan perusahaan</p>
             </div>
-            <a href="{{ route('content.services.create') }}"
+            <a href="{{ route('content-admin.services.create') }}"
                 class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md">
                 Tambah Layanan
             </a>
@@ -100,7 +100,7 @@
                                     </button>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <a href="{{ route('content.services.edit', $service->id) }}"
+                                    <a href="{{ route('content-admin.services.edit', $service->id) }}"
                                         class="text-blue-600 hover:text-blue-900 mr-3">Edit</a>
                                     <button wire:click="delete({{ $service->id }})"
                                         class="text-red-600 hover:text-red-900"

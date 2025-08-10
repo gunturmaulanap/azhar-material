@@ -90,7 +90,7 @@ class Form extends Component
             session()->flash('message', 'Data about berhasil ditambahkan.');
         }
 
-        return redirect()->route('content.about');
+        return redirect()->route('content-admin.about');
     }
 
     public function render()

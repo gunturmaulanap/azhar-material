@@ -78,7 +78,7 @@ class Form extends Component
             session()->flash('message', 'Data layanan berhasil ditambahkan.');
         }
 
-        return redirect()->route('content.services');
+        return redirect()->route('content-admin.services');
     }
 
     public function render()
