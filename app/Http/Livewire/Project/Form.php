@@ -175,7 +175,7 @@ class Form extends Component
 
             session()->flash('message', $this->isEditing ? 'Project updated successfully!' : 'Project created successfully!');
 
-            return redirect()->route('content.projects');
+            return redirect()->route('content-admin.projects');
         } catch (\Exception $e) {
             session()->flash('error', 'An error occurred while saving the project: ' . $e->getMessage());
         }

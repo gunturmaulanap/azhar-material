@@ -86,7 +86,7 @@ class FormLogo extends Component
             session()->flash('message', 'Brand berhasil dibuat.');
         }
 
-        return redirect()->route('content.brand.index');
+        return redirect()->route('content-admin.brand.index');
     }
 
     public function render()

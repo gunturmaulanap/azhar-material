@@ -133,7 +133,7 @@
                     </div>
 
                     <div class="flex justify-end space-x-4 mt-6">
-                        <a href="{{ route('content.teams') }}"
+                        <a href="{{ route('content-admin.teams') }}"
                             class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
                             Batal
                         </a>

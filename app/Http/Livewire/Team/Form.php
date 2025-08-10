@@ -90,7 +90,7 @@ class Form extends Component
             session()->flash('message', 'Data tim berhasil ditambahkan.');
         }
 
-        return redirect()->route('content.teams');
+        return redirect()->route('content-admin.teams');
     }
 
     public function render()

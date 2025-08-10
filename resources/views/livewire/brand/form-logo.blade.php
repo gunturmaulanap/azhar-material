@@ -8,7 +8,7 @@
                 {{ $isEdit ? 'Perbarui informasi dan logo brand' : 'Tambah brand baru dengan logo' }}
             </p>
         </div>
-        <a href="{{ route('content.brand.index') }}"
+        <a href="{{ route('content-admin.brand.index') }}"
             class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md">
             Kembali
         </a>
@@ -160,7 +160,7 @@
             </div>
 
             <div class="flex items-center justify-end mt-6 pt-6 border-t border-gray-200">
-                <a href="{{ route('content.brand.index') }}"
+                <a href="{{ route('content-admin.brand.index') }}"
                     class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-md mr-3">
                     Batal
                 </a>
