@@ -3,7 +3,7 @@
 @section('title', 'Website Analytics')
 
 @section('content')
-    @livewire('content.analytics')
+    @livewire('content-admin.analytics')
 @endsection
 
 @push('scripts')

@@ -98,6 +98,6 @@ class Analytics extends Component
 
     public function render()
     {
-        return view('livewire.content.analytics');
+        return view('livewire.content-admin.analytics');
     }
 }

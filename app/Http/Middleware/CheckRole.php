@@ -77,8 +77,8 @@ class CheckRole
                 break;
             case 'content-admin':
                 // Cek rute dashboard content admin
-                if (Route::has('content.analytics')) {
-                    return redirect()->route('content.analytics');
+                if (Route::has('content-admin.analytics')) {
+                    return redirect()->route('conten-admin.analytics');
                 }
                 break;
             case 'owner':
