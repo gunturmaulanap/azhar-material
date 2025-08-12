@@ -8,6 +8,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\RedirectResponse;
+use Laravel\Sanctum\PersonalAccessToken;
+use App\Models\Customer;
 
 class CheckRole
 {
@@ -20,37 +22,45 @@ class CheckRole
      */
     public function handle(Request $request, Closure $next, ...$roles): Response
     {
-        // Periksa terlebih dahulu apakah ada session yang aktif
-        if (!$request->hasSession() || !$request->session()->isStarted()) {
-            return redirect(route('login'));
-        }
-
-        // 1. Dapatkan pengguna yang terautentikasi, baik dari guard 'web' maupun 'customer'.
-        // Jika tidak ada yang terautentikasi, alihkan ke halaman login.
+        // 1) Dapatkan user dari guard session terlebih dahulu
         $user = Auth::guard('web')->user() ?? Auth::guard('customer')->user();
 
+        // 2) Jika belum ada, coba autentikasi via Sanctum token (Bearer token atau cookie 'token')
         if (!$user) {
-            // Clear any existing session data
-            $request->session()->flush();
-            $request->session()->regenerate();
+            $bearerToken = $request->bearerToken();
+            $cookieToken = $request->cookie('token');
+            $rawToken = $bearerToken ?: $cookieToken;
 
-            // Jika ini adalah request AJAX atau JSON, return 401
-            if ($request->expectsJson() || $request->ajax()) {
+            if ($rawToken) {
+                $accessToken = PersonalAccessToken::findToken($rawToken);
+                if ($accessToken) {
+                    $tokenable = $accessToken->tokenable;
+                    if ($tokenable) {
+                        $user = $tokenable;
+                        // Set user untuk lifecycle request ini agar Auth::user() bekerja
+                        Auth::setUser($user);
+                    }
+                }
+            }
+        }
+
+        // 3) Jika tetap tidak ada user, balas 401 untuk request JSON, atau redirect ke login untuk web
+        if (!$user) {
+            if ($request->expectsJson() || $request->ajax() || str_starts_with($request->path(), 'api/')) {
                 return response()->json(['message' => 'Unauthenticated.'], 401);
             }
-
             return redirect(route('login'));
         }
 
-        // 2. Periksa apakah peran pengguna termasuk dalam peran yang diizinkan untuk rute ini.
-        // Logika ini sekarang berlaku untuk semua pengguna yang terautentikasi, 
-        // termasuk 'customer' jika rute yang diakses memang memerlukan peran 'customer'.
-        if (in_array($user->role, $roles)) {
+        // 4) Tentukan peran efektif (customer tidak memiliki properti role)
+        $effectiveRole = ($user instanceof Customer) ? 'customer' : ($user->role ?? null);
+
+        // 5) Jika rute mengizinkan role yang didaftarkan dan cocok, teruskan
+        if ($effectiveRole !== null && in_array($effectiveRole, $roles, true)) {
             return $next($request);
         }
 
-        // 3. Jika peran tidak cocok, alihkan pengguna ke dashboard yang sesuai.
-        // Ini berfungsi sebagai fallback yang aman.
+        // 6) Jika role tidak cocok, alihkan ke dashboard yang sesuai
         return $this->redirectBasedOnRole($user);
     }
 
@@ -62,46 +72,43 @@ class CheckRole
      */
     protected function redirectBasedOnRole($user): RedirectResponse
     {
+        // Customer diarahkan ke dashboard customer
+        if ($user instanceof Customer) {
+            if (Route::has('customer.dashboard')) {
+                return redirect()->route('customer.dashboard', ['id' => $user->id]);
+            }
+            return redirect(url('/'));
+        }
+
         switch ($user->role) {
             case 'super_admin':
-                // Cek rute dashboard super admin
                 if (Route::has('superadmin.dashboard')) {
                     return redirect()->route('superadmin.dashboard');
                 }
                 break;
             case 'admin':
-                // Cek rute dashboard admin
                 if (Route::has('admin.transaction.create')) {
                     return redirect()->route('admin.transaction.create');
                 }
                 break;
             case 'content-admin':
-                // Cek rute dashboard content admin
                 if (Route::has('content-admin.analytics')) {
-                    return redirect()->route('conten-admin.analytics');
+                    return redirect()->route('content-admin.analytics');
                 }
                 break;
             case 'owner':
-                // Cek rute dashboard owner
                 if (Route::has('owner.report.index')) {
                     return redirect()->route('owner.report.index');
                 }
+                break;
             case 'driver':
-                // Cek rute dashboard driver
                 if (Route::has('driver.delivery.index')) {
                     return redirect()->route('driver.delivery.index');
                 }
                 break;
-            case 'customer':
-                // Cek rute dashboard customer
-                if (Route::has('customer.dashboard')) {
-                    return redirect()->route('customer.dashboard', ['id' => $user->id]);
-                }
-                break;
         }
 
-        // Fallback yang aman: jika tidak ada rute dashboard yang cocok, 
-        // alihkan ke halaman utama.
+        // Fallback yang aman
         return redirect(url('/'));
     }
 }
