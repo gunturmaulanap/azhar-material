@@ -105,6 +105,10 @@ interface ProductState {
   isFiltering: () => boolean;
   isCacheValid: () => boolean;
   getFilteredProductCount: () => number;
+  isCategoriesCacheValid: () => boolean;
+  isBrandsCacheValid: () => boolean;
+  sanitizeProduct: (product: any) => Product | null;
+  getMockProducts: () => Product[];
 }
 
 const initialFilters: ProductFilters = {
@@ -126,8 +130,7 @@ export const useProductStore = create<ProductState>()(
       
       // Pagination
       totalProducts: 0,
-      currentPage: 1,
-      perPage: 8,
+      // currentPage and perPage are provided by initialFilters spread below
       totalPages: 0,
       hasNextPage: false,
       hasPrevPage: false,
@@ -507,7 +510,10 @@ export const useProductStore = create<ProductState>()(
             if (data.data) {
               // Paginated response - sanitize products
               const rawProducts = data.data || [];
-              products = rawProducts.map((p: any) => get().sanitizeProduct(p)).filter(Boolean);
+              const sanitized = rawProducts
+                .map((p: any) => get().sanitizeProduct(p))
+                .filter((x: Product | null): x is Product => Boolean(x));
+              products = sanitized;
               totalProducts = data.total || 0;
               totalPages = data.last_page || 1;
               hasNextPage = data.next_page_url !== null;
@@ -516,7 +522,9 @@ export const useProductStore = create<ProductState>()(
             } else {
               // Non-paginated response - sanitize products and apply pagination
               const rawProducts = Array.isArray(data) ? data : [];
-              const allProducts = rawProducts.map((p: any) => get().sanitizeProduct(p)).filter(Boolean);
+              const allProducts = rawProducts
+                .map((p: any) => get().sanitizeProduct(p))
+                .filter((x): x is Product => Boolean(x));
               
               // Apply pagination to filtered results
               const startIndex = (page - 1) * state.perPage;
@@ -549,9 +557,9 @@ export const useProductStore = create<ProductState>()(
             const mockProducts = get().getMockProducts();
             
             // Apply client-side filtering to mock data if needed
-            let filteredProducts = mockProducts;
+            let filteredProducts: Product[] = mockProducts;
             if (state.isFiltering()) {
-              filteredProducts = mockProducts.filter(product => {
+              filteredProducts = mockProducts.filter((product: Product) => {
                 const searchMatch = !state.searchTerm.trim() || 
                   product.name.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
                   product.description?.toLowerCase().includes(state.searchTerm.toLowerCase());
@@ -568,11 +576,11 @@ export const useProductStore = create<ProductState>()(
             
             // Apply client-side sorting
             if (state.sortBy === 'price-low') {
-              filteredProducts.sort((a, b) => a.price - b.price);
+              filteredProducts.sort((a: Product, b: Product) => a.price - b.price);
             } else if (state.sortBy === 'price-high') {
-              filteredProducts.sort((a, b) => b.price - a.price);
+              filteredProducts.sort((a: Product, b: Product) => b.price - a.price);
             } else {
-              filteredProducts.sort((a, b) => a.name.localeCompare(b.name));
+              filteredProducts.sort((a: Product, b: Product) => a.name.localeCompare(b.name));
             }
             
             // Apply pagination to filtered results

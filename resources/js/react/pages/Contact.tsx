@@ -6,7 +6,7 @@ import { Card, CardContent } from '../components/ui/card';
 
 const Contact: React.FC = () => {
   // Animation variants
-  const containerVariants = {
+  const containerVariants: any = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -17,7 +17,7 @@ const Contact: React.FC = () => {
     }
   };
 
-  const itemVariants = {
+  const itemVariants: any = {
     hidden: { opacity: 0, y: 30 },
     visible: {
       opacity: 1,
@@ -29,7 +29,7 @@ const Contact: React.FC = () => {
     }
   };
 
-  const cardVariants = {
+  const cardVariants: any = {
     hidden: { opacity: 0, scale: 0.9, y: 20 },
     visible: {
       opacity: 1,
@@ -50,7 +50,7 @@ const Contact: React.FC = () => {
     }
   };
 
-  const contactInfoVariants = {
+  const contactInfoVariants: any = {
     hidden: { opacity: 0, y: 20 },
     visible: {
       opacity: 1,

@@ -103,7 +103,7 @@ const Home: React.FC = () => {
   );
 
   // Animation variants
-  const containerVariants = {
+  const containerVariants: any = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -116,7 +116,7 @@ const Home: React.FC = () => {
     },
   };
 
-  const itemVariants = {
+  const itemVariants: any = {
     hidden: { opacity: 0, y: 30 },
     visible: {
       opacity: 1,
@@ -128,7 +128,7 @@ const Home: React.FC = () => {
     },
   };
 
-  const cardVariants = {
+  const cardVariants: any = {
     hidden: { opacity: 0, scale: 0.9 },
     visible: {
       opacity: 1,
@@ -148,7 +148,7 @@ const Home: React.FC = () => {
     },
   };
 
-  const fadeInUpVariants = {
+  const fadeInUpVariants: any = {
     hidden: { opacity: 0, y: 40 },
     visible: {
       opacity: 1,
@@ -541,14 +541,9 @@ const Home: React.FC = () => {
           ) : (
             <div className="relative">
               <Carousel
-                plugins={[autoplayPlugin.current]}
                 className="w-full max-w-6xl mx-auto"
-                onMouseEnter={autoplayPlugin.current.stop}
-                onMouseLeave={autoplayPlugin.current.reset}
-                opts={{
-                  align: "start",
-                  loop: true,
-                }}
+                onMouseEnter={() => autoplayPlugin.current.stop()}
+                onMouseLeave={() => autoplayPlugin.current.reset()}
               >
                 <CarouselContent className="-ml-1">
                   {brands.map((brand) => (
