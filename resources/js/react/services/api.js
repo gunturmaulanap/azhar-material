@@ -7,6 +7,20 @@ const api = axios.create(apiConfig);
 
 const isDev = typeof import.meta !== 'undefined' ? import.meta.env.DEV : (process.env.NODE_ENV !== 'production');
 
+// Simple in-memory lock to serialize auth-changing calls and avoid races
+let authLock = Promise.resolve();
+const withAuthLock = async (fn) => {
+  const prev = authLock;
+  let release;
+  authLock = new Promise((resolve) => (release = resolve));
+  await prev;
+  try {
+    return await fn();
+  } finally {
+    release();
+  }
+};
+
 // Request interceptor for CSRF
 api.interceptors.request.use(
   async (config) => {
@@ -52,6 +66,15 @@ api.interceptors.request.use(
         config.headers['Pragma'] = 'no-cache';
       }
 
+      // Serialize auth-changing calls
+      if (config.url && (
+        (isStateChanging && (config.url.includes(endpoints.login) || config.url.includes(endpoints.logout))) ||
+        config.url.includes(endpoints.me) ||
+        config.url.includes(endpoints.user)
+      )) {
+        await withAuthLock(async () => Promise.resolve());
+      }
+      
       if (isDev) {
         // Light request log in development only
         console.log('API Request:', {
@@ -95,11 +118,11 @@ api.interceptors.response.use(
 export const authService = {
   getCsrf: () => api.get(endpoints.csrf),
   getSanctumCookie: () => api.get(endpoints.sanctumCookie, { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate', 'Pragma': 'no-cache' } }),
-  login: (credentials) => api.post(endpoints.login, credentials),
+  login: (credentials) => withAuthLock(() => api.post(endpoints.login, credentials)),
   register: (userData) => api.post(endpoints.register, userData),
-  logout: () => api.post(endpoints.logout),
+  logout: () => withAuthLock(() => api.post(endpoints.logout)),
   // Hydrate auth state from the server session
-  getUser: () => api.get(endpoints.me, { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate', 'Pragma': 'no-cache' } }),
+  getUser: () => withAuthLock(() => api.get(endpoints.me, { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate', 'Pragma': 'no-cache' } })),
 };
 
 // Product services (from Laravel Goods model)

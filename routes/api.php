@@ -28,7 +28,7 @@ Route::get('/analytics/snapshot', [VisitorController::class, 'snapshot']);
 Route::get('/csrf-token', [AuthController::class, 'csrf']);
 
 // Sanctum CSRF cookie route (for SPA authentication)
-Route::get('/sanctum/csrf-cookie', [\Laravel\Sanctum\Http\Controllers\CsrfCookieController::class, 'show'])->middleware('web');
+Route::get('/sanctum/csrf-cookie', [\Laravel\Sanctum\Http\Controllers\CsrfCookieController::class, 'show'])->middleware(['web','no-store']);
 
 Route::post('/auth/login', [AuthController::class, 'login'])->middleware(['web','no-store']);
 Route::post('/auth/register', [AuthController::class, 'register'])->middleware(['web','no-store']);

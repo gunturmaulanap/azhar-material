@@ -20,6 +20,8 @@ class AuthController extends Controller
         ])->withHeaders([
             'Cache-Control' => 'no-store, no-cache, must-revalidate',
             'Pragma' => 'no-cache',
+            'Expires' => '0',
+            'Vary' => 'Cookie, Authorization',
         ]);
     }
 
@@ -50,17 +52,16 @@ class AuthController extends Controller
             return response()->json(['success' => false, 'error' => 'Role yang digunakan salah.'], 401);
         }
 
-        // Login via guard untuk mengikat ke session hanya jika channelnya session-based (SPA pada domain yang sama)
-        // Biarkan berjalan, StartSession ada di group 'web' pada route /api/user, tidak memaksa di sini
+        // Login via guard to bind to session
         Auth::guard($guard)->login($user, true);
 
-        // Regenerate session jika ada (tidak wajib untuk API token-only)
+        // Regenerate session id to avoid fixation
         if ($request->hasSession()) {
             $request->session()->regenerate();
             $request->session()->put('auth_guard', $guard);
         }
 
-        // Hapus token lama dan buat token Sanctum baru
+        // Clear old tokens and create a new token (server-side only)
         if (method_exists($user, 'tokens')) {
             $user->tokens()->delete();
         }
@@ -80,6 +81,8 @@ class AuthController extends Controller
         ])->withHeaders([
             'Cache-Control' => 'no-store, no-cache, must-revalidate',
             'Pragma' => 'no-cache',
+            'Expires' => '0',
+            'Vary' => 'Cookie, Authorization',
         ]);
     }
 
@@ -112,7 +115,7 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         try {
-            // Hapus token Sanctum berbasis bearer/cookie terlebih dahulu jika ada
+            // Delete Sanctum token if present
             $rawToken = $request->bearerToken() ?: $request->cookie('token');
             if ($rawToken) {
                 $accessToken = PersonalAccessToken::findToken($rawToken);
@@ -121,7 +124,7 @@ class AuthController extends Controller
                 }
             }
 
-            // Logout dari guard session jika ada
+            // Logout session guards
             if (Auth::guard('web')->check()) {
                 $user = Auth::guard('web')->user();
                 Auth::guard('web')->logout();
@@ -142,13 +145,21 @@ class AuthController extends Controller
                 $request->session()->regenerateToken();
             }
 
-            return response()->json([
+            $response = response()->json([
                 'success' => true,
                 'message' => 'Logout berhasil',
             ])->withHeaders([
                 'Cache-Control' => 'no-store, no-cache, must-revalidate',
                 'Pragma' => 'no-cache',
+                'Expires' => '0',
+                'Vary' => 'Cookie, Authorization',
             ]);
+
+            // Ensure cookies are cleared on client
+            $response->headers->clearCookie('laravel_session');
+            $response->headers->clearCookie('XSRF-TOKEN');
+
+            return $response;
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -159,10 +170,10 @@ class AuthController extends Controller
 
     public function user(Request $request)
     {
-        // Coba session guards
+        // Try session guards
         $user = Auth::guard('web')->user() ?? Auth::guard('customer')->user();
 
-        // Jika tidak ada, fallback ke Sanctum token
+        // If missing, fallback to Sanctum token
         if (!$user) {
             $rawToken = $request->bearerToken() ?: $request->cookie('token');
             if ($rawToken) {
@@ -185,6 +196,8 @@ class AuthController extends Controller
             ])->withHeaders([
                 'Cache-Control' => 'no-store, no-cache, must-revalidate',
                 'Pragma' => 'no-cache',
+                'Expires' => '0',
+                'Vary' => 'Cookie, Authorization',
             ]);
         }
 
@@ -196,6 +209,8 @@ class AuthController extends Controller
         ])->withHeaders([
             'Cache-Control' => 'no-store, no-cache, must-revalidate',
             'Pragma' => 'no-cache',
+            'Expires' => '0',
+            'Vary' => 'Cookie, Authorization',
         ]);
     }
 
@@ -211,6 +226,8 @@ class AuthController extends Controller
             ])->withHeaders([
                 'Cache-Control' => 'no-store, no-cache, must-revalidate',
                 'Pragma' => 'no-cache',
+                'Expires' => '0',
+                'Vary' => 'Cookie, Authorization',
             ]);
         }
         return response()->json([
@@ -219,6 +236,8 @@ class AuthController extends Controller
         ], 401)->withHeaders([
             'Cache-Control' => 'no-store, no-cache, must-revalidate',
             'Pragma' => 'no-cache',
+            'Expires' => '0',
+            'Vary' => 'Cookie, Authorization',
         ]);
     }
 }
