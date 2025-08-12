@@ -51,6 +51,7 @@ use App\Http\Livewire\Content\Analytics as ContentAnalytics;
 use App\Http\Livewire\Content\Dashboard as ContentDashboard;
 use App\Http\Livewire\Project\Index as ProjectIndex;
 use App\Http\Livewire\Project\Form as ProjectForm;
+use Laravel\Sanctum\Http\Controllers\CsrfCookieController;
 
 
 /*
@@ -64,6 +65,8 @@ use App\Http\Livewire\Project\Form as ProjectForm;
 |
 */
 
+Route::get('/sanctum/csrf-cookie', [CsrfCookieController::class, 'show'])
+    ->name('sanctum.csrf-cookie');
 // --- Rute Publik untuk React (SPA) ---
 Route::get('/', function () {
     return view('react');

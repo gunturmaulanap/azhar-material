@@ -4,104 +4,87 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Route;
+use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Http\RedirectResponse;
+use App\Support\RoutePicks;
 
 class CheckRole
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     * @param  string ...$roles
-     * @return \Symfony\Component\HttpFoundation\Response
-     */
-    public function handle(Request $request, Closure $next, ...$roles): Response
-    {
-        // Periksa terlebih dahulu apakah ada session yang aktif
-        if (!$request->hasSession() || !$request->session()->isStarted()) {
-            return redirect(route('login'));
-        }
+    use RoutePicks;
 
-        // 1. Dapatkan pengguna yang terautentikasi, baik dari guard 'web' maupun 'customer'.
-        // Jika tidak ada yang terautentikasi, alihkan ke halaman login.
+    /**
+     * Pastikan role sesuai; jika tidak, redirect ke dashboard role yang benar.
+     */
+    public function handle(Request $request, Closure $next, ...$roles): Response|RedirectResponse
+    {
+        // Ambil user dari kedua guard
         $user = Auth::guard('web')->user() ?? Auth::guard('customer')->user();
 
         if (!$user) {
-            // Clear any existing session data
-            $request->session()->flush();
-            $request->session()->regenerate();
-
-            // Jika ini adalah request AJAX atau JSON, return 401
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json(['message' => 'Unauthenticated.'], 401);
             }
-
             return redirect(route('login'));
         }
 
-        // 2. Periksa apakah peran pengguna termasuk dalam peran yang diizinkan untuk rute ini.
-        // Logika ini sekarang berlaku untuk semua pengguna yang terautentikasi, 
-        // termasuk 'customer' jika rute yang diakses memang memerlukan peran 'customer'.
-        if (in_array($user->role, $roles)) {
-            return $next($request);
+        // Role efektif
+        $effectiveRole = $user instanceof \App\Models\Customer
+            ? 'customer'
+            : ($user->role ?? 'customer');
+
+        // Jika ada pembatasan role pada route dan tidak cocok -> redirect
+        if (!empty($roles) && !in_array($effectiveRole, $roles, true)) {
+            return $this->redirectBasedOnRole($user);
         }
 
-        // 3. Jika peran tidak cocok, alihkan pengguna ke dashboard yang sesuai.
-        // Ini berfungsi sebagai fallback yang aman.
-        return $this->redirectBasedOnRole($user);
+        return $next($request);
     }
 
-    /**
-     * Mengarahkan pengguna ke dashboard yang benar berdasarkan perannya.
-     *
-     * @param  \App\Models\User|\App\Models\Customer  $user
-     * @return \Illuminate\Http\RedirectResponse
-     */
     protected function redirectBasedOnRole($user): RedirectResponse
     {
-        switch ($user->role) {
+        $role = $user instanceof \App\Models\Customer ? 'customer' : ($user->role ?? 'customer');
+
+        switch ($role) {
             case 'super_admin':
-                // Cek rute dashboard super admin
-                if (Route::has('superadmin.dashboard')) {
-                    return redirect()->route('superadmin.dashboard');
-                }
+                $name = $this->pickFirstExistingRoute(['superadmin.dashboard']);
                 break;
+
             case 'admin':
-                // Cek rute dashboard admin
-                if (Route::has('admin.transaction.create')) {
-                    return redirect()->route('admin.transaction.create');
-                }
+                $name = $this->pickFirstExistingRoute(['admin.transaction.create']);
                 break;
+
             case 'content-admin':
-                // Cek rute dashboard content admin
-                if (Route::has('content-admin.analytics')) {
-                    return redirect()->route('conten-admin.analytics');
-                }
+                $name = $this->pickFirstExistingRoute([
+                    'content-admin.analytics',
+                    'content-admin.hero-sections',
+                    'content-admin.hero-sections.index',
+                ]);
                 break;
+
             case 'owner':
-                // Cek rute dashboard owner
-                if (Route::has('owner.report.index')) {
-                    return redirect()->route('owner.report.index');
-                }
+                $name = $this->pickFirstExistingRoute(['owner.report.index']);
+                break;
+
             case 'driver':
-                // Cek rute dashboard driver
-                if (Route::has('driver.delivery.index')) {
-                    return redirect()->route('driver.delivery.index');
-                }
+                $name = $this->pickFirstExistingRoute([
+                    'admin.delivery.index',
+                    'driver.delivery.index',
+                ]);
                 break;
+
             case 'customer':
-                // Cek rute dashboard customer
-                if (Route::has('customer.dashboard')) {
-                    return redirect()->route('customer.dashboard', ['id' => $user->id]);
+                $name = $this->pickFirstExistingRoute(['customer.dashboard', 'customer.index']);
+                if ($name) {
+                    return redirect()->route($name, ['id' => $user->id]);
                 }
+                $name = null;
                 break;
+
+            default:
+                $name = null;
         }
 
-        // Fallback yang aman: jika tidak ada rute dashboard yang cocok, 
-        // alihkan ke halaman utama.
-        return redirect(url('/'));
+        return $name ? redirect()->route($name) : redirect(url('/'));
     }
 }

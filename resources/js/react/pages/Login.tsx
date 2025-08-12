@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -21,105 +21,82 @@ import {
 import { useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
 
-// The Login component handles user authentication
-const Login = () => {
-  // State to manage form data (username, password, and role)
+const Login: React.FC = () => {
   const [formData, setFormData] = useState({
     username: "",
     password: "",
-    role: "", // Stores the selected role from the dropdown
+    role: "",
   });
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  // Get the login function from the authentication context
-  const { login, isAuthenticated, user } = useAuth();
+  const { login, isAuthenticated, user, refresh } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect if already authenticated
-  React.useEffect(() => {
+  // Kalau sudah login, jangan tampilkan form lagi
+  useEffect(() => {
     if (isAuthenticated && user) {
-      // User is already logged in, redirect to home
-      navigate('/', { replace: true });
+      navigate("/", { replace: true });
     }
   }, [isAuthenticated, user, navigate]);
 
-  // Handle changes in the input fields
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    setFormData((s) => ({ ...s, [e.target.name]: e.target.value }));
   };
 
-  // Handle changes in the role select dropdown
   const handleRoleChange = (value: string) => {
-    setFormData({
-      ...formData,
-      role: value,
-    });
+    setFormData((s) => ({ ...s, role: value }));
   };
 
-  // Handle form submission for login
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting) return;
     setError("");
-    setLoading(true);
 
-    // Validate that a role has been selected
-    if (!formData.role) {
+    const username = formData.username.trim();
+    const password = formData.password;
+    const role = formData.role;
+
+    if (!role) {
       toast.error("Silakan pilih role terlebih dahulu", {
-        duration: 4000,
+        duration: 3000,
         position: "top-center",
-        style: {
-          background: "#ef4444",
-          color: "#fff",
-          borderRadius: "8px",
-        },
       });
-      setLoading(false);
+      return;
+    }
+    if (!username || !password) {
+      setError("Username dan password wajib diisi.");
       return;
     }
 
+    setSubmitting(true);
     try {
-      // Determine the login type for the API call based on the selected role
-      const loginType = formData.role === "customer" ? "customer" : "user";
+      const loginType = role === "customer" ? "customer" : "user";
 
-      // Call the login function from useAuth, which handles the API call and cookie storage
       const result = await login({
-        username: formData.username,
-        password: formData.password,
+        username,
+        password,
         login_type: loginType,
-        role: formData.role,
+        role,
       });
 
-      console.log("Login result:", result);
+      if (result.success) {
+        toast.success("Login berhasil! Selamat datang 👋", {
+          duration: 2000,
+          position: "top-center",
+        });
 
-        if (result.success) {
-          toast.success("Login berhasil! Selamat datang!", {
-            duration: 3000,
-            position: "top-center",
-            style: {
-              background: "#10b981",
-              color: "#fff",
-              borderRadius: "8px",
-            },
-          });
+        // Pastikan state user tersinkron dari server (tanpa reload)
+        // await refresh();
 
-          // Redirect all users to main React page first for better UX
-          // The dashboard link will be available in the navigation
-          setTimeout(() => {
-            // Navigate to home page where users can see dashboard link
-            navigate('/');
-            // Force page refresh to ensure session state is properly loaded
-            setTimeout(() => {
-              window.location.reload();
-            }, 100);
-          }, 1000);
+        // // Arahkan ke home; tombol Dashboard akan muncul sesuai role
+        // navigate("/", { replace: true });
+
+        // Reset form
+        setFormData({ username: "", password: "", role: "" });
       } else {
-        // --- START: Perubahan di sini untuk pesan error lebih spesifik ---
         let displayMessage: string;
-        const backendError = result.error; // Ambil pesan error dari backend
+        const backendError = result.error;
 
         switch (backendError) {
           case "Username tidak ditemukan.":
@@ -128,56 +105,35 @@ const Login = () => {
           case "Password salah.":
             displayMessage = "Password salah. Mohon periksa kembali.";
             break;
-          case "Role yang digunakan salah.": // Sesuaikan dengan pesan dari backend
+          case "Role yang digunakan salah.":
             displayMessage =
               "Role yang Anda pilih tidak sesuai dengan akun ini.";
             break;
           default:
             displayMessage =
-              backendError || "Login gagal: Kredensial tidak valid.";
+              backendError || "Login gagal: kredensial tidak valid.";
             break;
         }
 
-        toast.error(displayMessage, {
-          duration: 4000,
-          position: "top-center",
-          style: {
-            background: "#ef4444",
-            color: "#fff",
-            borderRadius: "8px",
-          },
-        });
+        toast.error(displayMessage, { duration: 3500, position: "top-center" });
         setError(displayMessage);
-        // --- END: Perubahan di sini ---
       }
     } catch (err: any) {
-      console.error("Login request failed in catch block:", err);
-      let displayMessage = "Terjadi kesalahan saat login.";
-
-      if (err.response?.data?.errors) {
-        displayMessage = Object.values(
-          err.response.data.errors
-        ).flat()[0] as string;
-      } else if (err.response?.data?.error) {
-        displayMessage = err.response.data.error;
-      } else if (err.response?.data?.message) {
-        displayMessage = err.response.data.message;
-      } else if (err.message) {
-        displayMessage = err.message;
+      let msg = "Terjadi kesalahan saat login.";
+      if (err?.response?.data?.errors) {
+        msg =
+          (Object.values(err.response.data.errors).flat()[0] as string) || msg;
+      } else if (err?.response?.data?.error) {
+        msg = err.response.data.error;
+      } else if (err?.response?.data?.message) {
+        msg = err.response.data.message;
+      } else if (err?.message) {
+        msg = err.message;
       }
-
-      toast.error(displayMessage, {
-        duration: 4000,
-        position: "top-center",
-        style: {
-          background: "#ef4444",
-          color: "#fff",
-          borderRadius: "8px",
-        },
-      });
-      setError(displayMessage);
+      toast.error(msg, { duration: 3500, position: "top-center" });
+      setError(msg);
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
@@ -185,10 +141,8 @@ const Login = () => {
     { value: "customer", label: "Customer - Pelanggan" },
     { value: "super_admin", label: "Super Admin - Super Administrator" },
     { value: "driver", label: "Driver - Supir Pengiriman" },
-
     { value: "admin", label: "Admin - Administrator" },
     { value: "content-admin", label: "Content Admin - Pengelola Konten" },
-
     { value: "owner", label: "Owner - Pemilik Bisnis" },
   ];
 
@@ -243,6 +197,7 @@ const Login = () => {
                 value={formData.username}
                 onChange={handleChange}
                 placeholder="Masukkan username Anda"
+                autoComplete="username"
                 className="border-gray-300 focus:border-blue-500"
               />
             </div>
@@ -257,6 +212,7 @@ const Login = () => {
                 value={formData.password}
                 onChange={handleChange}
                 placeholder="Masukkan password Anda"
+                autoComplete="current-password"
                 className="border-gray-300 focus:border-blue-500"
               />
             </div>
@@ -264,9 +220,9 @@ const Login = () => {
             <Button
               type="submit"
               className="w-full bg-gradient-to-r from-blue-600 to-orange-500 hover:from-blue-700 hover:to-orange-600 text-white font-semibold py-2 px-4 rounded-md transition-all duration-200"
-              disabled={loading}
+              disabled={submitting}
             >
-              {loading ? "Memproses..." : "Login"}
+              {submitting ? "Memproses..." : "Login"}
             </Button>
 
             <div className="mt-4 p-3 bg-gray-50 rounded-md">
@@ -277,7 +233,7 @@ const Login = () => {
                 <div>Admin: admin / password</div>
                 <div>Driver: driver / password</div>
                 <div>Content Admin: contentadmin / password</div>
-                <div>Owner: owner / password </div>
+                <div>Owner: owner / password</div>
               </div>
             </div>
           </form>

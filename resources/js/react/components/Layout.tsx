@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Menu,
@@ -21,82 +21,79 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+
   const location = useLocation();
   const navigate = useNavigate();
-  const auth = useAuth();
-  const user = auth?.user;
-  const isAuthenticated = auth?.isAuthenticated;
-  const logout = auth?.logout;
 
+  const { user, isAuthenticated, logout, loading } = useAuth();
+
+  // 👉 compute AFTER we have user from context
+  const displayName = useMemo(
+    () => user?.name || user?.username || "User",
+    [user]
+  );
+
+  // Debounced scroll (ringan)
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
+    let t: any;
+    const onScroll = () => {
+      clearTimeout(t);
+      t = setTimeout(() => setIsScrolled(window.scrollY > 50), 50);
     };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener("scroll", onScroll);
+    };
   }, []);
 
-  // Listen for logout broadcast from other tabs
+  // Tutup mobile menu saat pindah halaman
   useEffect(() => {
-    const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === "logout-broadcast") {
-        // Force logout in this tab when logout is triggered from another tab
-        if (isAuthenticated) {
-          // Clear auth state without calling API (already called from originating tab)
-          logout(true); // skipApiCall = true
-          // Redirect to homepage
-          navigate("/");
-        }
+    setIsMobileMenuOpen(false);
+    setShowUserMenu(false);
+  }, [location.pathname]);
+
+  // Sinkronisasi logout antar-tab
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "logout-broadcast") {
+        // Jangan panggil API lagi; cukup cleanup lokal
+        logout(true);
+        navigate("/", { replace: true });
       }
     };
-
-    window.addEventListener("storage", handleStorageChange);
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-    };
-  }, [isAuthenticated, logout, navigate]);
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, [logout, navigate]);
 
   const handleLogout = async () => {
-    // Broadcast logout to all other tabs
-    localStorage.setItem("logout-broadcast", Date.now().toString());
-
+    // Broadcast ke tab lain
+    localStorage.setItem("logout-broadcast", String(Date.now()));
     try {
-      // Perform logout API call which clears backend sessions and tokens
-      await logout();
-    } catch (error) {
-      console.error("Logout error:", error);
-      // Even if logout fails, we still clean local state in useAuth
+      await logout(); // API + cleanup
+    } finally {
+      // Redirect halus tanpa reload penuh, lalu bersihkan broadcast
+      navigate("/", { replace: true });
+      setTimeout(() => localStorage.removeItem("logout-broadcast"), 800);
     }
-
-    // Always redirect to home after logout attempt
-    // The useAuth logout function handles all cleanup
-    setTimeout(() => {
-      window.location.href = "/";
-    }, 100);
-
-    // Clean up the broadcast item after a short delay
-    setTimeout(() => {
-      localStorage.removeItem("logout-broadcast");
-    }, 1000);
   };
 
-  // Function to get dashboard route based on user role
-  // Routes selaras dengan Laravel backend routes
+  // Route dashboard per role (selaras backend)
   const getDashboardRoute = (role: string, userId?: number) => {
-    const dashboardRoutes: { [key: string]: string } = {
-      customer: userId ? `/customer/${userId}` : "/customer", // Route memerlukan ID customer
+    const routes: Record<string, string> = {
+      customer: userId ? `/customer/${userId}` : "/customer",
       super_admin: "/superadmin/dashboard",
-      driver: "/admin/pengiriman-barang", // Use admin delivery route for driver
+      driver: "/driver/pengiriman-barang",
       admin: "/admin/transactions/create",
       "content-admin": "/content-admin/analytics",
       owner: "/owner/laporan-penjualan",
     };
-    return dashboardRoutes[role] || "/";
+    return routes[role] ?? "/";
   };
 
-  // Function to get dashboard label based on user role
   const getDashboardLabel = (role: string) => {
-    const dashboardLabels: { [key: string]: string } = {
+    const labels: Record<string, string> = {
       customer: "My Transactions",
       super_admin: "Dashboard",
       driver: "Dashboard",
@@ -104,19 +101,27 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       "content-admin": "Content Panel",
       owner: "Owner Panel",
     };
-    return dashboardLabels[role] || "Dashboard";
+    return labels[role] ?? "Dashboard";
   };
 
-  const navigation = [
-    { name: "Home", href: "/" },
-    { name: "Projects", href: "/projects" },
+  const navigation = useMemo(
+    () => [
+      { name: "Home", href: "/" },
+      { name: "Projects", href: "/projects" },
+      { name: "Products", href: "/products" },
+      { name: "Services", href: "/services" },
+      { name: "Contact", href: "/contact" },
+      // { name: "Team", href: "/team" },
+    ],
+    []
+  );
 
-    { name: "Products", href: "/products" },
-    { name: "Services", href: "/services" },
-    { name: "Contact", href: "/contact" },
-    // { name: "Team", href: "/team" },
-    // { name: "Dashboard", href: "/" },
-  ];
+  // Komponen kecil: placeholder agar tidak kedip saat loading
+  const AuthPlaceholder = () => (
+    <div className="hidden md:flex items-center space-x-4">
+      <div className="h-9 w-28 rounded-md bg-gray-200/70 animate-pulse" />
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-neutral-50">
@@ -150,87 +155,84 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   }`}
                 >
                   {item.name}
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
+                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full" />
                 </Link>
               ))}
             </nav>
 
             {/* Auth Section */}
-            <div className="hidden md:flex items-center space-x-4">
-              {isAuthenticated ? (
-                <>
-                  {/* Dashboard Button with session-aware redirect */}
-                  <Button
-                    variant="ghost"
-                    className="flex items-center space-x-2 text-primary hover:bg-primary hover:text-white"
-                    onClick={() => {
-                      // Create a form to POST to Laravel for session-aware redirect
-                      const form = document.createElement("form");
-                      form.method = "GET";
-                      form.action = getDashboardRoute(
-                        user?.role || "customer",
-                        user?.id
-                      );
-
-                      // Add CSRF token if needed for POST
-                      const csrfToken = document
-                        .querySelector('meta[name="csrf-token"]')
-                        ?.getAttribute("content");
-                      if (csrfToken) {
-                        const csrfInput = document.createElement("input");
-                        csrfInput.type = "hidden";
-                        csrfInput.name = "_token";
-                        csrfInput.value = csrfToken;
-                        form.appendChild(csrfInput);
-                      }
-
-                      document.body.appendChild(form);
-                      form.submit();
-                    }}
-                  >
-                    <LayoutDashboard className="h-4 w-4" />
-                    <span>{getDashboardLabel(user?.role || "customer")}</span>
-                  </Button>
-
-                  {/* User Menu */}
-                  <div className="relative">
+            {loading ? (
+              <AuthPlaceholder />
+            ) : (
+              <div className="hidden md:flex items-center space-x-4">
+                {isAuthenticated ? (
+                  <>
+                    {/* Dashboard Button */}
                     <Button
                       variant="ghost"
-                      className="flex items-center space-x-2"
-                      onClick={() => setShowUserMenu(!showUserMenu)}
+                      className="flex items-center space-x-2 text-primary hover:bg-primary hover:text-white"
+                      onClick={() => {
+                        // Redirect full page ke route dashboard sesuai role
+                        const url = getDashboardRoute(
+                          user?.role || "customer",
+                          user?.id
+                        );
+                        // GET sudah cukup; CSRF tidak diperlukan
+                        window.location.href = url;
+                      }}
                     >
-                      <User className="h-4 w-4" />
-                      <span>{user?.name || "User"}</span>
+                      <LayoutDashboard className="h-4 w-4" />
+                      <span>{getDashboardLabel(user?.role || "customer")}</span>
                     </Button>
-                    {showUserMenu && (
-                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
-                        <button
-                          onClick={handleLogout}
-                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+
+                    {/* User Menu */}
+                    <div className="relative">
+                      <Button
+                        variant="ghost"
+                        className="flex items-center space-x-2"
+                        onClick={() => setShowUserMenu((v) => !v)}
+                        aria-haspopup="menu"
+                        aria-expanded={showUserMenu}
+                      >
+                        <User className="h-4 w-4" />
+                        <span>{displayName}</span>{" "}
+                      </Button>
+                      {showUserMenu && (
+                        <div
+                          className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50"
+                          role="menu"
                         >
-                          <LogOut className="mr-2 h-4 w-4" />
-                          <span>Logout</span>
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </>
-              ) : (
-                <Link to="/login">
-                  <Button
-                    variant="outline"
-                    className="border-primary text-primary hover:bg-primary hover:text-white"
-                  >
-                    Login
-                  </Button>
-                </Link>
-              )}
-            </div>
+                          <button
+                            onClick={handleLogout}
+                            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            role="menuitem"
+                          >
+                            <LogOut className="mr-2 h-4 w-4" />
+                            <span>Logout</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <Link to="/login">
+                    <Button
+                      variant="outline"
+                      className="border-primary text-primary hover:bg-primary hover:text-white"
+                    >
+                      Login
+                    </Button>
+                  </Link>
+                )}
+              </div>
+            )}
 
             {/* Mobile Menu Button */}
             <button
               className="md:hidden p-2"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              onClick={() => setIsMobileMenuOpen((v) => !v)}
+              aria-label="Toggle menu"
+              aria-expanded={isMobileMenuOpen}
             >
               {isMobileMenuOpen ? (
                 <X className="h-6 w-6 text-gray-700" />
@@ -257,7 +259,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                         ? "text-primary bg-accent"
                         : "text-gray-700 hover:text-primary hover:bg-accent"
                     }`}
-                    onClick={() => setIsMobileMenuOpen(false)}
                   >
                     {item.name}
                   </Link>
@@ -265,24 +266,26 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
                 {/* Mobile Auth */}
                 <div className="pt-4 border-t border-gray-200">
-                  {isAuthenticated ? (
+                  {loading ? (
+                    <div className="px-3 py-2">
+                      <div className="h-9 w-28 rounded-md bg-gray-200/70 animate-pulse" />
+                    </div>
+                  ) : isAuthenticated ? (
                     <div className="px-3 py-2 space-y-2">
                       <p className="text-sm text-gray-600 mb-2">
-                        Welcome, {user && user.name ? user.name : "User"}
+                        Welcome, {user?.name ?? "User"}
                       </p>
 
-                      {/* Mobile Dashboard Button */}
                       <Button
                         variant="ghost"
                         size="sm"
                         className="w-full flex items-center justify-start space-x-2 text-primary hover:bg-primary hover:text-white mb-2"
                         onClick={() => {
-                          setIsMobileMenuOpen(false);
-                          // Full page redirect to Laravel Livewire dashboard
-                          window.location.href = getDashboardRoute(
+                          const url = getDashboardRoute(
                             user?.role || "customer",
                             user?.id
                           );
+                          window.location.href = url;
                         }}
                       >
                         <LayoutDashboard className="h-4 w-4" />
@@ -305,7 +308,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     <Link
                       to="/login"
                       className="block px-3 py-2 text-base font-medium rounded-md text-primary hover:bg-accent"
-                      onClick={() => setIsMobileMenuOpen(false)}
                     >
                       Login
                     </Link>

@@ -1,8 +1,8 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useAuth, AuthProvider } from "./hooks/useAuth"; // relatif path
+import { useAuth, AuthProvider } from "./hooks/useAuth";
 import LoadingSpinner from "./components/LoadingSpinner";
-import Layout from "./components/Layout"; // Pastikan file ini ada
+import Layout from "./components/Layout";
 import Notifications from "./components/Notifications";
 import ScrollToTop from "./components/ScrollToTop";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -14,113 +14,89 @@ import Services from "./pages/Services";
 import Contact from "./pages/Contact";
 import Team from "./pages/Team";
 import Login from "./pages/Login";
-// import AdminDashboard from "./pages/AdminDashboard"; // Keep commented as per original
-// import ContentAdminDashboard from "./pages/ContentAdminDashboard"; // Keep as per original
 
-// Komponen route yang memproteksi akses berdasarkan autentikasi
-// Tujuan: Hanya izinkan akses jika user terautentikasi.
-// Semua user yang terautentikasi akan tetap di landing page React,
-// kecuali jika Laravel mengarahkan mereka ke dashboard Livewire.
+// ==== Bootstrap auth dari server (diisi di react.blade.php) ====
+declare global {
+  interface Window {
+    __BOOT__?: { isAuth: boolean; user?: any } | undefined;
+  }
+}
+const BOOT = typeof window !== "undefined" ? window.__BOOT__ : undefined;
+// ===============================================================
+
+/** Route guard untuk halaman privat (jika nanti ada). */
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, loading } = useAuth();
-
-  // Show loading only for a short time to prevent mobile loading issues
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <LoadingSpinner
-          size="lg"
-          text="Memuat aplikasi..."
-          className="p-8"
-        />
+        <LoadingSpinner size="lg" text="Memuat aplikasi..." className="p-8" />
       </div>
     );
   }
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
-  // Jika terautentikasi, izinkan akses ke children.
-  // Redirect ke dashboard spesifik (Livewire) akan ditangani oleh Laravel setelah SSO.
-  // Di sini, kita hanya memastikan mereka login.
-  return <>{children}</>;
+  return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
 };
 
-// Komponen route untuk publik yang mengarahkan user yang sudah login
-// Tujuan: Jika user sudah login, jangan biarkan mereka mengakses halaman login lagi.
+/** Route publik: kalau user sudah login, jangan ke /login lagi. */
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, loading } = useAuth();
-
-  // Minimize loading screen exposure for better mobile UX
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <LoadingSpinner
-          size="lg"
-          text="Memuat aplikasi..."
-          className="p-8"
-        />
+        <LoadingSpinner size="lg" text="Memuat aplikasi..." className="p-8" />
       </div>
     );
   }
-
-  if (isAuthenticated) {
-    // Jika user sudah login, arahkan mereka ke halaman utama React
-    return <Navigate to="/" replace />;
-  }
-
-  return <>{children}</>;
+  return isAuthenticated ? <Navigate to="/" replace /> : <>{children}</>;
 };
 
 function App() {
   return (
     <ErrorBoundary>
-      <AuthProvider>
+      {/* BOOT disalurkan ke AuthProvider agar no-flicker setelah refresh */}
+      <AuthProvider boot={BOOT}>
         <BrowserRouter>
-          {/* Automatically scroll to top on route changes */}
-          <ScrollToTop smooth={true} delay={0} />
+          <ScrollToTop smooth delay={0} />
           <Notifications />
-          <Routes>
-          {/* Rute untuk halaman yang memerlukan autentikasi (jika ada halaman React admin) */}
-          {/* Contoh: Jika ada dashboard admin React terpisah */}
-          {/* <Route
-            path="/admin/dashboard"
-            element={
-              <ProtectedRoute>
-                <AdminDashboard />
-              </ProtectedRoute>
-            }
-          /> */}
-          {/* Contoh: Content Admin Dashboard React */}
-          {/* <Route
-            path="/content-admin-dashboard" // Ganti dengan rute React yang sesuai jika ada
-            element={
-              <ProtectedRoute>
-                <ContentAdminDashboard />
-              </ProtectedRoute>
-            }
-          /> */}
 
-          {/* Rute Publik yang dibungkus oleh Layout */}
-          {/* Ini akan menangani semua rute yang tidak cocok di atas */}
-          <Route
-            path="/*" // Catch-all route for public pages
-            element={
-              <Layout>
-                <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/products" element={<Products />} />
-                  <Route path="/projects" element={<Projects />} />
-                  <Route path="/services" element={<Services />} />
-                  <Route path="/contact" element={<Contact />} />
-                  <Route path="/team" element={<Team />} />
-                  <Route path="/login" element={<Login />} />
-                  {/* Tambahkan rute publik lainnya di sini */}
-                </Routes>
-              </Layout>
-            }
-          />
+          {/* Semua halaman publik dibungkus Layout supaya header/footer konsisten */}
+          <Routes>
+            <Route
+              path="/*"
+              element={
+                <Layout>
+                  <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/products" element={<Products />} />
+                    <Route path="/projects" element={<Projects />} />
+                    <Route path="/services" element={<Services />} />
+                    <Route path="/contact" element={<Contact />} />
+                    <Route path="/team" element={<Team />} />
+                    <Route
+                      path="/login"
+                      element={
+                        <PublicRoute>
+                          <Login />
+                        </PublicRoute>
+                      }
+                    />
+                    {/* fallback unknown public routes → home */}
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                  </Routes>
+                </Layout>
+              }
+            />
+
+            {/* Contoh halaman privat React (kalau nanti ada):
+            <Route
+              path="/admin/dashboard"
+              element={
+                <ProtectedRoute>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
+            */}
           </Routes>
         </BrowserRouter>
       </AuthProvider>

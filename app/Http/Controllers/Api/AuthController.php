@@ -8,99 +8,97 @@ use App\Models\Customer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    /**
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function csrf()
     {
         return response()->json([
             'csrf_token' => csrf_token()
-        ]);
+        ], 200)->header('Cache-Control', 'no-store, no-cache, must-revalidate');
     }
 
-    /**
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function login(Request $request)
     {
         // Validasi input
         $request->validate([
-            'username' => 'required|string',
-            'password' => 'required',
+            'username'   => 'required|string',
+            'password'   => 'required|string',
             'login_type' => 'required|string|in:customer,user',
-            'role' => 'nullable|string',
+            'role'       => 'nullable|string',
         ]);
 
-        $guard = ($request->login_type === 'customer') ? 'customer' : 'web';
+        $guard = $request->login_type === 'customer' ? 'customer' : 'web';
         $credentials = $request->only('username', 'password');
 
-        // Pendekatan login manual untuk kontrol yang lebih baik
-        if ($guard === 'customer') {
-            $user = Customer::where('username', $credentials['username'])->first();
-        } else {
-            $user = User::where('username', $credentials['username'])->first();
-        }
+        // Ambil user dari guard yang sesuai
+        $user = $guard === 'customer'
+            ? Customer::where('username', $credentials['username'])->first()
+            : User::where('username', $credentials['username'])->first();
 
-        // --- START: Perubahan di sini untuk pesan error lebih spesifik ---
+        // Error detail (biar UX jelas)
         if (!$user) {
-            // Jika username tidak ditemukan
             return response()->json(['success' => false, 'error' => 'Username tidak ditemukan.'], 401);
         }
-
         if (!Hash::check($credentials['password'], $user->password)) {
-            // Jika password salah
             return response()->json(['success' => false, 'error' => 'Password salah.'], 401);
         }
-        // --- END: Perubahan di sini ---
-
-        // Jika login_type adalah 'user', pastikan role sesuai sebelum login
         if ($guard === 'web' && $user->role !== $request->role) {
             return response()->json(['success' => false, 'error' => 'Role yang digunakan salah.'], 401);
         }
 
-        // Jika kredensial valid, login pengguna untuk membuat sesi
-        Auth::guard($guard)->login($user, true); // Remember user
+        // --- KUNCI BUG "login 2x": bersihkan sesi guard lain SEBELUM login baru ---
+        // Jika sebelumnya login di guard berbeda, logout keduanya agar tidak bentrok
+        try {
+            if (Auth::guard('web')->check()) {
+                Auth::guard('web')->logout();
+            }
+            if (Auth::guard('customer')->check()) {
+                Auth::guard('customer')->logout();
+            }
+        } catch (\Throwable $e) {
+            // ignore
+        }
+        // Invalidate session lama + CSRF token lama
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
-        // Force session regeneration dan persistence
-        request()->session()->regenerate();
-        request()->session()->put('user_authenticated_at', now());
-        request()->session()->put('auth_guard', $guard);
-        request()->session()->save(); // Force save session
+        // Login guard yang dipilih & regenerate session id (anti fixation)
+        Auth::guard($guard)->login($user, true);
+        $request->session()->regenerate();
+        // Simpan meta (opsional)
+        $request->session()->put('auth_guard', $guard);
+        $request->session()->put('user_authenticated_at', now());
+        $request->session()->save();
 
-        // Hapus token lama untuk keamanan
+        // Opsional: revoke token lama lalu buat token baru (kalau memang perlu)
+        $token = null;
         if (method_exists($user, 'tokens')) {
-            $user->tokens()->delete();
+            try {
+                $user->tokens()->delete();
+            } catch (\Throwable $e) {
+            }
+            try {
+                $token = $user->createToken('auth-token', ['*'])->plainTextToken;
+            } catch (\Throwable $e) {
+            }
         }
 
-        // Buat token Sanctum baru
-        $token = $user->createToken('auth-token', ['*'])->plainTextToken;
-
-        // Tentukan URL pengalihan berdasarkan peran
         $redirectUrl = $this->getRedirectUrl($user);
 
         return response()->json([
             'success' => true,
             'message' => 'Login berhasil',
-            'data' => [
-                'user' => $user,
-                'role' => ($user instanceof Customer) ? 'customer' : $user->role,
-                'redirect_url' => $redirectUrl, // Tambahkan URL pengalihan
+            'data'    => [
+                // kirim field yang aman saja
+                'user'        => $this->briefUser($user),
+                'role'        => $user instanceof Customer ? 'customer' : ($user->role ?? 'customer'),
+                'redirect_url' => $redirectUrl,
             ],
             'token' => $token,
-        ]);
+        ], 200)->header('Cache-Control', 'no-store, no-cache, must-revalidate');
     }
 
-    /**
-     * Dapatkan URL pengalihan berdasarkan peran pengguna.
-     *
-     * @param \App\Models\User|\App\Models\Customer $user
-     * @return string
-     */
     protected function getRedirectUrl($user): string
     {
         if ($user instanceof Customer) {
@@ -117,58 +115,51 @@ class AuthController extends Controller
             case 'owner':
                 return route('owner.report.index');
             case 'driver':
-                return route('driver.delivery.index'); // Fallback to admin delivery for driver
+                return route('driver.delivery.index');
             default:
                 return url('/');
         }
     }
 
-    /**
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function register(Request $request)
     {
-        // ... kode register tetap sama ...
+        // (tetapkan sesuai implementasi kamu)
+        return response()->json([
+            'success' => false,
+            'message' => 'Register belum diimplementasikan.'
+        ], 501);
     }
 
-    /**
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function logout(Request $request)
     {
         try {
-            // Logout dari semua guards
-            if (Auth::guard('web')->check()) {
-                $user = Auth::guard('web')->user();
-                Auth::guard('web')->logout();
-
-                // Delete all tokens for the user
-                if (method_exists($user, 'tokens')) {
-                    $user->tokens()->delete();
-                }
-            } elseif (Auth::guard('customer')->check()) {
-                $user = Auth::guard('customer')->user();
-                Auth::guard('customer')->logout();
-
-                // Delete all tokens for the customer
-                if (method_exists($user, 'tokens')) {
-                    $user->tokens()->delete();
-                }
+            // Revoke tokens kalau ada
+            try {
+                $u = Auth::guard('web')->user() ?: Auth::guard('customer')->user();
+                if ($u && method_exists($u, 'tokens')) $u->tokens()->delete();
+            } catch (\Throwable $e) {
             }
 
-            // Clear session completely
+            // Logout dari dua-duanya (aman jika salah satunya tidak aktif)
+            try {
+                Auth::guard('web')->logout();
+            } catch (\Throwable $e) {
+            }
+            try {
+                Auth::guard('customer')->logout();
+            } catch (\Throwable $e) {
+            }
+
+            // Bersihkan sesi total
             $request->session()->flush();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
-            $request->session()->regenerate(true);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Logout berhasil'
-            ]);
-        } catch (\Exception $e) {
+            ], 200)->header('Cache-Control', 'no-store, no-cache, must-revalidate');
+        } catch (\Throwable $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Logout gagal: ' . $e->getMessage()
@@ -176,51 +167,46 @@ class AuthController extends Controller
         }
     }
 
-    /**
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function user(Request $request)
     {
-        // Perbaikan: Periksa guard secara eksplisit dan ambil user dari guard yang benar.
-        // Ini memastikan bahwa kita mendapatkan user yang benar, baik itu 'web' atau 'customer'.
-        if (Auth::guard('web')->check()) {
-            $user = Auth::guard('web')->user();
-        } elseif (Auth::guard('customer')->check()) {
-            $user = Auth::guard('customer')->user();
-        } else {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthenticated.'
-            ], 401);
-        }
+        // Baca dari kedua guard; JANGAN return 401 di sini (bikin UI flicker)
+        $user = Auth::guard('web')->user() ?: Auth::guard('customer')->user();
 
         return response()->json([
             'success' => true,
             'data' => [
-                'user' => $user
-            ]
-        ]);
+                // kalau belum login -> null (tetap 200)
+                'user' => $user ? $this->briefUser($user) : null,
+            ],
+        ], 200)
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate')
+            ->header('Pragma', 'no-cache');
     }
 
-    /**
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function verify(Request $request)
     {
-        if ($request->user()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Token valid',
-                'data' => [
-                    'user' => $request->user()
-                ]
-            ]);
-        }
+        $user = $request->user();
         return response()->json([
-            'success' => false,
-            'message' => 'Token tidak valid atau kadaluarsa.'
-        ], 401);
+            'success' => (bool) $user,
+            'message' => $user ? 'Token valid' : 'Token tidak valid atau kadaluarsa.',
+            'data'    => ['user' => $user ? $this->briefUser($user) : null],
+        ], $user ? 200 : 401)->header('Cache-Control', 'no-store, no-cache, must-revalidate');
+    }
+
+    /** Hanya kirim field yang aman/terpakai ke frontend */
+    protected function briefUser($user): array
+    {
+        $base = [
+            'id'    => $user->id,
+            'name'  => $user->name ?? ($user->username ?? null),
+            'email' => $user->email ?? null,
+        ];
+        // role untuk User; Customer dianggap 'customer'
+        $role = $user instanceof Customer ? 'customer' : ($user->role ?? 'customer');
+
+        return array_merge($base, [
+            'role'     => $role,
+            'username' => $user->username ?? null,
+        ]);
     }
 }

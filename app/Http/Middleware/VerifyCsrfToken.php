@@ -6,12 +6,10 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken as Middleware;
 
 class VerifyCsrfToken extends Middleware
 {
-    /**
-     * The URIs that should be excluded from CSRF verification.
-     *
-     * @var array<int, string>
-     */
     protected $except = [
-        'api/auth/logout', // Allow logout without CSRF token to handle cleanup
+        'api/auth/login',
+        'api/auth/register',
+        'api/auth/logout',
+        // kalau nanti ada endpoint API lain yang POST dan memang tidak pakai session, tambahkan di sini
     ];
 }

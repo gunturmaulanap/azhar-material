@@ -4,125 +4,122 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
-use App\Models\User;
-use App\Models\Customer;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Route;
 use Illuminate\View\View;
+use App\Support\RoutePicks;
 
 class AuthenticatedSessionController extends Controller
 {
+    use RoutePicks;
+
     /**
      * Tampilkan tampilan login atau alihkan jika sudah terautentikasi.
-     *
-     * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
      */
     public function create(): View|RedirectResponse
     {
-        // Jika sudah login dengan guard 'web' atau 'customer', alihkan ke homepage
-        // User bisa akses dashboard melalui button dashboard di React SPA
+        // Jika sudah login dengan guard 'web' atau 'customer', alihkan ke homepage (SPA)
         if (Auth::guard('web')->check() || Auth::guard('customer')->check()) {
             return redirect('/');
         }
 
-        // Jika tidak ada yang terautentikasi, tampilkan halaman login React
+        // Jika belum login, tampilkan halaman React
         return view('react');
     }
 
     /**
-     * Tangani permintaan otentikasi masuk.
-     *
-     * @param  \App\Http\Requests\Auth\LoginRequest  $request
-     * @return \Illuminate\Http\RedirectResponse
+     * Tangani permintaan otentikasi masuk (form Laravel).
      */
     public function store(LoginRequest $request): RedirectResponse
     {
         $request->authenticate();
-
         $request->session()->regenerate();
 
-        // Untuk API/React login, redirect ke halaman utama
-        // User bisa akses dashboard melalui button di React SPA
+        // Untuk SPA, cukup kembali ke halaman utama
         return redirect('/');
     }
 
     /**
      * Hancurkan sesi otentikasi.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\RedirectResponse
      */
     public function destroy(Request $request): RedirectResponse
     {
-        // Cek guard mana yang digunakan untuk logout
         if (Auth::guard('web')->check()) {
             Auth::guard('web')->logout();
         } elseif (Auth::guard('customer')->check()) {
             Auth::guard('customer')->logout();
         }
 
-        // Flush semua session data
+        // Bersihkan session
         $request->session()->flush();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
         $request->session()->regenerate(true);
 
-        // Pastikan semua cookies authentication terhapus
-        $response = redirect('/');
+        $resp   = redirect('/');
+        $domain = config('session.domain'); // contoh: .azharmaterial.com
+        $secure = (bool)config('session.secure');
 
-        // Clear authentication cookies manually
-        $response->withCookie(\Cookie::forget('laravel_session'));
-        $response->withCookie(\Cookie::forget('XSRF-TOKEN'));
+        // Hapus cookies di beberapa kombinasi path/domain (aman di shared hosting)
+        foreach (['/', null] as $path) {
+            $resp->withCookie(\Cookie::forget('laravel_session', $path, $domain, null, $secure, false));
+            $resp->withCookie(\Cookie::forget('XSRF-TOKEN',    $path, $domain, null, $secure, false));
+        }
+        // fallback tanpa domain
+        $resp->withCookie(\Cookie::forget('laravel_session'));
+        $resp->withCookie(\Cookie::forget('XSRF-TOKEN'));
 
-        return $response;
+        return $resp;
     }
 
     /**
-     * Mengarahkan pengguna yang terautentikasi ke dashboard yang benar.
-     *
-     * @param  \App\Models\User|\App\Models\Customer  $user
-     * @return \Illuminate\Http\RedirectResponse
+     * Redirect pengguna ke dashboard yang sesuai peran.
      */
     protected function redirectBasedOnRole($user): RedirectResponse
     {
-        // Jika peran 'customer', alihkan ke dashboard customer
-        if ($user instanceof Customer) {
-            if (Route::has('customer.dashboard')) {
-                return redirect()->route('customer.dashboard', ['id' => $user->id]);
-            }
+        if ($user instanceof \App\Models\Customer) {
+            $name = $this->pickFirstExistingRoute([
+                'customer.dashboard',
+                'customer.index',
+            ]);
+            return $name ? redirect()->route($name, ['id' => $user->id]) : redirect('/');
         }
 
-        // Jika peran 'user' (admin, super_admin, dll.), alihkan berdasarkan perannya
-        switch ($user->role) {
+        $role = $user->role ?? 'customer';
+
+        switch ($role) {
             case 'super_admin':
-                if (Route::has('superadmin.dashboard')) {
-                    return redirect()->route('superadmin.dashboard');
-                }
+                $name = $this->pickFirstExistingRoute(['superadmin.dashboard']);
                 break;
+
             case 'admin':
-                if (Route::has('admin.transaction.create')) {
-                    return redirect()->route('admin.transaction.create');
-                }
+                $name = $this->pickFirstExistingRoute(['admin.transaction.create']);
                 break;
+
             case 'content-admin':
-                if (Route::has('content-admin.hero-sections')) {
-                    return redirect()->route('content-admin.hero-sections');
-                }
+                $name = $this->pickFirstExistingRoute([
+                    'content-admin.analytics',
+                    'content-admin.hero-sections',
+                    'content-admin.hero-sections.index',
+                ]);
                 break;
+
             case 'owner':
-                if (Route::has('owner.report.index')) {
-                    return redirect()->route('owner.report.index');
-                }
-            case 'driver':
-                if (Route::has('driver.delivery.index')) {
-                    return redirect()->route('driver.delivery.index');
-                }
+                $name = $this->pickFirstExistingRoute(['owner.report.index']);
                 break;
+
+            case 'driver':
+                $name = $this->pickFirstExistingRoute([
+                    'admin.delivery.index',
+                    'driver.delivery.index',
+                ]);
+                break;
+
+            default:
+                $name = null;
         }
 
-        // Fallback yang aman
-        return redirect(url('/'));
+        return $name ? redirect()->route($name) : redirect(url('/'));
     }
 }
