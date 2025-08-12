@@ -88,8 +88,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       "content-admin": "/content-admin/analytics",
       owner: "/owner/laporan-penjualan",
     };
-    // ensure SPA cache cleaned before jumping into Livewire app to avoid stale role
-    try { localStorage.removeItem("am_user"); } catch (_) {}
     return dashboardRoutes[role] || "/";
   };
 
@@ -156,7 +154,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
             {/* Auth Section */}
             <div className="hidden md:flex items-center space-x-4">
-              {auth.loading ? null : isAuthenticated ? (
+              {!auth.ready ? null : isAuthenticated ? (
                 <>
                   {/* Dashboard Button with session-aware redirect */}
                   <Button
@@ -247,7 +245,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
                 {/* Mobile Auth */}
                 <div className="pt-4 border-t border-gray-200">
-                  {auth.loading ? null : isAuthenticated ? (
+                  {!auth.ready ? null : isAuthenticated ? (
                     <div className="px-3 py-2 space-y-2">
                       <p className="text-sm text-gray-600 mb-2">
                         Welcome, {user && user.name ? user.name : "User"}

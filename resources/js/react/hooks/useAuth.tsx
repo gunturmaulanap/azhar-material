@@ -15,7 +15,6 @@ interface User {
   email: string;
   role: string;
   username?: string;
-  // Tambahkan properti pengguna lain di sini jika diperlukan
 }
 
 interface LoginResponseData {
@@ -24,24 +23,24 @@ interface LoginResponseData {
   data: {
     user: User;
     role: string;
-    redirect_url: string; // Tambahkan properti ini
+    redirect_url: string;
   };
-  token: string;
+  token?: string; // no longer used on client
   error?: string;
 }
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
-  loading: boolean;
+  ready: boolean; // SPA hydration flag
   login: (credentials: {
     username: string;
     password: string;
     login_type: string;
     role?: string;
   }) => Promise<LoginResponseData>;
-  logout: (skipApiCall?: boolean) => void;
-  register: (data: any) => Promise<LoginResponseData>;
+  logout: (skipApiCall?: boolean) => Promise<void>;
+  refresh: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -54,174 +53,88 @@ export const useAuth = (): AuthContextType => {
   return context;
 };
 
-const LOCAL_USER_KEY = "am_user";
-
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true);
-  
-  // Add a maximum loading time for mobile devices
-  React.useEffect(() => {
-    const maxLoadingTime = setTimeout(() => {
-      if (loading) {
-        console.warn("Authentication loading timeout - proceeding as guest");
-        setLoading(false);
-        setIsAuthenticated(false);
-        setUser(null);
-      }
-    }, 7000); // shorter max loading time for Safari/mobile
-    
-    return () => clearTimeout(maxLoadingTime);
-  }, [loading]);
+  const [ready, setReady] = useState(false);
 
-  // useEffect runs once on component mount to check for an existing token
+  // Hydrate from server session on mount
   useEffect(() => {
-    const initializeAuth = async () => {
-      // 0) Optimistic state from localStorage to avoid UI flicker on refresh
+    let isMounted = true;
+    const hydrate = async () => {
       try {
-        const cached = localStorage.getItem(LOCAL_USER_KEY);
-        if (cached) {
-          const parsed: User = JSON.parse(cached);
-          if (parsed && parsed.id) {
-            setUser(parsed);
-            setIsAuthenticated(true);
-          }
-        }
-      } catch (_) {
-        // ignore localStorage errors (Safari private mode, etc.)
-      }
-
-      try {
-        const token = Cookies.get("token");
-
-        // 1) Coba ambil user via endpoint yang memakai session (withCredentials true di axios)
-        // Ini akan berhasil jika login via session (guard web/customer)
-        try {
-          const sessionResp = await authService.getUser();
-          if (sessionResp.data?.success && sessionResp.data?.data?.user) {
-            const u: User = sessionResp.data.data.user;
-            setUser(u);
-            setIsAuthenticated(true);
-            try { localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(u)); } catch (_) {}
-            setLoading(false);
-            return;
-          }
-        } catch (e) {
-          // Abaikan, lanjut gunakan token jika ada
-        }
-
-        // 2) Jika ada token, verify via endpoint protected (tanpa memaksa reload)
-        if (token) {
-          try {
-            const verifyResp = await authService.verifyToken(token);
-            if (verifyResp.data?.success && verifyResp.data?.data?.user) {
-              const u: User = verifyResp.data.data.user;
-              setUser(u);
-              setIsAuthenticated(true);
-              try { localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(u)); } catch (_) {}
-            } else {
-              Cookies.remove("token");
-              setUser(null);
-              setIsAuthenticated(false);
-              try { localStorage.removeItem(LOCAL_USER_KEY); } catch (_) {}
-            }
-          } catch (apiError) {
-            Cookies.remove("token");
-            setUser(null);
-            setIsAuthenticated(false);
-            try { localStorage.removeItem(LOCAL_USER_KEY); } catch (_) {}
-          }
+        // Fetch current user from server session (no cache)
+        const sessionResp = await authService.getUser();
+        const serverUser: User | null = sessionResp?.data?.data?.user ?? null;
+        if (!isMounted) return;
+        if (serverUser && serverUser.id) {
+          setUser(serverUser);
+          setIsAuthenticated(true);
         } else {
           setUser(null);
           setIsAuthenticated(false);
-          try { localStorage.removeItem(LOCAL_USER_KEY); } catch (_) {}
         }
-      } catch (error) {
-        Cookies.remove("token");
+      } catch (_) {
+        if (!isMounted) return;
         setUser(null);
         setIsAuthenticated(false);
-        try { localStorage.removeItem(LOCAL_USER_KEY); } catch (_) {}
       } finally {
-        setLoading(false);
+        if (isMounted) setReady(true);
       }
     };
+    hydrate();
 
-    const timeoutId = setTimeout(initializeAuth, 10);
-    return () => clearTimeout(timeoutId);
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // Revalidate auth on back/forward cache restore (Safari/iOS)
   useEffect(() => {
     const handlePageShow = (event: PageTransitionEvent) => {
-      // If using bfcache, refresh auth state
       // @ts-ignore
       if (event.persisted === true) {
-        (async () => {
-          try {
-            const sessionResp = await authService.getUser();
-            if (sessionResp.data?.success && sessionResp.data?.data?.user) {
-              const u: User = sessionResp.data.data.user;
-              setUser(u);
-              setIsAuthenticated(true);
-              try { localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(u)); } catch (_) {}
-            } else {
-              setIsAuthenticated(false);
-              setUser(null);
-              try { localStorage.removeItem(LOCAL_USER_KEY); } catch (_) {}
-            }
-          } catch (_) {
-            setIsAuthenticated(false);
-            setUser(null);
-            try { localStorage.removeItem(LOCAL_USER_KEY); } catch (_) {}
-          }
-        })();
+        refresh();
       }
     };
     window.addEventListener('pageshow', handlePageShow as any);
     return () => window.removeEventListener('pageshow', handlePageShow as any);
   }, []);
 
-  // Main login function to handle API call and token storage
+  const refresh = async () => {
+    try {
+      const sessionResp = await authService.getUser();
+      const serverUser: User | null = sessionResp?.data?.data?.user ?? null;
+      if (serverUser && serverUser.id) {
+        setUser(serverUser);
+        setIsAuthenticated(true);
+      } else {
+        setUser(null);
+        setIsAuthenticated(false);
+      }
+    } catch (_) {
+      setUser(null);
+      setIsAuthenticated(false);
+    }
+  };
+
   const login = async (credentials: {
     username: string;
     password: string;
     login_type: string;
     role?: string;
   }): Promise<LoginResponseData> => {
-    try {
-      // Refresh CSRF cookie before login to avoid stale Safari cache/session
-      try { await authService.getSanctumCookie(); } catch (_) {}
-      const response = await authService.login(credentials);
+    // Ensure CSRF is fresh before login (Safari fix)
+    try { await authService.getSanctumCookie(); } catch (_) {}
 
-      const {
-        token,
-        data: { user, role },
-      } = response.data;
+    const response = await authService.login(credentials);
 
-      // Simpan token tanpa memaksa domain, agar sesuai dengan current host
-      Cookies.set("token", token, {
-        expires: 7,
-        sameSite: "Lax",
-        path: "/",
-        secure: window.location.protocol === "https:",
-      });
+    // Do NOT store bearer token on client. Server session cookie is authoritative.
 
-      // cache user untuk mencegah flicker saat refresh
-      try { localStorage.setItem(LOCAL_USER_KEY, JSON.stringify({ ...user, role })); } catch (_) {}
+    // After server login succeeds, immediately rehydrate from /api/me
+    await refresh();
 
-      setUser({ ...user, role });
-      setIsAuthenticated(true);
-
-      return response.data;
-    } catch (error: any) {
-      console.error("Login failed in AuthProvider:", error);
-      setIsAuthenticated(false);
-      setUser(null);
-      Cookies.remove("token");
-      try { localStorage.removeItem(LOCAL_USER_KEY); } catch (_) {}
-      throw error;
-    }
+    return response.data as LoginResponseData;
   };
 
   const logout = async (skipApiCall: boolean = false) => {
@@ -229,55 +142,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (!skipApiCall) {
         await authService.logout();
       }
-    } catch (error) {
-      // Lanjutkan pembersihan client-side meski API gagal
+    } catch (_) {
+      // ignore
     } finally {
-      Cookies.remove("token");
-      try { localStorage.removeItem(LOCAL_USER_KEY); } catch (_) {}
       setUser(null);
       setIsAuthenticated(false);
-      // Ensure fresh CSRF cookie for the next login (Safari role switch fix)
+      // Pre-fetch fresh CSRF cookie for next login (Safari role switch)
       try { await authService.getSanctumCookie(); } catch (_) {}
-    }
-  };
-
-  const register = async (userData: any): Promise<LoginResponseData> => {
-    try {
-      const response = await authService.register(userData);
-      const {
-        token,
-        data: { user, role },
-      } = response.data;
-
-      Cookies.set("token", token, {
-        expires: 7,
-        sameSite: "Lax",
-        path: "/",
-        secure: window.location.protocol === "https:",
-      });
-
-      try { localStorage.setItem(LOCAL_USER_KEY, JSON.stringify({ ...user, role })); } catch (_) {}
-
-      setUser({ ...user, role });
-      setIsAuthenticated(true);
-      return response.data;
-    } catch (error: any) {
-      console.error("Register failed in AuthProvider:", error);
-      setIsAuthenticated(false);
-      setUser(null);
-      Cookies.remove("token");
-      try { localStorage.removeItem(LOCAL_USER_KEY); } catch (_) {}
-      throw error;
     }
   };
 
   const value: AuthContextType = {
     user,
     isAuthenticated,
-    loading,
+    ready,
     login,
     logout,
-    register,
+    refresh,
   };
 
   return (

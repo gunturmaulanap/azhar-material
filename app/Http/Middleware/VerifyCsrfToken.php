@@ -12,6 +12,7 @@ class VerifyCsrfToken extends Middleware
      * @var array<int, string>
      */
     protected $except = [
-        'api/auth/logout', // Allow logout without CSRF token to handle cleanup
+        'api/sanctum/csrf-cookie',
+        'sanctum/csrf-cookie',
     ];
 }

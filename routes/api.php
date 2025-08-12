@@ -74,10 +74,12 @@ Route::post('/contact', [ContactController::class, 'send']);
 Route::get('/user', [AuthController::class, 'user'])->middleware(['web','no-store']);
 Route::get('/me', [AuthController::class, 'user'])->middleware(['web','no-store']);
 
+// Auth-related: allow logout without requiring token auth to avoid edge cases
+Route::post('/auth/logout', [AuthController::class, 'logout'])->middleware(['web','no-store']);
+
 // Protected routes (memerlukan token Sanctum)
 Route::middleware(['web','auth:sanctum','no-store'])->group(function () {
     Route::post('/auth/verify', [AuthController::class, 'verify']);
-    Route::post('/auth/logout', [AuthController::class, 'logout']);
 
     // Rute manajemen konten yang dipindahkan ke sini
     Route::put('/brands/{id}/content', [BrandController::class, 'updateContent']);

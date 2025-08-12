@@ -7,18 +7,15 @@ const api = axios.create(apiConfig);
 
 const isDev = typeof import.meta !== 'undefined' ? import.meta.env.DEV : (process.env.NODE_ENV !== 'production');
 
-// Request interceptor for CSRF and Authorization tokens
+// Request interceptor for CSRF
 api.interceptors.request.use(
   async (config) => {
     try {
       const method = config.method?.toLowerCase?.() || '';
       const isStateChanging = ['post', 'put', 'patch', 'delete'].includes(method);
 
-      // Add Authorization header if we have a token early (so CSRF preflight also has it if needed)
-      const authToken = Cookies.get("token");
-      if (authToken) {
-        config.headers["Authorization"] = `Bearer ${authToken}`;
-      }
+      // For SPA using Laravel session, do NOT attach Authorization header.
+      // We rely on HttpOnly session cookies sent via withCredentials.
 
       // Get CSRF token only when needed and not already present
       if (isStateChanging) {
@@ -44,12 +41,22 @@ api.interceptors.request.use(
         config.headers["X-XSRF-TOKEN"] = csrfToken;
       }
 
+      // Strengthen no-store headers on auth-sensitive requests
+      if (config.url && (
+        config.url.includes(endpoints.login) ||
+        config.url.includes(endpoints.logout) ||
+        config.url.includes(endpoints.me) ||
+        config.url.includes(endpoints.user)
+      )) {
+        config.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate';
+        config.headers['Pragma'] = 'no-cache';
+      }
+
       if (isDev) {
         // Light request log in development only
         console.log('API Request:', {
           url: config.url,
           method: config.method,
-          hasToken: !!authToken,
           hasCsrf: !!csrfToken
         });
       }
@@ -77,9 +84,8 @@ api.interceptors.response.use(
   },
   (error) => {
     if (error.response?.status === 401) {
-      // Handle unauthorized access
-      Cookies.remove("token"); // Hapus token jika 401
-      if (isDev) console.warn("Authentication failed, token removed");
+      // Handle unauthorized access; session likely expired. Let caller refresh state.
+      if (isDev) console.warn("Authentication failed (401)");
     }
     return Promise.reject(error);
   }
@@ -89,13 +95,11 @@ api.interceptors.response.use(
 export const authService = {
   getCsrf: () => api.get(endpoints.csrf),
   getSanctumCookie: () => api.get(endpoints.sanctumCookie, { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate', 'Pragma': 'no-cache' } }),
-  login: (credentials) => {
-    return api.post(endpoints.login, credentials);
-  },
+  login: (credentials) => api.post(endpoints.login, credentials),
   register: (userData) => api.post(endpoints.register, userData),
   logout: () => api.post(endpoints.logout),
-  getUser: () => api.get(endpoints.user, { headers: { 'Cache-Control': 'no-store' } }),
-  verifyToken: (token) => api.post(endpoints.verifyToken, { token }),
+  // Hydrate auth state from the server session
+  getUser: () => api.get(endpoints.me, { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate', 'Pragma': 'no-cache' } }),
 };
 
 // Product services (from Laravel Goods model)
