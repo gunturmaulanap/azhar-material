@@ -34,6 +34,25 @@
     </div>
 
     <script>
+        // Sembunyikan fallback ketika React telah merender atau setelah timeout
+        (function() {
+            const appEl = document.getElementById('app');
+            const hideFallback = () => {
+                const fallback = document.getElementById('fallback-content');
+                if (fallback) fallback.style.display = 'none';
+            };
+            const observer = new MutationObserver(() => {
+                hideFallback();
+                observer.disconnect();
+            });
+            if (appEl) {
+                observer.observe(appEl, { childList: true, subtree: true });
+            }
+            setTimeout(hideFallback, 10000); // jaga-jaga jika device/mobile lambat
+        })();
+    </script>
+
+    <script>
         (function() {
             const BASE_URL = @json(env('SOCKET_BASE_URL'));
             const PREFIX = @json(env('SOCKET_PREFIX', 'Jbrad2023'));
