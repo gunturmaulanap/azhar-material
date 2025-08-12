@@ -20,10 +20,13 @@
     @viteReactRefresh
     @vite(['resources/css/app.css', 'resources/js/react/main.tsx'])
     <!-- Socket.IO client (required for public tracking) -->
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" defer></script>
 </head>
 
 <body class="font-sans antialiased bg-gradient-to-br from-gray-50 via-white to-gray-100">
+    <noscript>
+        <div class="p-4 text-center text-red-700 bg-red-50">Aplikasi membutuhkan JavaScript untuk berjalan.</div>
+    </noscript>
     <div id="app" class="min-h-screen">
         <div id="fallback-content" class="min-h-screen bg-gray-50 flex items-center justify-center">
             <div class="text-center">

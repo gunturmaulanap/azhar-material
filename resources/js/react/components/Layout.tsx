@@ -68,12 +68,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       // Even if logout fails, we still clean local state in useAuth
     }
 
-    // Always redirect to home after logout attempt
-    // The useAuth logout function handles all cleanup
-          setTimeout(() => {
-        // use replace to avoid back button returning to authenticated page
-        window.location.replace("/");
-      }, 100);
+    // SPA navigate home without full reload
+    navigate("/", { replace: true });
 
     // Clean up the broadcast item after a short delay
     setTimeout(() => {
@@ -167,28 +163,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     variant="ghost"
                     className="flex items-center space-x-2 text-primary hover:bg-primary hover:text-white"
                     onClick={() => {
-                      // Create a form to POST to Laravel for session-aware redirect
-                      const form = document.createElement("form");
-                      form.method = "GET";
-                      form.action = getDashboardRoute(
+                      // Use full redirect to Laravel dashboard (Livewire)
+                      window.location.href = getDashboardRoute(
                         user?.role || "customer",
                         user?.id
                       );
-
-                      // Add CSRF token if needed for POST
-                      const csrfToken = document
-                        .querySelector('meta[name="csrf-token"]')
-                        ?.getAttribute("content");
-                      if (csrfToken) {
-                        const csrfInput = document.createElement("input");
-                        csrfInput.type = "hidden";
-                        csrfInput.name = "_token";
-                        csrfInput.value = csrfToken;
-                        form.appendChild(csrfInput);
-                      }
-
-                      document.body.appendChild(form);
-                      form.submit();
                     }}
                   >
                     <LayoutDashboard className="h-4 w-4" />
@@ -219,7 +198,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   </div>
                 </>
               ) : (
-                <Link to="/login">
+                <Link to="/login" state={{ from: location.pathname }}>
                   <Button
                     variant="outline"
                     className="border-primary text-primary hover:bg-primary hover:text-white"
@@ -307,6 +286,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   ) : (
                     <Link
                       to="/login"
+                      state={{ from: location.pathname }}
                       className="block px-3 py-2 text-base font-medium rounded-md text-primary hover:bg-accent"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
@@ -398,11 +378,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <div>
               <h4 className="text-lg font-semibold mb-4">Contact Info</h4>
               <div className="text-gray-300 space-y-2">
-                <p>WhatsApp: 081392854911</p>
-                <p>Email: azharmaterial@gmail.com</p>
-                <p className="text-sm mt-4">
-                  © 2024 Azhar Material. All rights reserved.
-                </p>
+                <p>Jl. Raya Kesugihan No. 123</p>
+                <p>Cilacap, Jawa Tengah</p>
+                <p>Phone: +62 812-3456-7890</p>
+                <p>Email: info@azharmaterial.com</p>
               </div>
             </div>
           </div>
