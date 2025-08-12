@@ -1,6 +1,16 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { MapPin, Phone, Mail, Navigation, ExternalLink, Clock, Car, Store, Zap } from 'lucide-react';
-import { Button } from '../ui/button';
+import React, { useState, useRef, useEffect } from "react";
+import {
+  MapPin,
+  Phone,
+  Mail,
+  Navigation,
+  ExternalLink,
+  Clock,
+  Car,
+  Store,
+  Zap,
+} from "lucide-react";
+import { Button } from "../ui/button";
 
 const LocationSectionSimple: React.FC = () => {
   const [isMapHovered, setIsMapHovered] = useState(false);
@@ -11,53 +21,58 @@ const LocationSectionSimple: React.FC = () => {
   const storeInfo = {
     name: "Azhar Material",
     tagline: "Toko Besi Terpercaya di Cilacap",
-    description: "Azhar Material adalah toko besi di pedesaan yang selalu ingin meningkatkan layanan melalui teknologi seperti sekarang ini. Kami berkomitmen memberikan pelayanan terbaik dengan produk berkualitas tinggi untuk kebutuhan konstruksi dan bangunan Anda. Dengan pengalaman bertahun-tahun, kami memahami kebutuhan masyarakat akan material bangunan yang berkualitas dengan harga yang terjangkau.",
+    description:
+      "Azhar Material adalah toko besi di pedesaan yang selalu ingin meningkatkan layanan melalui teknologi seperti sekarang ini. Kami berkomitmen memberikan pelayanan terbaik dengan produk berkualitas tinggi untuk kebutuhan konstruksi dan bangunan Anda. Dengan pengalaman bertahun-tahun, kami memahami kebutuhan masyarakat akan material bangunan yang berkualitas dengan harga yang terjangkau.",
     address: {
       full: "JV2V+3JQ, Bojongsari, Ciporos, Kec. Karangpucung, Kabupaten Cilacap, Jawa Tengah 53255",
       city: "Cilacap",
       province: "Jawa Tengah",
-      country: "Indonesia"
+      country: "Indonesia",
     },
     contact: {
-      phone: "+62 812-3456-7890",
+      phone: "+62 813-9285-4911",
       email: "info@azharmaterial.com",
-      whatsapp: "+62 812-3456-7890"
+      whatsapp: "+62 813-9285-4911",
     },
     coordinates: {
       lat: -7.5986,
-      lng: 108.8939
+      lng: 108.8939,
     },
     operatingHours: {
       weekdays: "07:00 - 17:00",
-      weekend: "07:00 - 15:00"
-    }
+      weekend: "07:00 - 15:00",
+    },
   };
 
   const features = [
     {
       icon: MapPin,
       title: "Lokasi Strategis",
-      description: "Terletak di pusat Karangpucung, mudah dijangkau dari berbagai daerah sekitar dengan akses jalan utama.",
-      gradient: "from-blue-500 to-cyan-500"
+      description:
+        "Terletak di pusat Karangpucung, mudah dijangkau dari berbagai daerah sekitar dengan akses jalan utama.",
+      gradient: "from-blue-500 to-cyan-500",
     },
     {
       icon: Clock,
       title: "Jam Operasional Fleksibel",
-      description: "Buka setiap hari dengan jam operasional yang fleksibel untuk memenuhi kebutuhan pelanggan.",
-      gradient: "from-green-500 to-emerald-500"
+      description:
+        "Buka setiap hari dengan jam operasional yang fleksibel untuk memenuhi kebutuhan pelanggan.",
+      gradient: "from-green-500 to-emerald-500",
     },
     {
       icon: Car,
       title: "Parkir Luas",
-      description: "Area parkir yang luas dan aman untuk kendaraan besar maupun kecil, termasuk truk pengangkut material.",
-      gradient: "from-purple-500 to-indigo-500"
+      description:
+        "Area parkir yang luas dan aman untuk kendaraan besar maupun kecil, termasuk truk pengangkut material.",
+      gradient: "from-purple-500 to-indigo-500",
     },
     {
       icon: Zap,
       title: "Layanan Cepat",
-      description: "Tim berpengalaman siap melayani dengan cepat dan profesional untuk semua kebutuhan material Anda.",
-      gradient: "from-orange-500 to-red-500"
-    }
+      description:
+        "Tim berpengalaman siap melayani dengan cepat dan profesional untuk semua kebutuhan material Anda.",
+      gradient: "from-orange-500 to-red-500",
+    },
   ];
 
   // Intersection Observer for scroll animations
@@ -81,41 +96,52 @@ const LocationSectionSimple: React.FC = () => {
   const handleGetDirections = () => {
     const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${storeInfo.coordinates.lat},${storeInfo.coordinates.lng}`;
     const appleMapsUrl = `http://maps.apple.com/?daddr=${storeInfo.coordinates.lat},${storeInfo.coordinates.lng}`;
-    
+
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     const isApple = /iPhone|iPad|iPod|Mac/i.test(navigator.userAgent);
-    
+
     if (isMobile && isApple) {
-      window.open(appleMapsUrl, '_blank');
+      window.open(appleMapsUrl, "_blank");
     } else {
-      window.open(googleMapsUrl, '_blank');
+      window.open(googleMapsUrl, "_blank");
     }
   };
 
   const handleWhatsApp = () => {
-    const message = encodeURIComponent(`Halo, saya ingin mengetahui lebih lanjut tentang produk di ${storeInfo.name}`);
-    window.open(`https://wa.me/${storeInfo.contact.whatsapp.replace(/[^0-9]/g, '')}?text=${message}`, '_blank');
+    const message = encodeURIComponent(
+      `Halo, saya ingin mengetahui lebih lanjut tentang produk di ${storeInfo.name}`
+    );
+    window.open(
+      `https://wa.me/${storeInfo.contact.whatsapp.replace(
+        /[^0-9]/g,
+        ""
+      )}?text=${message}`,
+      "_blank"
+    );
   };
 
-  const handleMapInteraction = (type: 'hover' | 'click', isActive: boolean) => {
-    if (type === 'hover') {
+  const handleMapInteraction = (type: "hover" | "click", isActive: boolean) => {
+    if (type === "hover") {
       setIsMapHovered(isActive);
       if (mapRef.current) {
-        mapRef.current.style.transform = isActive ? 'scale(1.03)' : 'scale(1)';
-        mapRef.current.style.filter = isActive ? 'brightness(1.05) contrast(1.1)' : 'brightness(1) contrast(1)';
-        mapRef.current.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+        mapRef.current.style.transform = isActive ? "scale(1.03)" : "scale(1)";
+        mapRef.current.style.filter = isActive
+          ? "brightness(1.05) contrast(1.1)"
+          : "brightness(1) contrast(1)";
+        mapRef.current.style.transition =
+          "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)";
       }
     }
   };
 
   return (
-    <section 
+    <section
       ref={sectionRef}
       className="relative py-20 overflow-hidden"
       style={{
-        animation: isVisible ? 'fadeInUp 0.8s ease-out forwards' : 'none',
+        animation: isVisible ? "fadeInUp 0.8s ease-out forwards" : "none",
         opacity: isVisible ? 1 : 0,
-        transform: isVisible ? 'translateY(0)' : 'translateY(30px)'
+        transform: isVisible ? "translateY(0)" : "translateY(30px)",
       }}
     >
       {/* CSS Keyframes */}
@@ -196,20 +222,18 @@ const LocationSectionSimple: React.FC = () => {
           opacity: 0;
         }
 
-        ${isVisible ? '.stagger-animation { opacity: 1; }' : ''}
+        ${isVisible ? ".stagger-animation { opacity: 1; }" : ""}
       `}</style>
 
       {/* Background Elements */}
       <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-gray-100"></div>
       <div className="absolute top-20 right-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl"></div>
       <div className="absolute bottom-20 left-10 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl"></div>
-      
+
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Enhanced Header */}
         <div className="text-center mb-16">
-          <div
-            className="inline-flex items-center px-4 py-2 bg-primary/10 rounded-full text-primary font-medium text-sm mb-6 hover:scale-105 transition-transform duration-300"
-          >
+          <div className="inline-flex items-center px-4 py-2 bg-primary/10 rounded-full text-primary font-medium text-sm mb-6 hover:scale-105 transition-transform duration-300">
             <Store className="h-4 w-4 mr-2" />
             {storeInfo.tagline}
           </div>
@@ -217,14 +241,18 @@ const LocationSectionSimple: React.FC = () => {
             Lokasi Toko Kami
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            Kunjungi toko kami untuk melihat langsung kualitas produk dan mendapatkan konsultasi gratis dari tim ahli kami
+            Kunjungi toko kami untuk melihat langsung kualitas produk dan
+            mendapatkan konsultasi gratis dari tim ahli kami
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
           {/* Enhanced Store Information */}
           <div className="space-y-8">
-            <div className="stagger-animation" style={{'--delay': '0.2s'} as React.CSSProperties}>
+            <div
+              className="stagger-animation"
+              style={{ "--delay": "0.2s" } as React.CSSProperties}
+            >
               <h3 className="text-3xl font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent mb-6">
                 {storeInfo.name}
               </h3>
@@ -236,13 +264,18 @@ const LocationSectionSimple: React.FC = () => {
             {/* Enhanced Contact Cards */}
             <div className="grid grid-cols-1 gap-6">
               {/* Address Card */}
-              <div className="card-hover group bg-white/80 backdrop-blur-sm p-8 rounded-3xl shadow-xl border border-white/20 stagger-animation" style={{'--delay': '0.4s'} as React.CSSProperties}>
+              <div
+                className="card-hover group bg-white/80 backdrop-blur-sm p-8 rounded-3xl shadow-xl border border-white/20 stagger-animation"
+                style={{ "--delay": "0.4s" } as React.CSSProperties}
+              >
                 <div className="flex items-start space-x-6">
                   <div className="bg-gradient-to-br from-primary/20 to-blue-500/20 p-4 rounded-2xl group-hover:scale-110 transition-transform duration-300 icon-rotate">
                     <MapPin className="h-8 w-8 text-primary" />
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-bold text-gray-900 mb-3 text-lg">ALAMAT LENGKAP</h4>
+                    <h4 className="font-bold text-gray-900 mb-3 text-lg">
+                      ALAMAT LENGKAP
+                    </h4>
                     <p className="text-gray-600 leading-relaxed mb-4">
                       {storeInfo.address.full}
                     </p>
@@ -262,28 +295,31 @@ const LocationSectionSimple: React.FC = () => {
               </div>
 
               {/* Contact Info Card */}
-              <div className="card-hover group bg-white/80 backdrop-blur-sm p-8 rounded-3xl shadow-xl border border-white/20 stagger-animation" style={{'--delay': '0.6s'} as React.CSSProperties}>
+              <div
+                className="card-hover group bg-white/80 backdrop-blur-sm p-8 rounded-3xl shadow-xl border border-white/20 stagger-animation"
+                style={{ "--delay": "0.6s" } as React.CSSProperties}
+              >
                 <h4 className="font-bold text-gray-900 mb-6 flex items-center text-lg">
                   <div className="mr-3 p-2 bg-gradient-to-br from-green-400/20 to-blue-500/20 rounded-xl icon-rotate">
                     <Phone className="h-6 w-6 text-primary" />
                   </div>
                   HUBUNGI KAMI
                 </h4>
-                
+
                 <div className="space-y-4">
                   <div className="flex items-center space-x-4 p-3 rounded-2xl hover:bg-gray-50 transition-colors hover:translate-x-1">
                     <Phone className="h-5 w-5 text-gray-400" />
-                    <a 
+                    <a
                       href={`tel:${storeInfo.contact.phone}`}
                       className="text-gray-700 hover:text-primary transition-colors font-medium"
                     >
                       {storeInfo.contact.phone}
                     </a>
                   </div>
-                  
+
                   <div className="flex items-center space-x-4 p-3 rounded-2xl hover:bg-gray-50 transition-colors hover:translate-x-1">
                     <Mail className="h-5 w-5 text-gray-400" />
-                    <a 
+                    <a
                       href={`mailto:${storeInfo.contact.email}`}
                       className="text-gray-700 hover:text-primary transition-colors font-medium"
                     >
@@ -294,8 +330,12 @@ const LocationSectionSimple: React.FC = () => {
                   <div className="flex items-center space-x-4 p-3 rounded-2xl hover:bg-gray-50 transition-colors hover:translate-x-1">
                     <Clock className="h-5 w-5 text-gray-400" />
                     <div className="text-gray-700">
-                      <div className="font-medium">Senin-Jumat: {storeInfo.operatingHours.weekdays}</div>
-                      <div className="text-sm text-gray-500">Sabtu-Minggu: {storeInfo.operatingHours.weekend}</div>
+                      <div className="font-medium">
+                        Senin-Jumat: {storeInfo.operatingHours.weekdays}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        Sabtu-Minggu: {storeInfo.operatingHours.weekend}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -303,7 +343,10 @@ const LocationSectionSimple: React.FC = () => {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 stagger-animation" style={{'--delay': '0.8s'} as React.CSSProperties}>
+            <div
+              className="flex flex-col sm:flex-row gap-4 stagger-animation"
+              style={{ "--delay": "0.8s" } as React.CSSProperties}
+            >
               <div className="flex-1">
                 <Button
                   onClick={handleGetDirections}
@@ -327,11 +370,14 @@ const LocationSectionSimple: React.FC = () => {
           </div>
 
           {/* Enhanced Map Section */}
-          <div className="relative stagger-animation" style={{'--delay': '1.0s'} as React.CSSProperties}>
-            <div 
+          <div
+            className="relative stagger-animation"
+            style={{ "--delay": "1.0s" } as React.CSSProperties}
+          >
+            <div
               className="relative overflow-hidden rounded-3xl shadow-2xl group hover:scale-105 transition-transform duration-300"
-              onMouseEnter={() => handleMapInteraction('hover', true)}
-              onMouseLeave={() => handleMapInteraction('hover', false)}
+              onMouseEnter={() => handleMapInteraction("hover", true)}
+              onMouseLeave={() => handleMapInteraction("hover", false)}
             >
               <iframe
                 ref={mapRef}
@@ -345,13 +391,13 @@ const LocationSectionSimple: React.FC = () => {
                 className="w-full h-[600px] transition-all duration-500"
                 title="Lokasi Azhar Material"
               />
-              
+
               {/* Enhanced Overlay Effects */}
-              <div 
+              <div
                 className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent pointer-events-none transition-opacity duration-300"
                 style={{ opacity: isMapHovered ? 1 : 0 }}
               />
-              
+
               {/* Enhanced Map Info Overlay */}
               <div className="absolute top-6 left-6 bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-xl border border-white/20">
                 <div className="flex items-center space-x-3 mb-2">
@@ -369,9 +415,9 @@ const LocationSectionSimple: React.FC = () => {
               {/* Zoom Indicator */}
               <div
                 className="absolute bottom-6 right-6 bg-black/50 text-white px-3 py-2 rounded-lg text-sm backdrop-blur-sm transition-all duration-200"
-                style={{ 
+                style={{
                   opacity: isMapHovered ? 1 : 0,
-                  transform: isMapHovered ? 'scale(1)' : 'scale(0.8)'
+                  transform: isMapHovered ? "scale(1)" : "scale(0.8)",
                 }}
               >
                 Click to zoom
@@ -388,7 +434,9 @@ const LocationSectionSimple: React.FC = () => {
                       <Store className="h-10 w-10" />
                     </div>
                     <h4 className="font-bold text-xl mb-2">Azhar Material</h4>
-                    <p className="text-sm opacity-90">Karangpucung, Cilacap • Jawa Tengah</p>
+                    <p className="text-sm opacity-90">
+                      Karangpucung, Cilacap • Jawa Tengah
+                    </p>
                     <div className="mt-3 flex items-center justify-center space-x-2 text-xs">
                       <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                       <span>Buka Sekarang</span>
@@ -404,10 +452,15 @@ const LocationSectionSimple: React.FC = () => {
         <div className="mt-20">
           <div className="bg-white/60 backdrop-blur-sm rounded-3xl shadow-2xl p-10 border border-white/20">
             <div className="text-center mb-12">
-              <h3 className="text-3xl font-bold text-gray-900 mb-4">Mengapa Memilih Lokasi Kami?</h3>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">Lokasi strategis dengan berbagai keunggulan untuk kemudahan berbelanja</p>
+              <h3 className="text-3xl font-bold text-gray-900 mb-4">
+                Mengapa Memilih Lokasi Kami?
+              </h3>
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                Lokasi strategis dengan berbagai keunggulan untuk kemudahan
+                berbelanja
+              </p>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               {features.map((feature, index) => {
                 const IconComponent = feature.icon;
@@ -415,12 +468,20 @@ const LocationSectionSimple: React.FC = () => {
                   <div
                     key={index}
                     className="feature-card group text-center p-6 rounded-2xl hover:bg-white/80 transition-all duration-300 hover:shadow-lg"
-                    style={{'--delay': `${index * 0.1 + 1.2}s`} as React.CSSProperties}
+                    style={
+                      {
+                        "--delay": `${index * 0.1 + 1.2}s`,
+                      } as React.CSSProperties
+                    }
                   >
-                    <div className={`w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center group-hover:scale-110 transition-transform duration-300 icon-rotate`}>
+                    <div
+                      className={`w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center group-hover:scale-110 transition-transform duration-300 icon-rotate`}
+                    >
                       <IconComponent className="h-8 w-8 text-white" />
                     </div>
-                    <h4 className="font-bold text-gray-900 mb-3 text-lg">{feature.title}</h4>
+                    <h4 className="font-bold text-gray-900 mb-3 text-lg">
+                      {feature.title}
+                    </h4>
                     <p className="text-gray-600 text-sm leading-relaxed">
                       {feature.description}
                     </p>
