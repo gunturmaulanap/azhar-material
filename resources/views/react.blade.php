@@ -8,6 +8,8 @@
     <meta name="theme-color" content="#A57C52">
     <meta name="description"
         content="Azhar Material - Toko Besi Terpercaya di Cilacap. Menyediakan material konstruksi berkualitas tinggi dengan pelayanan profesional.">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
     <title>{{ config('app.name', 'Azhar Material') }}</title>
     <link rel="icon" type="image/png" href="{{ asset('img/azhar.jpg') }}">
 

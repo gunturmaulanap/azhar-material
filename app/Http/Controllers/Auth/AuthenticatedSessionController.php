@@ -35,16 +35,26 @@ class AuthenticatedSessionController extends Controller
      * Tangani permintaan otentikasi masuk.
      *
      * @param  \App\Http\Requests\Auth\LoginRequest  $request
-     * @return \Illuminate\Http\RedirectResponse
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
      */
-    public function store(LoginRequest $request): RedirectResponse
+    public function store(LoginRequest $request)
     {
         $request->authenticate();
 
         $request->session()->regenerate();
 
-        // Untuk API/React login, redirect ke halaman utama
-        // User bisa akses dashboard melalui button di React SPA
+        // If SPA requests JSON, return JSON without redirect
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Login berhasil',
+            ])->withHeaders([
+                'Cache-Control' => 'no-store, no-cache, must-revalidate',
+                'Pragma' => 'no-cache',
+            ]);
+        }
+
+        // Untuk non-AJAX, redirect ke halaman utama
         return redirect('/');
     }
 
@@ -52,9 +62,9 @@ class AuthenticatedSessionController extends Controller
      * Hancurkan sesi otentikasi.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\RedirectResponse
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
      */
-    public function destroy(Request $request): RedirectResponse
+    public function destroy(Request $request)
     {
         // Cek guard mana yang digunakan untuk logout
         if (Auth::guard('web')->check()) {
@@ -66,6 +76,17 @@ class AuthenticatedSessionController extends Controller
         if ($request->hasSession()) {
             $request->session()->invalidate();
             $request->session()->regenerateToken();
+        }
+
+        // If SPA requests JSON, return JSON without redirect
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Logout berhasil',
+            ])->withHeaders([
+                'Cache-Control' => 'no-store, no-cache, must-revalidate',
+                'Pragma' => 'no-cache',
+            ]);
         }
 
         // Pastikan semua cookies authentication terhapus

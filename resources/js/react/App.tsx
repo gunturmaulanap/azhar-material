@@ -18,15 +18,11 @@ import Login from "./pages/Login";
 // import ContentAdminDashboard from "./pages/ContentAdminDashboard"; // Keep as per original
 
 // Komponen route yang memproteksi akses berdasarkan autentikasi
-// Tujuan: Hanya izinkan akses jika user terautentikasi.
-// Semua user yang terautentikasi akan tetap di landing page React,
-// kecuali jika Laravel mengarahkan mereka ke dashboard Livewire.
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, ready } = useAuth();
   const location = useLocation();
 
-  // Show loading only for a short time to prevent mobile loading issues
-  if (loading) {
+  if (!ready) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <LoadingSpinner
@@ -42,19 +38,14 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
 
-  // Jika terautentikasi, izinkan akses ke children.
-  // Redirect ke dashboard spesifik (Livewire) akan ditangani oleh Laravel setelah SSO.
-  // Di sini, kita hanya memastikan mereka login.
   return <>{children}</>;
 };
 
 // Komponen route untuk publik yang mengarahkan user yang sudah login
-// Tujuan: Jika user sudah login, jangan biarkan mereka mengakses halaman login lagi.
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, ready } = useAuth();
 
-  // Minimize loading screen exposure for better mobile UX
-  if (loading) {
+  if (!ready) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <LoadingSpinner
@@ -67,7 +58,6 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   }
 
   if (isAuthenticated) {
-    // Jika user sudah login, arahkan mereka ke halaman utama React
     return <Navigate to="/" replace />;
   }
 

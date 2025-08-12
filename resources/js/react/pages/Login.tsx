@@ -21,6 +21,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
+import LoadingSpinner from "../components/LoadingSpinner";
 
 // The Login component handles user authentication
 const Login = () => {
@@ -34,19 +35,18 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
 
   // Get the login function from the authentication context
-  const { login, isAuthenticated, user } = useAuth();
+  const { login, isAuthenticated, user, ready } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   // Redirect if already authenticated
   React.useEffect(() => {
-    if (isAuthenticated && user) {
-      // Prefer returning to the previous route (if provided), otherwise stay on home
+    if (ready && isAuthenticated && user) {
       const state = location.state as { from?: string } | null;
       const target = state?.from && state.from !== "/login" ? state.from : "/";
       navigate(target, { replace: true });
     }
-  }, [isAuthenticated, user, navigate, location.state]);
+  }, [ready, isAuthenticated, user, navigate, location.state]);
 
   // Handle changes in the input fields
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -89,7 +89,7 @@ const Login = () => {
       // Determine the login type for the API call based on the selected role
       const loginType = formData.role === "customer" ? "customer" : "user"; // tetap
 
-      // Call the login function from useAuth, which handles the API call and cookie storage
+      // Call the login function from useAuth, which handles CSRF and hydration
       const result = await login({
         username: formData.username,
         password: formData.password,
@@ -116,9 +116,8 @@ const Login = () => {
         const target = state?.from && state.from !== "/login" ? state.from : "/";
         navigate(target, { replace: true });
       } else {
-        // --- START: Perubahan di sini untuk pesan error lebih spesifik ---
         let displayMessage: string;
-        const backendError = result.error; // Ambil pesan error dari backend
+        const backendError = result.error;
 
         switch (backendError) {
           case "Username tidak ditemukan.":
@@ -127,7 +126,7 @@ const Login = () => {
           case "Password salah.":
             displayMessage = "Password salah. Mohon periksa kembali.";
             break;
-          case "Role yang digunakan salah.": // Sesuaikan dengan pesan dari backend
+          case "Role yang digunakan salah.":
             displayMessage =
               "Role yang Anda pilih tidak sesuai dengan akun ini.";
             break;
@@ -147,7 +146,6 @@ const Login = () => {
           },
         });
         setError(displayMessage);
-        // --- END: Perubahan di sini ---
       }
     } catch (err: any) {
       console.error("Login request failed in catch block:", err);
@@ -188,6 +186,14 @@ const Login = () => {
     { value: "content-admin", label: "Content Admin - Pengelola Konten" },
     { value: "customer", label: "Customer - Pelanggan" },
   ];
+
+  if (!ready) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <LoadingSpinner size="lg" text="Memuat aplikasi..." className="p-8" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-orange-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -260,23 +266,11 @@ const Login = () => {
 
             <Button
               type="submit"
-              className="w-full bg-gradient-to-r from-blue-600 to-orange-500 hover:from-blue-700 hover:to-orange-600 text-white font-semibold py-2 px-4 rounded-md transition-all duration-200"
+              className="w-full bg-primary text-white hover:bg-primary/90"
               disabled={loading}
             >
-              {loading ? "Memproses..." : "Login"}
+              {loading ? "Memproses..." : "Masuk"}
             </Button>
-
-            <div className="mt-4 p-3 bg-gray-50 rounded-md">
-              <p className="text-xs text-gray-600 mb-2">Demo Accounts:</p>
-              <div className="text-xs space-y-1 text-gray-500">
-                <div>Superadmin: superadmin / password</div>
-                <div>Admin: admin / password</div>
-                <div>Owner: guntur / gugun1710</div>
-                <div>Driver: driver / password</div>
-                <div>Content Admin: contentadmin / password</div>
-                <div>Customer: guntur / password</div>
-              </div>
-            </div>
           </form>
         </CardContent>
       </Card>
