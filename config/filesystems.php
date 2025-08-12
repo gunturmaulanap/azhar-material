@@ -38,8 +38,10 @@ return [
 
         'public' => [
             'driver' => 'local',
-            'root' => storage_path('app/public'),
-            'url' => env('APP_URL').'/storage',
+            'root' => env('APP_ENV') === 'production'
+                ? public_path('storage')        // LANGSUNG ke public_html/storage
+                : storage_path('app/public'),   // default utk lokal
+            'url' => env('APP_URL') . '/storage',
             'visibility' => 'public',
             'throw' => false,
         ],
