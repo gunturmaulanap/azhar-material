@@ -14,15 +14,24 @@ interface Project {
   description: string;
 }
 
-// Pakai same-origin by default (paling aman di production HTTPS)
-// Kalau VITE_API_BASE_URL di-set, tetap boleh dipakai
-const RAW_BASE =
-  import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "") ||
-  window.location.origin.replace(/\/$/, "");
+/* =========================
+   BASE URL (aman production)
+   ========================= */
+// Utamakan same-origin. Abaikan env kalau menunjuk localhost/127.* saat build prod.
+const originBase = window.location.origin.replace(/\/$/, "");
+const envBaseRaw = (
+  import.meta.env.VITE_API_BASE_URL as string | undefined
+)?.replace(/\/$/, "");
+const isLocalEnvBase =
+  !!envBaseRaw &&
+  /^(https?:\/\/)?(localhost|127\.0\.0\.1)(:\d+)?$/i.test(envBaseRaw);
+const API_BASE = !envBaseRaw || isLocalEnvBase ? originBase : envBaseRaw;
 
-// Hilangin double slash kalau ada
+// Hilangkan double slash
 const makeUrl = (path: string) =>
-  `${RAW_BASE}${path}`.replace(/([^:]\/)\/+/g, "$1");
+  `${API_BASE}${path}`.replace(/([^:]\/)\/+/g, "$1");
+
+/* =================================================== */
 
 const Projects: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -40,58 +49,53 @@ const Projects: React.FC = () => {
 
   useEffect(() => {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 10000);
+    const timeout = setTimeout(() => controller.abort(), 10000);
 
     (async () => {
       setLoading(true);
       setError(null);
 
-      // NOTE: jangan encode lagi, URLSearchParams sudah encode otomatis
       const params = new URLSearchParams({ status: "published" });
-      if (selectedCategory !== "all") {
-        params.set("category", selectedCategory);
-      }
+      if (selectedCategory !== "all") params.set("category", selectedCategory);
 
       const url = makeUrl(`/api/projects?${params.toString()}`);
-      // console.debug("Projects API URL:", url);
 
       try {
         const res = await fetch(url, {
           signal: controller.signal,
-          // Selalu include cookie; aman untuk same-origin/subdomain
-          credentials: "include",
+          credentials: "include", // kirim cookie di same-origin/subdomain
           headers: {
             Accept: "application/json",
             "X-Requested-With": "XMLHttpRequest",
           },
+          cache: "no-store",
+          // Pertegas same-origin; jika API_BASE beda origin, ini akan error (lebih cepat ketahuan)
+          mode: API_BASE === originBase ? "same-origin" : "cors",
         });
 
         if (!res.ok) {
           const text = await res.text().catch(() => "");
-          throw new Error(
-            `Gagal mengambil data proyek (HTTP ${res.status}) ${text?.slice(
-              0,
-              200
-            )}`.trim()
-          );
+          throw new Error(`HTTP ${res.status} — ${text?.slice(0, 200)}`.trim());
         }
 
         const data = await res.json();
         setProjects(Array.isArray(data?.data) ? data.data : []);
-      } catch (e: any) {
-        setError(
-          e?.name === "AbortError"
+      } catch (err: any) {
+        const msg =
+          err?.name === "AbortError"
             ? "Permintaan timeout, coba lagi."
-            : e?.message || "Terjadi kesalahan."
-        );
+            : err?.message?.includes("Failed to fetch")
+            ? "Gagal terhubung ke server. Pastikan URL API benar (https) & tidak mengarah ke localhost."
+            : err?.message || "Terjadi kesalahan.";
+        setError(msg);
       } finally {
-        clearTimeout(timer);
+        clearTimeout(timeout);
         setLoading(false);
       }
     })();
 
     return () => {
-      clearTimeout(timer);
+      clearTimeout(timeout);
       controller.abort();
     };
   }, [selectedCategory]);
