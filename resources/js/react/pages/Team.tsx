@@ -20,7 +20,7 @@ const Team: React.FC = () => {
     const fetchPartners = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/api/teams');
+        const response = await fetch('/api/teams', { credentials: 'include', cache: 'no-store' });
         const data = await response.json();
         
         if (data.success) {

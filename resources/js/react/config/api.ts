@@ -42,10 +42,12 @@ export const apiConfigWithCSRF = () => ({
 export const endpoints = {
   // Auth endpoints
   csrf: "/csrf-token",
+  sanctumCookie: "/sanctum/csrf-cookie",
   login: "/auth/login",
   register: "/auth/register", 
   logout: "/auth/logout",
   user: "/user",
+  me: "/me",
   verifyToken: "/auth/verify",
 
   // Content management endpoints (for content-admin)

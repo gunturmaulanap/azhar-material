@@ -151,6 +151,37 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => clearTimeout(timeoutId);
   }, []);
 
+  // Revalidate auth on back/forward cache restore (Safari/iOS)
+  useEffect(() => {
+    const handlePageShow = (event: PageTransitionEvent) => {
+      // If using bfcache, refresh auth state
+      // @ts-ignore
+      if (event.persisted === true) {
+        (async () => {
+          try {
+            const sessionResp = await authService.getUser();
+            if (sessionResp.data?.success && sessionResp.data?.data?.user) {
+              const u: User = sessionResp.data.data.user;
+              setUser(u);
+              setIsAuthenticated(true);
+              try { localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(u)); } catch (_) {}
+            } else {
+              setIsAuthenticated(false);
+              setUser(null);
+              try { localStorage.removeItem(LOCAL_USER_KEY); } catch (_) {}
+            }
+          } catch (_) {
+            setIsAuthenticated(false);
+            setUser(null);
+            try { localStorage.removeItem(LOCAL_USER_KEY); } catch (_) {}
+          }
+        })();
+      }
+    };
+    window.addEventListener('pageshow', handlePageShow as any);
+    return () => window.removeEventListener('pageshow', handlePageShow as any);
+  }, []);
+
   // Main login function to handle API call and token storage
   const login = async (credentials: {
     username: string;
@@ -159,6 +190,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     role?: string;
   }): Promise<LoginResponseData> => {
     try {
+      // Refresh CSRF cookie before login to avoid stale Safari cache/session
+      try { await authService.getSanctumCookie(); } catch (_) {}
       const response = await authService.login(credentials);
 
       const {
@@ -203,6 +236,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       try { localStorage.removeItem(LOCAL_USER_KEY); } catch (_) {}
       setUser(null);
       setIsAuthenticated(false);
+      // Ensure fresh CSRF cookie for the next login (Safari role switch fix)
+      try { await authService.getSanctumCookie(); } catch (_) {}
     }
   };
 

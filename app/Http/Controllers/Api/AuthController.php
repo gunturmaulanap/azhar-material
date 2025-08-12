@@ -17,6 +17,9 @@ class AuthController extends Controller
     {
         return response()->json([
             'csrf_token' => csrf_token(),
+        ])->withHeaders([
+            'Cache-Control' => 'no-store, no-cache, must-revalidate',
+            'Pragma' => 'no-cache',
         ]);
     }
 
@@ -74,6 +77,9 @@ class AuthController extends Controller
                 'redirect_url' => $redirectUrl,
             ],
             'token' => $token,
+        ])->withHeaders([
+            'Cache-Control' => 'no-store, no-cache, must-revalidate',
+            'Pragma' => 'no-cache',
         ]);
     }
 
@@ -139,6 +145,9 @@ class AuthController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Logout berhasil',
+            ])->withHeaders([
+                'Cache-Control' => 'no-store, no-cache, must-revalidate',
+                'Pragma' => 'no-cache',
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -169,9 +178,14 @@ class AuthController extends Controller
 
         if (!$user) {
             return response()->json([
-                'success' => false,
-                'message' => 'Unauthenticated.'
-            ], 401);
+                'success' => true,
+                'data' => [
+                    'user' => null,
+                ],
+            ])->withHeaders([
+                'Cache-Control' => 'no-store, no-cache, must-revalidate',
+                'Pragma' => 'no-cache',
+            ]);
         }
 
         return response()->json([
@@ -179,6 +193,9 @@ class AuthController extends Controller
             'data' => [
                 'user' => $user,
             ],
+        ])->withHeaders([
+            'Cache-Control' => 'no-store, no-cache, must-revalidate',
+            'Pragma' => 'no-cache',
         ]);
     }
 
@@ -191,11 +208,17 @@ class AuthController extends Controller
                 'data' => [
                     'user' => $request->user(),
                 ],
+            ])->withHeaders([
+                'Cache-Control' => 'no-store, no-cache, must-revalidate',
+                'Pragma' => 'no-cache',
             ]);
         }
         return response()->json([
             'success' => false,
             'message' => 'Token tidak valid atau kadaluarsa.'
-        ], 401);
+        ], 401)->withHeaders([
+            'Cache-Control' => 'no-store, no-cache, must-revalidate',
+            'Pragma' => 'no-cache',
+        ]);
     }
 }
