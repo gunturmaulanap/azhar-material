@@ -34,6 +34,31 @@
     </div>
 
     <script>
+        // Hide fallback spinner as soon as React mounts or any child nodes are rendered
+        (function () {
+            var appRoot = document.getElementById('app');
+            var fallback = document.getElementById('fallback-content');
+            if (!appRoot) return;
+
+            try {
+                var observer = new MutationObserver(function () {
+                    if (fallback) fallback.style.display = 'none';
+                    if (observer) observer.disconnect();
+                });
+                observer.observe(appRoot, { childList: true, subtree: true });
+            } catch (e) {
+                // no-op
+            }
+
+            // Safety timeout in case observer misses changes
+            setTimeout(function () {
+                var fb = document.getElementById('fallback-content');
+                if (fb) fb.style.display = 'none';
+            }, 10000);
+        })();
+    </script>
+
+    <script>
         (function() {
             const BASE_URL = @json(env('SOCKET_BASE_URL'));
             const PREFIX = @json(env('SOCKET_PREFIX', 'Jbrad2023'));
@@ -50,17 +75,34 @@
                 return v.toString(16);
             });
 
-            // persist per-device id + per-day marker
+            // persist per-device id + per-day marker (guarded for Safari Private Mode)
             const VISITOR_KEY = 'am_visitor_id';
             const LAST_VISIT_KEY = 'am_last_visit_date';
-            let visitorId = localStorage.getItem(VISITOR_KEY);
+            let visitorId = null;
+            let isStorageAvailable = true;
+            try {
+                visitorId = localStorage.getItem(VISITOR_KEY);
+            } catch (e) {
+                isStorageAvailable = false;
+                console.warn('localStorage unavailable; tracking will be session-only');
+            }
+            if (isStorageAvailable && !visitorId) {
+                try {
+                    visitorId = uuid();
+                    localStorage.setItem(VISITOR_KEY, visitorId);
+                } catch (e) {
+                    isStorageAvailable = false;
+                }
+            }
             if (!visitorId) {
-                visitorId = uuid();
-                localStorage.setItem(VISITOR_KEY, visitorId);
+                visitorId = uuid(); // fall back to ephemeral id
             }
 
             const today = new Date().toISOString().slice(0, 10);
-            const lastVisit = localStorage.getItem(LAST_VISIT_KEY);
+            let lastVisit = null;
+            try {
+                lastVisit = isStorageAvailable ? localStorage.getItem(LAST_VISIT_KEY) : null;
+            } catch (_) {}
             const isNewToday = lastVisit !== today; // only mark once/day per device
 
             // Build payload for a page hit
@@ -105,7 +147,9 @@
                     startHeartbeat();
 
                     // mark daily visit locally (once per day per device)
-                    if (isNewToday) localStorage.setItem(LAST_VISIT_KEY, today);
+                    if (isStorageAvailable && isNewToday) {
+                        try { localStorage.setItem(LAST_VISIT_KEY, today); } catch (_) {}
+                    }
 
                     // send page hit (always persist; DISTINCT in DB makes uniques)
                     socket.emit('track-visitor', buildPayload());
