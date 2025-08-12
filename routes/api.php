@@ -28,15 +28,10 @@ Route::get('/analytics/snapshot', [VisitorController::class, 'snapshot']);
 Route::get('/csrf-token', [AuthController::class, 'csrf']);
 
 // Sanctum CSRF cookie route (for SPA authentication)
-Route::get('/sanctum/csrf-cookie', function () {
-    return response()->json([
-        'csrf_token' => csrf_token(),
-        'message' => 'CSRF cookie set'
-    ]);
-})->middleware('web');
+Route::get('/sanctum/csrf-cookie', [\Laravel\Sanctum\Http\Controllers\CsrfCookieController::class, 'show'])->middleware('web');
 
-Route::post('/auth/login', [AuthController::class, 'login'])->middleware('web');
-Route::post('/auth/register', [AuthController::class, 'register'])->middleware('web');
+Route::post('/auth/login', [AuthController::class, 'login'])->middleware(['web','no-store']);
+Route::post('/auth/register', [AuthController::class, 'register'])->middleware(['web','no-store']);
 
 // Products API routes
 Route::get('/products', [ProductController::class, 'index']);
@@ -76,10 +71,11 @@ Route::get('/about/{id}', [AboutController::class, 'show']);
 Route::post('/contact', [ContactController::class, 'send']);
 
 // User check endpoint - uses web middleware for session-based auth
-Route::get('/user', [AuthController::class, 'user'])->middleware('web');
+Route::get('/user', [AuthController::class, 'user'])->middleware(['web','no-store']);
+Route::get('/me', [AuthController::class, 'user'])->middleware(['web','no-store']);
 
 // Protected routes (memerlukan token Sanctum)
-Route::middleware(['web','auth:sanctum'])->group(function () {
+Route::middleware(['web','auth:sanctum','no-store'])->group(function () {
     Route::post('/auth/verify', [AuthController::class, 'verify']);
     Route::post('/auth/logout', [AuthController::class, 'logout']);
 

@@ -49,7 +49,8 @@ const Projects: React.FC = () => {
       try {
         const res = await fetch(apiUrl, {
           signal: controller.signal,
-          credentials: "same-origin",
+          credentials: "include",
+          cache: "no-store",
         });
         if (!res.ok)
           throw new Error(`Gagal mengambil data proyek (${res.status})`);

@@ -88,12 +88,13 @@ api.interceptors.response.use(
 // Auth services
 export const authService = {
   getCsrf: () => api.get(endpoints.csrf),
+  getSanctumCookie: () => api.get(endpoints.sanctumCookie, { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate', 'Pragma': 'no-cache' } }),
   login: (credentials) => {
     return api.post(endpoints.login, credentials);
   },
   register: (userData) => api.post(endpoints.register, userData),
   logout: () => api.post(endpoints.logout),
-  getUser: () => api.get(endpoints.user),
+  getUser: () => api.get(endpoints.user, { headers: { 'Cache-Control': 'no-store' } }),
   verifyToken: (token) => api.post(endpoints.verifyToken, { token }),
 };
 
