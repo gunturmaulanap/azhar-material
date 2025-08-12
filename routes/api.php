@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Cookie;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\ContactController;
@@ -13,9 +14,6 @@ use App\Http\Controllers\Api\AboutController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\VisitorController;
 
-use App\Models\User;
-use Illuminate\Support\Facades\Hash;
-
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -24,66 +22,77 @@ use Illuminate\Support\Facades\Hash;
 
 Route::post('/visits', [VisitorController::class, 'store']);
 Route::get('/analytics/snapshot', [VisitorController::class, 'snapshot']);
-// Public routes
-Route::get('/csrf-token', [AuthController::class, 'csrf']);
 
-// Sanctum CSRF cookie route (for SPA authentication)
+// === CSRF ===
+// NOTE: idealnya pakai route Sanctum bawaan. Kalau mau custom, pastikan set cookie 'XSRF-TOKEN'.
 Route::get('/sanctum/csrf-cookie', function () {
-    return response()->json([
-        'csrf_token' => csrf_token(),
-        'message' => 'CSRF cookie set'
-    ]);
+    // 120 menit, path '/', domain ikut config session, secure dan samesite ikut config
+    Cookie::queue(cookie()->make(
+        'XSRF-TOKEN',
+        csrf_token(),
+        120,
+        '/',
+        config('session.domain'),
+        config('session.secure'),
+        false,
+        false,
+        config('session.same_site', 'lax')
+    ));
+
+    return response()->json(['ok' => true])
+        ->header('Cache-Control', 'no-store, no-cache, must-revalidate')
+        ->header('Pragma', 'no-cache');
 })->middleware('web');
 
+// Public auth
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::post('/auth/register', [AuthController::class, 'register']);
 
-// Products API routes
+// Products
 Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/featured', [ProductController::class, 'featured']);
 Route::get('/products/{id}/image', [ProductController::class, 'image']);
 Route::get('/products/{id}', [ProductController::class, 'show']);
-
 Route::get('/categories', [ProductController::class, 'categories']);
 
-// Brands API routes - Fixed the route ordering
+// Brands
 Route::get('/brands', [BrandController::class, 'index']);
 Route::get('/brands/active', [BrandController::class, 'active']);
 Route::get('/brands/{id}', [BrandController::class, 'show']);
 
-// Hero sections API routes
+// Hero sections
 Route::get('/hero-sections', [HeroSectionController::class, 'index']);
 Route::get('/hero-sections/active', [HeroSectionController::class, 'active']);
 Route::get('/hero-sections/{id}', [HeroSectionController::class, 'show']);
 
+// Projects (PUBLIK)
 Route::get('/projects', [ProjectController::class, 'index']);
 Route::get('/projects/active', [ProjectController::class, 'active']);
 Route::get('/projects/{id}', [ProjectController::class, 'show']);
 
-// Teams API routes  
+// Teams
 Route::get('/teams', [TeamController::class, 'index']);
 Route::get('/teams/{id}', [TeamController::class, 'show']);
 
-// Services API routes
+// Services
 Route::get('/services', [ServiceController::class, 'index']);
 Route::get('/services/{id}', [ServiceController::class, 'show']);
 
-// About API routes
+// About
 Route::get('/about', [AboutController::class, 'index']);
 Route::get('/about/{id}', [AboutController::class, 'show']);
 
-// Contact routes
+// Contact
 Route::post('/contact', [ContactController::class, 'send']);
 
-// User check endpoint - uses web middleware for session-based auth
+// User check (session-based) → wajib 'web' supaya cookie session kebaca
 Route::get('/user', [AuthController::class, 'user'])->middleware('web');
 
-// Protected routes (memerlukan token Sanctum)
+// Protected (Sanctum)
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/auth/verify', [AuthController::class, 'verify']);
     Route::post('/auth/logout', [AuthController::class, 'logout']);
 
-    // Rute manajemen konten yang dipindahkan ke sini
     Route::put('/brands/{id}/content', [BrandController::class, 'updateContent']);
     Route::post('/services', [ServiceController::class, 'store']);
     Route::put('/services/{id}', [ServiceController::class, 'update']);
@@ -93,7 +102,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/about/{id}', [AboutController::class, 'destroy']);
 });
 
-// Health check / simple ping for debugging
-Route::get('/health', function () {
-    return response()->json(['status' => 'ok', 'time' => now()->toISOString()]);
-});
+// Health
+Route::get('/health', fn() =>
+response()->json(['status' => 'ok', 'time' => now()->toISOString()]));
