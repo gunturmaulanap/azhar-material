@@ -8,19 +8,18 @@ use Illuminate\Http\Request;
 class TrustProxies extends Middleware
 {
     /**
-     * The trusted proxies for this application.
-     *
-     * @var array<int, string>|string|null
+     * Trust all reverse proxies (Cloudflare/NGINX/cPanel).
+     * If you want to be stricter, put a comma‑separated list in TRUSTED_PROXIES.
      */
-    protected $proxies;
+    protected $proxies = null; // default
+    // Better: read from env, fallback to "*"
+    // protected $proxies = explode(',', (string) env('TRUSTED_PROXIES', '*'));
 
     /**
-     * The headers that should be used to detect proxies.
-     *
-     * @var int
+     * Let Laravel use standard X-Forwarded-* headers to detect HTTPS/host/port.
      */
     protected $headers =
-        Request::HEADER_X_FORWARDED_FOR |
+    Request::HEADER_X_FORWARDED_FOR |
         Request::HEADER_X_FORWARDED_HOST |
         Request::HEADER_X_FORWARDED_PORT |
         Request::HEADER_X_FORWARDED_PROTO |
