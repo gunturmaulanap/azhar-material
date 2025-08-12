@@ -8,7 +8,7 @@ export const apiConfig = {
     Accept: "application/json",
     "X-Requested-With": "XMLHttpRequest",
   },
-  timeout: 15000,
+  timeout: 10000, // Reduced timeout for better mobile experience
   withCredentials: true, // Enable cookies for Laravel session
 };
 

@@ -15,7 +15,7 @@ api.interceptors.request.use(
           // Try to get fresh CSRF token from Laravel
           await axios.get('/sanctum/csrf-cookie', { 
             withCredentials: true,
-            timeout: 5000
+            timeout: 3000 // Reduced timeout for mobile
           });
         } catch (csrfError) {
           console.warn('Failed to get CSRF cookie:', csrfError);

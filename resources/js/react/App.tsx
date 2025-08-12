@@ -5,6 +5,7 @@ import LoadingSpinner from "./components/LoadingSpinner";
 import Layout from "./components/Layout"; // Pastikan file ini ada
 import Notifications from "./components/Notifications";
 import ScrollToTop from "./components/ScrollToTop";
+import ErrorBoundary from "./components/ErrorBoundary";
 import Home from "./pages/Home";
 import Products from "./pages/Products";
 import Projects from "./pages/Projects";
@@ -23,13 +24,14 @@ import Login from "./pages/Login";
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, loading } = useAuth();
 
+  // Show loading only for a short time to prevent mobile loading issues
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <LoadingSpinner
           size="lg"
           text="Memuat aplikasi..."
-          className="min-h-screen"
+          className="p-8"
         />
       </div>
     );
@@ -50,13 +52,14 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, loading } = useAuth();
 
+  // Minimize loading screen exposure for better mobile UX
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <LoadingSpinner
           size="lg"
           text="Memuat aplikasi..."
-          className="min-h-screen"
+          className="p-8"
         />
       </div>
     );
@@ -72,12 +75,13 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
 
 function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        {/* Automatically scroll to top on route changes */}
-        <ScrollToTop smooth={true} delay={0} />
-        <Notifications />
-        <Routes>
+    <ErrorBoundary>
+      <AuthProvider>
+        <BrowserRouter>
+          {/* Automatically scroll to top on route changes */}
+          <ScrollToTop smooth={true} delay={0} />
+          <Notifications />
+          <Routes>
           {/* Rute untuk halaman yang memerlukan autentikasi (jika ada halaman React admin) */}
           {/* Contoh: Jika ada dashboard admin React terpisah */}
           {/* <Route
@@ -117,9 +121,10 @@ function App() {
               </Layout>
             }
           />
-        </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 

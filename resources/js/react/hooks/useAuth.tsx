@@ -58,6 +58,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
+  
+  // Add a maximum loading time for mobile devices
+  React.useEffect(() => {
+    const maxLoadingTime = setTimeout(() => {
+      if (loading) {
+        console.warn("Authentication loading timeout - proceeding as guest");
+        setLoading(false);
+        setIsAuthenticated(false);
+        setUser(null);
+      }
+    }, 10000); // 10 second maximum loading time
+    
+    return () => clearTimeout(maxLoadingTime);
+  }, [loading]);
 
   // useEffect runs once on component mount to check for an existing token
   useEffect(() => {
@@ -65,14 +79,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       try {
         const token = Cookies.get("token");
         if (token) {
-          // Panggil endpoint API untuk memverifikasi token dan mendapatkan data pengguna
-          const response = await authService.getUser();
-          if (response.data.success) {
-            const fetchedUser = response.data.data.user;
-            setUser(fetchedUser);
-            setIsAuthenticated(true);
-          } else {
-            // Jika token tidak valid, hapus
+          // Set a shorter timeout for mobile compatibility
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+          
+          try {
+            // Panggil endpoint API untuk memverifikasi token dan mendapatkan data pengguna
+            const response = await authService.getUser();
+            clearTimeout(timeoutId);
+            
+            if (response.data.success) {
+              const fetchedUser = response.data.data.user;
+              setUser(fetchedUser);
+              setIsAuthenticated(true);
+            } else {
+              // Jika token tidak valid, hapus
+              Cookies.remove("token");
+              setUser(null);
+              setIsAuthenticated(false);
+            }
+          } catch (apiError) {
+            clearTimeout(timeoutId);
+            // If API call fails, don't block the UI - just assume not authenticated
+            console.warn("Token verification failed, proceeding as guest:", apiError);
             Cookies.remove("token");
             setUser(null);
             setIsAuthenticated(false);
@@ -93,7 +122,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     };
 
-    initializeAuth();
+    // Add a small delay to prevent blocking UI render
+    const timeoutId = setTimeout(initializeAuth, 100);
+    return () => clearTimeout(timeoutId);
   }, []);
 
   // Main login function to handle API call and token storage
@@ -215,7 +246,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 };
