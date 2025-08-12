@@ -115,6 +115,39 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     ],
     []
   );
+  // --- Title mapping per route ---
+  const BASE_TITLE = "Azhar Material";
+
+  const TITLE_MAP: Record<string, string> = {
+    "/": `Home – ${BASE_TITLE}`,
+    "/projects": `Projects – ${BASE_TITLE}`,
+    "/products": `Product Catalog – ${BASE_TITLE}`,
+    "/services": `Services – ${BASE_TITLE}`,
+    "/contact": `Contact – ${BASE_TITLE}`,
+    "/login": `Login – ${BASE_TITLE}`,
+  };
+
+  const getTitleFromPath = (path: string) => {
+    // exact match dulu
+    if (TITLE_MAP[path]) return TITLE_MAP[path];
+
+    // prefix match untuk grup route
+    if (path.startsWith("/customer")) return `My Transactions – ${BASE_TITLE}`;
+    if (path.startsWith("/admin")) return `Admin Panel – ${BASE_TITLE}`;
+    if (path.startsWith("/superadmin")) return `Dashboard – ${BASE_TITLE}`;
+    if (path.startsWith("/content-admin"))
+      return `Content Panel – ${BASE_TITLE}`;
+    if (path.startsWith("/owner")) return `Owner Panel – ${BASE_TITLE}`;
+    if (path.startsWith("/driver")) return `Driver Dashboard – ${BASE_TITLE}`;
+
+    // fallback
+    return BASE_TITLE;
+  };
+
+  // set title tiap kali route berubah
+  useEffect(() => {
+    document.title = getTitleFromPath(location.pathname);
+  }, [location.pathname]);
 
   // Komponen kecil: placeholder agar tidak kedip saat loading
   const AuthPlaceholder = () => (
