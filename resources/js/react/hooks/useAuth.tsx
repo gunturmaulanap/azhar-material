@@ -93,27 +93,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           // Abaikan, lanjut gunakan token jika ada
         }
 
-        // 2) Jika ada token, verify via endpoint protected
-        if (token) {
-          try {
-            const verifyResp = await authService.verifyToken(token);
-            if (verifyResp.data?.success && verifyResp.data?.data?.user) {
-              setUser(verifyResp.data.data.user);
-              setIsAuthenticated(true);
-            } else {
-              Cookies.remove("token");
-              setUser(null);
-              setIsAuthenticated(false);
-            }
-          } catch (apiError) {
-            Cookies.remove("token");
-            setUser(null);
-            setIsAuthenticated(false);
-          }
-        } else {
-          setUser(null);
-          setIsAuthenticated(false);
-        }
+                 // 2) Jika ada token, verify via endpoint protected (tanpa memaksa reload)
+         if (token) {
+           try {
+             const verifyResp = await authService.verifyToken(token);
+             if (verifyResp.data?.success && verifyResp.data?.data?.user) {
+               setUser(verifyResp.data.data.user);
+               setIsAuthenticated(true);
+             } else {
+               Cookies.remove("token");
+               setUser(null);
+               setIsAuthenticated(false);
+             }
+           } catch (apiError) {
+             // jangan buang state ke loading loop; cukup set guest
+             Cookies.remove("token");
+             setUser(null);
+             setIsAuthenticated(false);
+           }
+         } else {
+           setUser(null);
+           setIsAuthenticated(false);
+         }
       } catch (error) {
         Cookies.remove("token");
         setUser(null);

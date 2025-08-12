@@ -13,7 +13,7 @@ api.interceptors.request.use(
       if (['post', 'put', 'patch', 'delete'].includes(config.method?.toLowerCase())) {
         try {
           // Try to get fresh CSRF token from Laravel
-          await axios.get('/sanctum/csrf-cookie', { 
+          await axios.get(`${window.location.origin}/api/sanctum/csrf-cookie`, { 
             withCredentials: true,
             timeout: 3000 // Reduced timeout for mobile
           });

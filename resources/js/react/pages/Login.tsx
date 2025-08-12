@@ -83,7 +83,7 @@ const Login = () => {
 
     try {
       // Determine the login type for the API call based on the selected role
-      const loginType = formData.role === "customer" ? "customer" : "user";
+      const loginType = formData.role === "customer" ? "customer" : "user"; // tetap
 
       // Call the login function from useAuth, which handles the API call and cookie storage
       const result = await login({
@@ -106,16 +106,9 @@ const Login = () => {
             },
           });
 
-          // Redirect all users to main React page first for better UX
-          // The dashboard link will be available in the navigation
-          setTimeout(() => {
-            // Navigate to home page where users can see dashboard link
-            navigate('/');
-            // Force page refresh to ensure session state is properly loaded
-            setTimeout(() => {
-              window.location.reload();
-            }, 100);
-          }, 1000);
+          // Arahkan langsung ke halaman sesuai peran dari backend tanpa reload
+          const target = result?.data?.redirect_url || '/';
+          window.location.assign(target);
       } else {
         // --- START: Perubahan di sini untuk pesan error lebih spesifik ---
         let displayMessage: string;
@@ -182,14 +175,12 @@ const Login = () => {
   };
 
   const roleOptions = [
-    { value: "customer", label: "Customer - Pelanggan" },
     { value: "super_admin", label: "Super Admin - Super Administrator" },
-    { value: "driver", label: "Driver - Supir Pengiriman" },
-
     { value: "admin", label: "Admin - Administrator" },
-    { value: "content-admin", label: "Content Admin - Pengelola Konten" },
-
     { value: "owner", label: "Owner - Pemilik Bisnis" },
+    { value: "driver", label: "Driver - Supir Pengiriman" },
+    { value: "content-admin", label: "Content Admin - Pengelola Konten" },
+    { value: "customer", label: "Customer - Pelanggan" },
   ];
 
   return (
@@ -272,12 +263,12 @@ const Login = () => {
             <div className="mt-4 p-3 bg-gray-50 rounded-md">
               <p className="text-xs text-gray-600 mb-2">Demo Accounts:</p>
               <div className="text-xs space-y-1 text-gray-500">
-                <div>Customer: customer / password</div>
-                <div>Super Admin: super / password</div>
+                <div>Superadmin: superadmin / password</div>
                 <div>Admin: admin / password</div>
+                <div>Owner: guntur / gugun1710</div>
                 <div>Driver: driver / password</div>
                 <div>Content Admin: contentadmin / password</div>
-                <div>Owner: owner / password </div>
+                <div>Customer: guntur / password</div>
               </div>
             </div>
           </form>
