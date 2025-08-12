@@ -78,42 +78,43 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const initializeAuth = async () => {
       try {
         const token = Cookies.get("token");
+
+        // 1) Coba ambil user via endpoint yang memakai session (withCredentials true di axios)
+        // Ini akan berhasil jika login via session (guard web/customer)
+        try {
+          const sessionResp = await authService.getUser();
+          if (sessionResp.data?.success && sessionResp.data?.data?.user) {
+            setUser(sessionResp.data.data.user);
+            setIsAuthenticated(true);
+            setLoading(false);
+            return;
+          }
+        } catch (e) {
+          // Abaikan, lanjut gunakan token jika ada
+        }
+
+        // 2) Jika ada token, verify via endpoint protected
         if (token) {
-          // Set a shorter timeout for mobile compatibility
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
-          
           try {
-            // Panggil endpoint API untuk memverifikasi token dan mendapatkan data pengguna
-            const response = await authService.getUser();
-            clearTimeout(timeoutId);
-            
-            if (response.data.success) {
-              const fetchedUser = response.data.data.user;
-              setUser(fetchedUser);
+            const verifyResp = await authService.verifyToken(token);
+            if (verifyResp.data?.success && verifyResp.data?.data?.user) {
+              setUser(verifyResp.data.data.user);
               setIsAuthenticated(true);
             } else {
-              // Jika token tidak valid, hapus
               Cookies.remove("token");
               setUser(null);
               setIsAuthenticated(false);
             }
           } catch (apiError) {
-            clearTimeout(timeoutId);
-            // If API call fails, don't block the UI - just assume not authenticated
-            console.warn("Token verification failed, proceeding as guest:", apiError);
             Cookies.remove("token");
             setUser(null);
             setIsAuthenticated(false);
           }
         } else {
-          // No token found, user is not authenticated
           setUser(null);
           setIsAuthenticated(false);
         }
       } catch (error) {
-        console.warn("Auth initialization failed, user not authenticated:", error);
-        // Clear any invalid tokens/cookies
         Cookies.remove("token");
         setUser(null);
         setIsAuthenticated(false);
@@ -122,8 +123,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     };
 
-    // Add a small delay to prevent blocking UI render
-    const timeoutId = setTimeout(initializeAuth, 100);
+    const timeoutId = setTimeout(initializeAuth, 50);
     return () => clearTimeout(timeoutId);
   }, []);
 
@@ -142,15 +142,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         data: { user, role },
       } = response.data;
 
-      // Simpan token di cookie
+      // Simpan token tanpa memaksa domain, agar sesuai dengan current host
       Cookies.set("token", token, {
         expires: 7,
         sameSite: "Lax",
         path: "/",
-        domain:
-          window.location.hostname === "0.0.0.0"
-            ? ""
-            : window.location.hostname,
       });
 
       setUser({ ...user, role });
@@ -169,39 +165,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = async (skipApiCall: boolean = false) => {
     try {
       if (!skipApiCall) {
-        // Panggil endpoint API untuk menghapus token di backend hanya jika tidak skip
         await authService.logout();
       }
     } catch (error) {
-      if (!skipApiCall) {
-        console.error("Logout API call failed:", error);
-        // Don't show error toast as it might confuse users
-        console.warn("API logout failed, proceeding with client-side cleanup");
-      }
+      // Lanjutkan pembersihan client-side meski API gagal
     } finally {
-      // Hapus semua token dan cookie di frontend
       Cookies.remove("token");
-      Cookies.remove("laravel_session");
-      Cookies.remove("XSRF-TOKEN");
-      
-      // Clear additional cookies that might exist
-      const cookies = document.cookie.split(";");
-      cookies.forEach(cookie => {
-        const eqPos = cookie.indexOf("=");
-        const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
-        if (name.includes('session') || name.includes('token') || name.includes('csrf')) {
-          Cookies.remove(name);
-          // Also try to remove with different path and domain combinations
-          Cookies.remove(name, { path: '/' });
-          Cookies.remove(name, { domain: window.location.hostname });
-        }
-      });
-      
       setUser(null);
       setIsAuthenticated(false);
-      
-      // Don't rely on Laravel logout, just clean everything and redirect
-      // This avoids the 419 CSRF token expired error
     }
   };
 
@@ -216,10 +187,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       Cookies.set("token", token, {
         expires: 7,
         sameSite: "Lax",
-        domain:
-          window.location.hostname === "0.0.0.0"
-            ? ""
-            : window.location.hostname,
         path: "/",
       });
 

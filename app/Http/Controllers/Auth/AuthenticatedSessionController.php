@@ -63,11 +63,10 @@ class AuthenticatedSessionController extends Controller
             Auth::guard('customer')->logout();
         }
 
-        // Flush semua session data
-        $request->session()->flush();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-        $request->session()->regenerate(true);
+        if ($request->hasSession()) {
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
 
         // Pastikan semua cookies authentication terhapus
         $response = redirect('/');
@@ -115,6 +114,7 @@ class AuthenticatedSessionController extends Controller
                 if (Route::has('owner.report.index')) {
                     return redirect()->route('owner.report.index');
                 }
+                break;
             case 'driver':
                 if (Route::has('driver.delivery.index')) {
                     return redirect()->route('driver.delivery.index');
