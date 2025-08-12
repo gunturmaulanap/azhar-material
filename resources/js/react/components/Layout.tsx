@@ -273,7 +273,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   ) : isAuthenticated ? (
                     <div className="px-3 py-2 space-y-2">
                       <p className="text-sm text-gray-600 mb-2">
-                        Welcome, {user?.name ?? "User"}
+                        Welcome, {displayName}{" "}
                       </p>
 
                       <Button

@@ -15,7 +15,7 @@ return new class extends Migration
         if (!Schema::hasColumn('users', 'remember_token')) {
             Schema::table('users', function (Blueprint $table) {
                 $table->rememberToken();
-            });
+            });le
         }
 
         // Tambahkan kolom remember_token ke tabel 'customers' jika belum ada

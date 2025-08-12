@@ -17,7 +17,11 @@ import { useDebounce } from "../hooks/useDebounce";
 import useScrollRestoration from "../hooks/useScrollRestoration";
 
 // Small helper for progressive image with blur-up + skeleton
-const ProgressiveImage: React.FC<{ src: string; alt: string; className?: string }> = ({ src, alt, className }) => {
+const ProgressiveImage: React.FC<{
+  src: string;
+  alt: string;
+  className?: string;
+}> = ({ src, alt, className }) => {
   const [loaded, setLoaded] = useState(false);
   const [errored, setErrored] = useState(false);
   return (
@@ -35,8 +39,13 @@ const ProgressiveImage: React.FC<{ src: string; alt: string; className?: string 
           loading="lazy"
           decoding="async"
           onLoad={() => setLoaded(true)}
-          onError={() => { setErrored(true); setLoaded(true); }}
-          className={`w-full h-full object-cover transition-all duration-500 ${loaded ? "opacity-100 blur-0" : "opacity-0 blur-md"}`}
+          onError={() => {
+            setErrored(true);
+            setLoaded(true);
+          }}
+          className={`w-full h-full object-cover transition-all duration-500 ${
+            loaded ? "opacity-100 blur-0" : "opacity-0 blur-md"
+          }`}
         />
       ) : (
         <div className="w-full h-full bg-gray-200 flex items-center justify-center">
@@ -156,12 +165,6 @@ const Products: React.FC = () => {
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
   // Set page metadata only once
-  useEffect(() => {
-    setPageMeta(
-      "Products - Azhar Material",
-      "Browse our complete range of construction materials"
-    );
-  }, [setPageMeta]);
 
   // Initialize data on first mount only
   useEffect(() => {
