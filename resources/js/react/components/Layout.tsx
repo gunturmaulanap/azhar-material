@@ -70,9 +70,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
     // Always redirect to home after logout attempt
     // The useAuth logout function handles all cleanup
-    setTimeout(() => {
-      window.location.href = "/";
-    }, 100);
+          setTimeout(() => {
+        // use replace to avoid back button returning to authenticated page
+        window.location.replace("/");
+      }, 100);
 
     // Clean up the broadcast item after a short delay
     setTimeout(() => {
@@ -91,6 +92,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       "content-admin": "/content-admin/analytics",
       owner: "/owner/laporan-penjualan",
     };
+    // ensure SPA cache cleaned before jumping into Livewire app to avoid stale role
+    try { localStorage.removeItem("am_user"); } catch (_) {}
     return dashboardRoutes[role] || "/";
   };
 

@@ -54,7 +54,7 @@
             setTimeout(function () {
                 var fb = document.getElementById('fallback-content');
                 if (fb) fb.style.display = 'none';
-            }, 10000);
+            }, 5000);
         })();
     </script>
 

@@ -108,7 +108,8 @@ const Login = () => {
 
           // Arahkan langsung ke halaman sesuai peran dari backend tanpa reload
           const target = result?.data?.redirect_url || '/';
-          window.location.assign(target);
+          // full replace to the target without preserving history (prevents back-to-login flicker)
+          window.location.replace(target);
       } else {
         // --- START: Perubahan di sini untuk pesan error lebih spesifik ---
         let displayMessage: string;

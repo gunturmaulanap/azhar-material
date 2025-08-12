@@ -54,6 +54,8 @@ export const useAuth = (): AuthContextType => {
   return context;
 };
 
+const LOCAL_USER_KEY = "am_user";
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -68,7 +70,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setIsAuthenticated(false);
         setUser(null);
       }
-    }, 10000); // 10 second maximum loading time
+    }, 7000); // shorter max loading time for Safari/mobile
     
     return () => clearTimeout(maxLoadingTime);
   }, [loading]);
@@ -76,6 +78,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // useEffect runs once on component mount to check for an existing token
   useEffect(() => {
     const initializeAuth = async () => {
+      // 0) Optimistic state from localStorage to avoid UI flicker on refresh
+      try {
+        const cached = localStorage.getItem(LOCAL_USER_KEY);
+        if (cached) {
+          const parsed: User = JSON.parse(cached);
+          if (parsed && parsed.id) {
+            setUser(parsed);
+            setIsAuthenticated(true);
+          }
+        }
+      } catch (_) {
+        // ignore localStorage errors (Safari private mode, etc.)
+      }
+
       try {
         const token = Cookies.get("token");
 
@@ -84,8 +100,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         try {
           const sessionResp = await authService.getUser();
           if (sessionResp.data?.success && sessionResp.data?.data?.user) {
-            setUser(sessionResp.data.data.user);
+            const u: User = sessionResp.data.data.user;
+            setUser(u);
             setIsAuthenticated(true);
+            try { localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(u)); } catch (_) {}
             setLoading(false);
             return;
           }
@@ -93,38 +111,43 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           // Abaikan, lanjut gunakan token jika ada
         }
 
-                 // 2) Jika ada token, verify via endpoint protected (tanpa memaksa reload)
-         if (token) {
-           try {
-             const verifyResp = await authService.verifyToken(token);
-             if (verifyResp.data?.success && verifyResp.data?.data?.user) {
-               setUser(verifyResp.data.data.user);
-               setIsAuthenticated(true);
-             } else {
-               Cookies.remove("token");
-               setUser(null);
-               setIsAuthenticated(false);
-             }
-           } catch (apiError) {
-             // jangan buang state ke loading loop; cukup set guest
-             Cookies.remove("token");
-             setUser(null);
-             setIsAuthenticated(false);
-           }
-         } else {
-           setUser(null);
-           setIsAuthenticated(false);
-         }
+        // 2) Jika ada token, verify via endpoint protected (tanpa memaksa reload)
+        if (token) {
+          try {
+            const verifyResp = await authService.verifyToken(token);
+            if (verifyResp.data?.success && verifyResp.data?.data?.user) {
+              const u: User = verifyResp.data.data.user;
+              setUser(u);
+              setIsAuthenticated(true);
+              try { localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(u)); } catch (_) {}
+            } else {
+              Cookies.remove("token");
+              setUser(null);
+              setIsAuthenticated(false);
+              try { localStorage.removeItem(LOCAL_USER_KEY); } catch (_) {}
+            }
+          } catch (apiError) {
+            Cookies.remove("token");
+            setUser(null);
+            setIsAuthenticated(false);
+            try { localStorage.removeItem(LOCAL_USER_KEY); } catch (_) {}
+          }
+        } else {
+          setUser(null);
+          setIsAuthenticated(false);
+          try { localStorage.removeItem(LOCAL_USER_KEY); } catch (_) {}
+        }
       } catch (error) {
         Cookies.remove("token");
         setUser(null);
         setIsAuthenticated(false);
+        try { localStorage.removeItem(LOCAL_USER_KEY); } catch (_) {}
       } finally {
         setLoading(false);
       }
     };
 
-    const timeoutId = setTimeout(initializeAuth, 50);
+    const timeoutId = setTimeout(initializeAuth, 10);
     return () => clearTimeout(timeoutId);
   }, []);
 
@@ -148,7 +171,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         expires: 7,
         sameSite: "Lax",
         path: "/",
+        secure: window.location.protocol === "https:",
       });
+
+      // cache user untuk mencegah flicker saat refresh
+      try { localStorage.setItem(LOCAL_USER_KEY, JSON.stringify({ ...user, role })); } catch (_) {}
 
       setUser({ ...user, role });
       setIsAuthenticated(true);
@@ -159,6 +186,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setIsAuthenticated(false);
       setUser(null);
       Cookies.remove("token");
+      try { localStorage.removeItem(LOCAL_USER_KEY); } catch (_) {}
       throw error;
     }
   };
@@ -172,6 +200,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Lanjutkan pembersihan client-side meski API gagal
     } finally {
       Cookies.remove("token");
+      try { localStorage.removeItem(LOCAL_USER_KEY); } catch (_) {}
       setUser(null);
       setIsAuthenticated(false);
     }
@@ -189,7 +218,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         expires: 7,
         sameSite: "Lax",
         path: "/",
+        secure: window.location.protocol === "https:",
       });
+
+      try { localStorage.setItem(LOCAL_USER_KEY, JSON.stringify({ ...user, role })); } catch (_) {}
 
       setUser({ ...user, role });
       setIsAuthenticated(true);
@@ -199,6 +231,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setIsAuthenticated(false);
       setUser(null);
       Cookies.remove("token");
+      try { localStorage.removeItem(LOCAL_USER_KEY); } catch (_) {}
       throw error;
     }
   };

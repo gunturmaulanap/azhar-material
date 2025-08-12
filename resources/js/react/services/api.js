@@ -10,7 +10,7 @@ api.interceptors.request.use(
   async (config) => {
     try {
       // Get CSRF token if making state-changing requests
-      if (['post', 'put', 'patch', 'delete'].includes(config.method?.toLowerCase())) {
+      if (['post', 'put', 'patch', 'delete'].includes(config.method?.toLowerCase?.() || '')) {
         try {
           // Try to get fresh CSRF token from Laravel
           await axios.get(`${window.location.origin}/api/sanctum/csrf-cookie`, { 
@@ -24,10 +24,11 @@ api.interceptors.request.use(
       }
       
       // Add CSRF token from meta tag or cookie
-      const csrfToken = getCSRFToken() || getCsrfFromCookie();
-      if (csrfToken) {
-        config.headers["X-CSRF-TOKEN"] = csrfToken;
-      }
+             const csrfToken = getCSRFToken() || getCsrfFromCookie();
+       if (csrfToken) {
+         config.headers["X-CSRF-TOKEN"] = csrfToken;
+         config.headers["X-XSRF-TOKEN"] = csrfToken;
+       }
 
       // Add Authorization header if we have a token
       const authToken = Cookies.get("token");
