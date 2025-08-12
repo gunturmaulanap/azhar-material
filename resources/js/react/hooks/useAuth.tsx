@@ -4,6 +4,7 @@ import React, {
   createContext,
   useContext,
   ReactNode,
+  useRef,
 } from "react";
 import { authService } from "../services/api";
 import Cookies from "js-cookie";
@@ -33,6 +34,7 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   ready: boolean; // SPA hydration flag
+  status: "authenticated" | "guest";
   login: (credentials: {
     username: string;
     password: string;
@@ -57,6 +59,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [ready, setReady] = useState(false);
+  const opQueueRef = useRef<Promise<void>>(Promise.resolve());
+
+  const runSerial = async <T,>(operation: () => Promise<T>): Promise<T> => {
+    const previous = opQueueRef.current;
+    let release: () => void = () => {};
+    opQueueRef.current = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    await previous;
+    try {
+      return await operation();
+    } finally {
+      release();
+    }
+  };
 
   // Hydrate from server session on mount
   useEffect(() => {
@@ -64,7 +81,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const hydrate = async () => {
       try {
         // Fetch current user from server session (no cache)
-        const sessionResp = await authService.getUser();
+        const sessionResp = await runSerial(() => authService.getUser());
         const serverUser: User | null = sessionResp?.data?.data?.user ?? null;
         if (!isMounted) return;
         if (serverUser && serverUser.id) {
@@ -103,7 +120,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const refresh = async () => {
     try {
-      const sessionResp = await authService.getUser();
+      const sessionResp = await runSerial(() => authService.getUser());
       const serverUser: User | null = sessionResp?.data?.data?.user ?? null;
       if (serverUser && serverUser.id) {
         setUser(serverUser);
@@ -124,38 +141,41 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     login_type: string;
     role?: string;
   }): Promise<LoginResponseData> => {
-    // Ensure CSRF is fresh before login (Safari fix)
-    try { await authService.getSanctumCookie(); } catch (_) {}
+    return runSerial(async () => {
+      // Ensure CSRF is fresh before login (Safari fix)
+      try { await authService.getSanctumCookie(); } catch (_) {}
 
-    const response = await authService.login(credentials);
+      const response = await authService.login(credentials);
 
-    // Do NOT store bearer token on client. Server session cookie is authoritative.
+      // After server login succeeds, immediately rehydrate from /api/me
+      await refresh();
 
-    // After server login succeeds, immediately rehydrate from /api/me
-    await refresh();
-
-    return response.data as LoginResponseData;
+      return response.data as LoginResponseData;
+    });
   };
 
   const logout = async (skipApiCall: boolean = false) => {
-    try {
-      if (!skipApiCall) {
-        await authService.logout();
+    await runSerial(async () => {
+      try {
+        if (!skipApiCall) {
+          await authService.logout();
+        }
+      } catch (_) {
+        // ignore
+      } finally {
+        setUser(null);
+        setIsAuthenticated(false);
+        // Pre-fetch fresh CSRF cookie for next login (Safari role switch)
+        try { await authService.getSanctumCookie(); } catch (_) {}
       }
-    } catch (_) {
-      // ignore
-    } finally {
-      setUser(null);
-      setIsAuthenticated(false);
-      // Pre-fetch fresh CSRF cookie for next login (Safari role switch)
-      try { await authService.getSanctumCookie(); } catch (_) {}
-    }
+    });
   };
 
   const value: AuthContextType = {
     user,
     isAuthenticated,
     ready,
+    status: isAuthenticated ? "authenticated" : "guest",
     login,
     logout,
     refresh,
