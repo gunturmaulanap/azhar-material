@@ -1,45 +1,29 @@
 import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
-import { productService } from "../services/api";
+import { devtools } from "zustand/middleware";
+import { productService, brandService } from "../services/api";
 
-export interface Product {
+/** ==== Types ==== */
+type Category = { id: number; name: string };
+type Brand = { id: number; name: string; logo?: string | null };
+type Product = {
   id: number;
   name: string;
   description?: string;
   price: number;
   stock: number;
-  category: { id: number; name: string };
-  brand: { id: number; name: string };
+  category?: Category;
+  brand?: Brand;
   image_url?: string | null;
-  created_at: string;
-  updated_at: string;
-}
+};
 
-export interface Category {
-  id: number;
-  name: string;
-}
-export interface Brand {
-  id: number;
-  name: string;
-}
-
-interface ProductFilters {
-  searchTerm: string;
-  selectedCategory: string; // 'all' | id
-  selectedBrand: string; // 'all' | id
-  sortBy: string; // 'name' | 'price-low' | 'price-high' | ...
-  perPage: number;
-  currentPage: number;
-}
-
-interface ProductState {
-  // data
+type Store = {
+  // state
   products: Product[];
   categories: Category[];
   brands: Brand[];
+  isLoading: boolean;
+  error: string | null;
 
-  // pagination
   totalProducts: number;
   currentPage: number;
   perPage: number;
@@ -47,325 +31,302 @@ interface ProductState {
   hasNextPage: boolean;
   hasPrevPage: boolean;
 
-  // filters
   searchTerm: string;
-  selectedCategory: string;
-  selectedBrand: string;
-  sortBy: string;
-
-  // loading & error
-  isLoading: boolean;
-  isLoadingCategories: boolean;
-  isLoadingBrands: boolean;
-  error: string | null;
-
-  // meta cache utk kategori/brand
-  categoriesLastFetch: number;
-  brandsLastFetch: number;
-  metadataCacheExpiry: number;
-
-  // internal
-  _abort?: AbortController;
+  selectedCategory: string; // "all" or id string
+  selectedBrand: string; // "all" or id string
+  sortBy: "name" | "price-low" | "price-high";
 
   // actions
-  setSearchTerm: (term: string) => void;
-  setSelectedCategory: (category: string) => void;
-  setSelectedBrand: (brand: string) => void;
-  setSortBy: (sort: string) => void;
-  setPerPage: (perPage: number) => void;
-  setCurrentPage: (page: number) => void;
-  resetFilters: () => void;
-  clearError: () => void;
+  setSearchTerm: (v: string) => void;
+  setSelectedCategory: (v: string) => void;
+  setSelectedBrand: (v: string) => void;
+  setSortBy: (v: "name" | "price-low" | "price-high") => void;
+  setPerPage: (n: number) => void;
+  setCurrentPage: (n: number) => void;
+
+  isFiltering: () => boolean;
+
   clearCache: () => void;
+  clearError: () => void;
 
-  // utils
-  isFiltering: () => boolean; // <-- balik lagi
-
-  // fetchers
-  fetchProducts: (page?: number, forceRefresh?: boolean) => Promise<void>;
-  fetchCategories: (forceRefresh?: boolean) => Promise<void>;
-  fetchBrands: (forceRefresh?: boolean) => Promise<void>;
-  fetchAllData: (forceRefresh?: boolean) => Promise<void>;
-}
-
-const initialFilters: ProductFilters = {
-  searchTerm: "",
-  selectedCategory: "all",
-  selectedBrand: "all",
-  sortBy: "name",
-  perPage: 8,
-  currentPage: 1,
+  fetchAllData: (force?: boolean) => Promise<void>;
+  fetchProducts: (page?: number, force?: boolean) => Promise<void>;
 };
 
-export const useProductStore = create<ProductState>()(
-  persist(
-    (set, get) => ({
-      // data
-      products: [],
-      categories: [],
-      brands: [],
+/** ==== Helpers ==== */
+const pickImage = (p: any): string | null =>
+  p?.image_url ?? p?.image ?? p?.image_path ?? p?.thumbnail ?? p?.photo ?? null;
 
-      // pagination
-      totalProducts: 0,
-      totalPages: 0,
-      hasNextPage: false,
-      hasPrevPage: false,
+const mapProduct = (p: any): Product => ({
+  id: Number(p.id),
+  name: String(p.name ?? ""),
+  description: p.description ?? "",
+  price: Number(p.price ?? 0),
+  stock: Number(p.stock ?? 0),
+  category: p.category
+    ? {
+        id: Number(p.category.id ?? 0),
+        name: String(p.category.name ?? "Uncategorized"),
+      }
+    : undefined,
+  brand: p.brand
+    ? {
+        id: Number(p.brand.id ?? 0),
+        name: String(p.brand.name ?? "Unknown Brand"),
+        logo: p.brand.logo ?? null,
+      }
+    : undefined,
+  image_url: typeof pickImage(p) === "string" ? String(pickImage(p)) : null,
+});
 
-      // filters
-      ...initialFilters,
+// Ambil angka aman
+const num = (v: any, fallback: number) => {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : fallback;
+};
 
-      // loading & error
-      isLoading: false,
-      isLoadingCategories: false,
-      isLoadingBrands: false,
-      error: null,
+// Ekstrak array item + meta dari berbagai bentuk respons
+function extractItemsAndMeta(
+  body: any,
+  pageFallback: number,
+  perPageFallback: number
+): {
+  items: any[];
+  total: number;
+  perPage: number;
+  current: number;
+  last: number;
+} {
+  // 1) Array langsung
+  if (Array.isArray(body)) {
+    const arr = body;
+    return {
+      items: arr,
+      total: arr.length,
+      perPage: arr.length || perPageFallback,
+      current: 1,
+      last: 1,
+    };
+  }
 
-      // meta cache
-      categoriesLastFetch: 0,
-      brandsLastFetch: 0,
-      metadataCacheExpiry: 5 * 60 * 1000,
+  // 2) { data: [] , meta?: {...} }
+  if (body?.data && Array.isArray(body.data)) {
+    const arr = body.data;
+    const meta = body.meta ?? {};
+    return {
+      items: arr,
+      total: num(meta.total ?? body.total, arr.length),
+      perPage: num(meta.per_page ?? body.per_page, perPageFallback),
+      current: num(meta.current_page ?? body.current_page, pageFallback),
+      last: num(meta.last_page ?? body.last_page, 1),
+    };
+  }
 
-      // setters
-      setSearchTerm: (searchTerm) => {
-        set({ searchTerm, currentPage: 1 });
-        // debounce di komponen
-      },
-      setSelectedCategory: (selectedCategory) => {
-        set({ selectedCategory, currentPage: 1 });
-        void get().fetchProducts(1, true);
-      },
-      setSelectedBrand: (selectedBrand) => {
-        set({ selectedBrand, currentPage: 1 });
-        void get().fetchProducts(1, true);
-      },
-      setSortBy: (sortBy) => {
-        set({ sortBy, currentPage: 1 });
-        void get().fetchProducts(1, true);
-      },
-      setPerPage: (perPage) => {
-        set({ perPage, currentPage: 1 });
-        void get().fetchProducts(1, true);
-      },
-      setCurrentPage: (currentPage) => {
-        set({ currentPage });
-        void get().fetchProducts(currentPage, false);
-      },
+  // 3) { data: { data: [] , meta: {...} } } (Laravel Resource + Pagination)
+  if (body?.data?.data && Array.isArray(body.data.data)) {
+    const arr = body.data.data;
+    const meta = body.data.meta ??
+      body.meta ?? {
+        total: body.data.total,
+        per_page: body.data.per_page,
+        current_page: body.data.current_page,
+        last_page: body.data.last_page,
+      };
+    return {
+      items: arr,
+      total: num(meta?.total, arr.length),
+      perPage: num(meta?.per_page, perPageFallback),
+      current: num(meta?.current_page, pageFallback),
+      last: num(meta?.last_page, 1),
+    };
+  }
 
-      resetFilters: () => {
-        set({ ...initialFilters });
-        void get().fetchProducts(1, true);
-      },
+  // 4) { items: [] , ... }
+  if (Array.isArray(body?.items)) {
+    const arr = body.items;
+    const meta = body.meta ?? {};
+    return {
+      items: arr,
+      total: num(meta.total ?? body.total, arr.length),
+      perPage: num(meta.per_page ?? body.per_page, perPageFallback),
+      current: num(meta.current_page ?? body.current_page, pageFallback),
+      last: num(meta.last_page ?? body.last_page, 1),
+    };
+  }
 
-      clearError: () => set({ error: null }),
+  // 5) { products: [] , ... }
+  if (Array.isArray(body?.products)) {
+    const arr = body.products;
+    const meta = body.meta ?? {};
+    return {
+      items: arr,
+      total: num(meta.total ?? body.total, arr.length),
+      perPage: num(meta.per_page ?? body.per_page, perPageFallback),
+      current: num(meta.current_page ?? body.current_page, pageFallback),
+      last: num(meta.last_page ?? body.last_page, 1),
+    };
+  }
 
-      clearCache: () => {
-        localStorage.removeItem("product-store");
-        set({
-          categories: [],
-          brands: [],
-          categoriesLastFetch: 0,
-          brandsLastFetch: 0,
-        });
-      },
+  // 6) Fallback kosong
+  return {
+    items: [],
+    total: 0,
+    perPage: perPageFallback,
+    current: pageFallback,
+    last: 1,
+  };
+}
 
-      // utils
-      isFiltering: () => {
-        const s = get();
-        return (
-          s.searchTerm.trim() !== "" ||
-          s.selectedCategory !== "all" ||
-          s.selectedBrand !== "all"
-        );
-      },
+/** ==== Store ==== */
+export const useProductStore = create<Store>()(
+  devtools((set, get) => ({
+    products: [],
+    categories: [],
+    brands: [],
+    isLoading: false,
+    error: null,
 
-      // fetchers
-      fetchProducts: async (
-        page = get().currentPage || 1,
-        _forceRefresh = false
-      ) => {
-        const state = get();
+    totalProducts: 0,
+    currentPage: 1,
+    perPage: 8,
+    totalPages: 1,
+    hasNextPage: false,
+    hasPrevPage: false,
 
-        // batalkan request sebelumnya (hindari race)
-        try {
-          state._abort?.abort();
-        } catch {}
-        const abort = new AbortController();
-        set({ _abort: abort });
+    searchTerm: "",
+    selectedCategory: "all",
+    selectedBrand: "all",
+    sortBy: "name",
 
-        const params: Record<string, any> = {
-          page,
-          per_page: state.perPage,
-        };
-        if (state.searchTerm.trim()) params.search = state.searchTerm.trim();
-        if (state.selectedCategory !== "all")
-          params.category_id = state.selectedCategory;
-        if (state.selectedBrand !== "all")
-          params.brand_id = state.selectedBrand;
-        if (state.sortBy) params.sort_by = state.sortBy;
+    setSearchTerm: (v) => set({ searchTerm: v }),
+    setSelectedCategory: (v) => set({ selectedCategory: v, currentPage: 1 }),
+    setSelectedBrand: (v) => set({ selectedBrand: v, currentPage: 1 }),
+    setSortBy: (v) => set({ sortBy: v, currentPage: 1 }),
+    setPerPage: (n) => set({ perPage: n, currentPage: 1 }),
+    setCurrentPage: (n) => set({ currentPage: Math.max(1, n) }),
 
-        set({ isLoading: true, error: null });
-        try {
-          const res = await productService.getAll(params, {
-            signal: abort.signal,
-          });
-          const body = res?.data?.data ?? res?.data;
+    isFiltering: () => {
+      const s = get();
+      return (
+        s.searchTerm.trim() !== "" ||
+        s.selectedCategory !== "all" ||
+        s.selectedBrand !== "all" ||
+        s.sortBy !== "name"
+      );
+    },
 
-          let products: Product[] = [];
-          let total = 0,
-            lastPage = 1,
-            current = page,
-            next = false,
-            prev = page > 1;
-
-          if (body && typeof body === "object" && Array.isArray(body.data)) {
-            // server paginated
-            products = (body.data as any[]).map((p) => ({
-              id: p.id,
-              name: p.name,
-              description: p.description ?? "",
-              price: Number(p.price ?? 0),
-              stock: Number(p.stock ?? 0),
-              category: {
-                id: p.category?.id ?? 0,
-                name: p.category?.name ?? "Uncategorized",
-              },
-              brand: {
-                id: p.brand?.id ?? 0,
-                name: p.brand?.name ?? "Unknown Brand",
-              },
-              image_url: typeof p.image_url === "string" ? p.image_url : null,
-              created_at: p.created_at ?? new Date().toISOString(),
-              updated_at: p.updated_at ?? new Date().toISOString(),
-            }));
-            total = Number(body.total ?? products.length);
-            lastPage = Number(body.last_page ?? 1);
-            current = Number(body.current_page ?? page);
-            next = !!body.next_page_url;
-            prev = !!body.prev_page_url;
-          } else if (Array.isArray(body)) {
-            // server non‑paginated array
-            products = (body as any[]).map((p) => ({
-              id: p.id,
-              name: p.name,
-              description: p.description ?? "",
-              price: Number(p.price ?? 0),
-              stock: Number(p.stock ?? 0),
-              category: {
-                id: p.category?.id ?? 0,
-                name: p.category?.name ?? "Uncategorized",
-              },
-              brand: {
-                id: p.brand?.id ?? 0,
-                name: p.brand?.name ?? "Unknown Brand",
-              },
-              image_url: typeof p.image_url === "string" ? p.image_url : null,
-              created_at: p.created_at ?? new Date().toISOString(),
-              updated_at: p.updated_at ?? new Date().toISOString(),
-            }));
-            total = products.length;
-            lastPage = Math.max(1, Math.ceil(total / state.perPage));
-            current = Math.min(page, lastPage);
-            const start = (current - 1) * state.perPage;
-            products = products.slice(start, start + state.perPage);
-            next = current < lastPage;
-            prev = current > 1;
-          } else {
-            throw new Error("Format response /products tidak dikenal");
-          }
-
-          set({
-            products,
-            totalProducts: total,
-            totalPages: lastPage,
-            currentPage: current,
-            hasNextPage: next,
-            hasPrevPage: prev,
-            isLoading: false,
-            _abort: undefined,
-          });
-        } catch (err: any) {
-          if (err?.name === "CanceledError" || err?.name === "AbortError")
-            return;
-          console.error("fetchProducts error:", err);
-          set({
-            isLoading: false,
-            error:
-              err?.response?.data?.message ??
-              err?.message ??
-              "Gagal memuat produk",
-            _abort: undefined,
-          });
-        }
-      },
-
-      fetchCategories: async (forceRefresh = false) => {
-        const { categoriesLastFetch, metadataCacheExpiry, categories } = get();
-        const fresh = Date.now() - categoriesLastFetch < metadataCacheExpiry;
-        if (!forceRefresh && categories.length && fresh) return;
-
-        set({ isLoadingCategories: true });
-        try {
-          const res = await productService.getCategories();
-          const data = res?.data?.data ?? [];
-          const list: Category[] = Array.isArray(data)
-            ? data
-                .filter((c: any) => c && c.name)
-                .map((c: any) => ({ id: Number(c.id), name: String(c.name) }))
-            : [];
-          set({
-            categories: list,
-            categoriesLastFetch: Date.now(),
-            isLoadingCategories: false,
-          });
-        } catch (err) {
-          console.error("fetchCategories error:", err);
-          set({ isLoadingCategories: false });
-        }
-      },
-
-      fetchBrands: async (forceRefresh = false) => {
-        const { brandsLastFetch, metadataCacheExpiry, brands } = get();
-        const fresh = Date.now() - brandsLastFetch < metadataCacheExpiry;
-        if (!forceRefresh && brands.length && fresh) return;
-
-        set({ isLoadingBrands: true });
-        try {
-          const res = await productService.getBrands();
-          const data = res?.data?.data ?? [];
-          const list: Brand[] = Array.isArray(data)
-            ? data
-                .filter((b: any) => b && b.name)
-                .map((b: any) => ({ id: Number(b.id), name: String(b.name) }))
-            : [];
-          set({
-            brands: list,
-            brandsLastFetch: Date.now(),
-            isLoadingBrands: false,
-          });
-        } catch (err) {
-          console.error("fetchBrands error:", err);
-          set({ isLoadingBrands: false });
-        }
-      },
-
-      fetchAllData: async (forceRefresh = false) => {
-        await Promise.all([
-          get().fetchCategories(forceRefresh),
-          get().fetchBrands(forceRefresh),
-        ]);
-        await get().fetchProducts(1, true);
-      },
-    }),
-    {
-      name: "product-store",
-      storage: createJSONStorage(() => localStorage),
-      partialize: (s) => ({
-        // persist meta yang aman (tidak menyimpan filter)
-        categories: s.categories,
-        brands: s.brands,
-        categoriesLastFetch: s.categoriesLastFetch,
-        brandsLastFetch: s.brandsLastFetch,
+    clearCache: () =>
+      set({
+        products: [],
+        categories: [],
+        brands: [],
+        totalProducts: 0,
+        totalPages: 1,
+        currentPage: 1,
       }),
-    }
-  )
+
+    clearError: () => set({ error: null }),
+
+    fetchAllData: async (force = false) => {
+      await Promise.all([
+        get().fetchProducts(force ? 1 : get().currentPage, force),
+        (async () => {
+          // kategori
+          try {
+            const res = await productService.getCategories?.();
+            const arr = Array.isArray(res?.data?.data)
+              ? res.data.data
+              : Array.isArray(res?.data)
+              ? res.data
+              : [];
+            set({
+              categories: arr.map((c: any) => ({
+                id: Number(c.id),
+                name: String(c.name),
+              })),
+            });
+          } catch {
+            // ignore
+          }
+        })(),
+        (async () => {
+          // brand aktif
+          try {
+            const res = await brandService.getActive?.();
+            const arr = Array.isArray(res?.data?.data)
+              ? res.data.data
+              : Array.isArray(res?.data)
+              ? res.data
+              : [];
+            set({
+              brands: arr.map((b: any) => ({
+                id: Number(b.id),
+                name: String(b.name),
+                logo: b.logo ?? null,
+              })),
+            });
+          } catch {
+            // ignore
+          }
+        })(),
+      ]);
+    },
+
+    fetchProducts: async (page = 1, force = false) => {
+      const s = get();
+      set({ isLoading: true });
+
+      try {
+        const params: any = {
+          page,
+          per_page: s.perPage,
+          search: s.searchTerm || undefined,
+          category_id:
+            s.selectedCategory !== "all" ? s.selectedCategory : undefined,
+          brand_id: s.selectedBrand !== "all" ? s.selectedBrand : undefined,
+          sort:
+            s.sortBy === "name"
+              ? "name"
+              : s.sortBy === "price-low"
+              ? "price_asc"
+              : "price_desc",
+          ...(force ? { _fresh: Date.now() } : {}),
+        };
+
+        const res = await productService.getAll(params);
+        const body = res?.data;
+
+        // Ekstraksi fleksibel
+        const { items, total, perPage, current, last } = extractItemsAndMeta(
+          body,
+          page,
+          s.perPage
+        );
+
+        if (!Array.isArray(items)) {
+          throw new Error("Format response produk tidak dikenal.");
+        }
+
+        const mapped = items.map(mapProduct);
+
+        set({
+          products: mapped,
+          totalProducts: total,
+          perPage,
+          currentPage: current,
+          totalPages: Math.max(1, last),
+          hasNextPage: current < Math.max(1, last),
+          hasPrevPage: current > 1,
+          isLoading: false,
+        });
+      } catch (e: any) {
+        console.error(e);
+        set({
+          error:
+            e?.response?.data?.message ?? e?.message ?? "Gagal memuat produk.",
+          isLoading: false,
+        });
+      }
+    },
+  }))
 );

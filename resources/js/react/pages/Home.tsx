@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import useScrollRestoration from "../hooks/useScrollRestoration";
+import { toPublicUrl } from "../utils/storageUrl";
+
 import {
   ArrowRight,
-  Play,
   AlertCircle,
   Truck,
   Users,
@@ -27,7 +28,6 @@ import {
   CarouselPrevious,
 } from "../components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
-import LoadingSpinner from "../components/LoadingSpinner";
 import LocationSection from "../components/home/LocationSection";
 import {
   productService,
@@ -35,22 +35,55 @@ import {
   brandService,
 } from "../services/api";
 
+/* ========= Komponen Gambar Progresif (local) ========= */
+const ProgressiveImage: React.FC<{
+  src?: string;
+  alt: string;
+  className?: string;
+}> = ({ src, alt, className }) => {
+  const [loaded, setLoaded] = useState(false);
+  const [errored, setErrored] = useState(false);
+
+  return (
+    <div className={`relative ${className ?? ""}`}>
+      {!loaded && !errored && (
+        <div className="absolute inset-0 bg-gray-200 animate-pulse transition-opacity duration-500" />
+      )}
+
+      {!errored && src ? (
+        <img
+          src={src}
+          alt={alt}
+          loading="lazy"
+          decoding="async"
+          onLoad={() => setLoaded(true)}
+          onError={() => {
+            setErrored(true);
+            setLoaded(true);
+          }}
+          className={`w-full h-full object-cover transition-all duration-500 ${
+            loaded ? "opacity-100 blur-0" : "opacity-0 blur-md"
+          }`}
+        />
+      ) : (
+        <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+          <span className="text-gray-500 text-sm">No Image</span>
+        </div>
+      )}
+    </div>
+  );
+};
+/* ===================================================== */
+
 interface Product {
   id: number;
   name: string;
   description?: string;
   price: number;
   stock: number;
-  category: {
-    id: number;
-    name: string;
-  };
-  brand: {
-    id: number;
-    name: string;
-  };
-  created_at: string;
-  updated_at: string;
+  category?: { id: number; name: string };
+  brand?: { id: number; name: string };
+  image_url?: string | null;
 }
 
 interface HeroSection {
@@ -60,25 +93,21 @@ interface HeroSection {
   description: string;
   button_text: string;
   button_url: string;
-  background_image?: string;
-  background_video?: string;
+  background_image?: string | null;
+  background_video?: string | null;
   background_type?: "image" | "video";
-  background_image_url?: string;
-  background_video_url?: string;
+  background_image_url?: string | null;
+  background_video_url?: string | null;
   is_active: boolean;
-  created_at: string;
-  updated_at: string;
 }
 
 interface Brand {
   id: number;
   name: string;
   description?: string;
-  logo?: string;
+  logo?: string | null;
   website_url?: string;
   is_active: boolean;
-  created_at: string;
-  updated_at: string;
 }
 
 const Home: React.FC = () => {
@@ -90,19 +119,19 @@ const Home: React.FC = () => {
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
-  // Initialize scroll restoration with smooth scrolling
-  const { scrollToTop } = useScrollRestoration({
+  // Scroll restore
+  useScrollRestoration({
     restoreOnRefresh: true,
     scrollToTopOnRouteChange: true,
     smooth: true,
-    delay: 100, // Small delay to ensure page is rendered before scroll
+    delay: 100,
   });
 
   const autoplayPlugin = React.useRef(
     Autoplay({ delay: 2000, stopOnInteraction: true })
   );
 
-  // Animation variants
+  // Animations
   const containerVariants: any = {
     hidden: { opacity: 0 },
     visible: {
@@ -121,10 +150,7 @@ const Home: React.FC = () => {
     visible: {
       opacity: 1,
       y: 0,
-      transition: {
-        duration: 0.6,
-        ease: "easeOut",
-      },
+      transition: { duration: 0.6, ease: "easeOut" },
     },
   };
 
@@ -133,18 +159,12 @@ const Home: React.FC = () => {
     visible: {
       opacity: 1,
       scale: 1,
-      transition: {
-        duration: 0.5,
-        ease: "easeOut",
-      },
+      transition: { duration: 0.5, ease: "easeOut" },
     },
     hover: {
       scale: 1.05,
       y: -10,
-      transition: {
-        duration: 0.3,
-        ease: "easeOut",
-      },
+      transition: { duration: 0.3, ease: "easeOut" },
     },
   };
 
@@ -153,33 +173,19 @@ const Home: React.FC = () => {
     visible: {
       opacity: 1,
       y: 0,
-      transition: {
-        duration: 0.6,
-        ease: [0.25, 0.1, 0.25, 1],
-      },
+      transition: { duration: 0.6, ease: [0.25, 0.1, 0.25, 1] },
     },
   };
 
   useEffect(() => {
-    // Check if device is mobile first
-    const checkIsMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
+    const checkIsMobile = () => setIsMobile(window.innerWidth < 768);
     checkIsMobile();
     window.addEventListener("resize", checkIsMobile);
 
-    // Set video loaded to true on mobile immediately since we're not using video on mobile
-    if (window.innerWidth < 768) {
-      setVideoLoaded(true);
-    }
-
-    // Fetch data immediately
+    if (window.innerWidth < 768) setVideoLoaded(true);
     fetchData();
 
-    return () => {
-      window.removeEventListener("resize", checkIsMobile);
-    };
+    return () => window.removeEventListener("resize", checkIsMobile);
   }, []);
 
   const fetchData = async () => {
@@ -187,14 +193,12 @@ const Home: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      // Use Promise.allSettled for better error handling
       const [productsRes, heroRes, brandsRes] = await Promise.allSettled([
         productService.getFeatured(),
         heroSectionService.getActive(),
         brandService.getActive(),
       ]);
 
-      // Handle products
       if (
         productsRes.status === "fulfilled" &&
         Array.isArray(productsRes.value?.data?.data)
@@ -204,14 +208,12 @@ const Home: React.FC = () => {
         setFeaturedProducts([]);
       }
 
-      // Handle hero section
       if (heroRes.status === "fulfilled" && heroRes.value?.data?.data) {
         setHeroSection(heroRes.value.data.data);
       } else {
         setHeroSection(null);
       }
 
-      // Handle brands
       if (
         brandsRes.status === "fulfilled" &&
         Array.isArray(brandsRes.value?.data?.data)
@@ -220,8 +222,8 @@ const Home: React.FC = () => {
       } else {
         setBrands([]);
       }
-    } catch (error) {
-      console.error("Error fetching data:", error);
+    } catch (e) {
+      console.error(e);
       setError("Gagal memuat data. Silakan coba lagi.");
     } finally {
       setLoading(false);
@@ -229,18 +231,16 @@ const Home: React.FC = () => {
   };
 
   const scrollToProducts = () => {
-    const element = document.getElementById("product-preview");
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
-    }
+    document.getElementById("product-preview")?.scrollIntoView({
+      behavior: "smooth",
+    });
   };
 
-  // Show loading screen initially - consistent with blade template
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
           <p className="text-gray-600">Loading...</p>
         </div>
       </div>
@@ -264,7 +264,7 @@ const Home: React.FC = () => {
               Terjadi Kesalahan
             </h1>
             <p className="text-gray-600 mb-6">{error}</p>
-            <Button onClick={() => fetchData()} className="w-full">
+            <Button onClick={fetchData} className="w-full">
               Coba Lagi
             </Button>
           </div>
@@ -289,9 +289,9 @@ const Home: React.FC = () => {
       >
         {/* Background Media */}
         <div className="absolute inset-0 w-full h-full">
-          {/* Check if hero section has background_type video and background_video */}
           {heroSection?.background_type === "video" &&
-          heroSection?.background_video ? (
+          (heroSection?.background_video ||
+            heroSection?.background_video_url) ? (
             <div className="relative w-full h-full">
               <motion.video
                 autoPlay
@@ -302,23 +302,20 @@ const Home: React.FC = () => {
                 onLoadedData={() => setVideoLoaded(true)}
                 onCanPlay={() => setVideoLoaded(true)}
                 className="w-full h-full object-cover"
-                style={{
-                  filter: "brightness(0.7) contrast(1.1)",
-                }}
+                style={{ filter: "brightness(0.7) contrast(1.1)" }}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 1, ease: "easeOut" }}
               >
                 <source
                   src={
-                    heroSection.background_video_url ||
-                    `/storage/${heroSection.background_video}`
+                    toPublicUrl(heroSection.background_video_url) ??
+                    toPublicUrl(heroSection.background_video)
                   }
                   type="video/mp4"
                 />
               </motion.video>
 
-              {/* Subtle animated overlay for better text readability */}
               <motion.div
                 className="absolute inset-0 bg-gradient-to-br from-black/40 via-black/30 to-black/50"
                 initial={{ opacity: 0 }}
@@ -327,23 +324,22 @@ const Home: React.FC = () => {
               />
             </div>
           ) : heroSection?.background_type === "image" &&
-            heroSection?.background_image ? (
+            (heroSection?.background_image ||
+              heroSection?.background_image_url) ? (
             <motion.img
               src={
-                heroSection.background_image_url ||
-                `/storage/${heroSection.background_image}`
+                toPublicUrl(heroSection.background_image_url) ??
+                toPublicUrl(heroSection.background_image)
               }
               alt="Hero Background"
               className="w-full h-full object-cover"
-              style={{
-                filter: "brightness(0.7) contrast(1.1)",
-              }}
+              style={{ filter: "brightness(0.7) contrast(1.1)" }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.8, ease: "easeOut" }}
             />
           ) : (
-            /* Fallback to default video if no hero section background is configured */
+            // Fallback: video default
             <div className="relative w-full h-full">
               <motion.video
                 autoPlay
@@ -354,9 +350,7 @@ const Home: React.FC = () => {
                 onLoadedData={() => setVideoLoaded(true)}
                 onCanPlay={() => setVideoLoaded(true)}
                 className="w-full h-full object-cover"
-                style={{
-                  filter: "brightness(0.7) contrast(1.1)",
-                }}
+                style={{ filter: "brightness(0.7) contrast(1.1)" }}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 1, ease: "easeOut" }}
@@ -364,7 +358,6 @@ const Home: React.FC = () => {
                 <source src="/videos/azhar.mp4" type="video/mp4" />
               </motion.video>
 
-              {/* Subtle animated overlay for better text readability */}
               <motion.div
                 className="absolute inset-0 bg-gradient-to-br from-black/40 via-black/30 to-black/50"
                 initial={{ opacity: 0 }}
@@ -419,12 +412,12 @@ const Home: React.FC = () => {
           transition={{ delay: 1, duration: 0.5 }}
         >
           <div className="w-6 h-10 border-2 border-white rounded-full flex justify-center">
-            <div className="w-1 h-3 bg-white rounded-full mt-2 animate-pulse"></div>
+            <div className="w-1 h-3 bg-white rounded-full mt-2 animate-pulse" />
           </div>
         </motion.div>
       </motion.section>
 
-      {/* Product Preview Section */}
+      {/* Product Preview */}
       <motion.section
         id="product-preview"
         className="py-20 bg-white"
@@ -452,7 +445,7 @@ const Home: React.FC = () => {
 
           {featuredProducts.length === 0 ? (
             <div className="text-center py-16">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4" />
               <p className="text-gray-600">No featured products available</p>
             </div>
           ) : (
@@ -471,12 +464,31 @@ const Home: React.FC = () => {
                   >
                     <Card className="group border-0 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl overflow-hidden h-full">
                       <div className="relative overflow-hidden">
-                        <div className="w-full h-48 bg-gradient-to-br from-primary/10 to-accent/20 flex items-center justify-center">
-                          <span className="text-primary font-semibold">
-                            Material Image
+                        {product.image_url ? (
+                          <ProgressiveImage
+                            src={toPublicUrl(product.image_url)}
+                            alt={product.name}
+                            className="w-full h-48"
+                          />
+                        ) : (
+                          <div className="w-full h-48 bg-gradient-to-br from-primary/10 to-accent/20 flex items-center justify-center">
+                            <span className="text-primary font-semibold">
+                              Material Image
+                            </span>
+                          </div>
+                        )}
+
+                        <div className="absolute top-4 right-4">
+                          <span
+                            className={`px-3 py-1 text-xs font-semibold rounded-full ${
+                              product.stock > 0
+                                ? "bg-green-100 text-green-800"
+                                : "bg-orange-100 text-orange-800"
+                            }`}
+                          >
+                            {product.stock > 0 ? "In Stock" : "Out of Stock"}
                           </span>
                         </div>
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                       </div>
                       <CardContent className="p-6">
                         <h3 className="text-xl font-semibold text-neutral-800 mb-2">
@@ -521,7 +533,7 @@ const Home: React.FC = () => {
         </div>
       </motion.section>
 
-      {/* Brands Carousel Section */}
+      {/* Brands */}
       <section className="py-20 bg-gradient-to-br from-accent/5 to-primary/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -535,7 +547,7 @@ const Home: React.FC = () => {
 
           {brands.length === 0 ? (
             <div className="text-center py-16">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4" />
               <p className="text-gray-600">No brands available</p>
             </div>
           ) : (
@@ -556,17 +568,17 @@ const Home: React.FC = () => {
                           <CardContent className="flex flex-col items-center justify-center p-6 h-32">
                             {brand.logo ? (
                               <img
-                                // Perbaikan di sini: Tambahkan '/storage/' di depan jalur
-                                src={`/storage/${brand.logo}`}
+                                src={toPublicUrl(brand.logo)}
                                 alt={brand.name}
                                 className="max-h-12 w-auto grayscale group-hover:grayscale-0 opacity-70 group-hover:opacity-100 transition-all duration-300 mb-2"
+                                loading="lazy"
                               />
                             ) : (
                               <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-accent/20 rounded-xl flex items-center justify-center mb-2 group-hover:from-primary/30 group-hover:to-accent/30 transition-all duration-300">
                                 <span className="text-primary font-bold text-sm truncate px-1">
                                   {brand.name
                                     .split(" ")
-                                    .map((word) => word[0])
+                                    .map((w) => w[0])
                                     .join("")
                                     .slice(0, 2)}
                                 </span>
@@ -589,7 +601,7 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* Services Overview Section */}
+      {/* Services + CTA + Location */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -667,10 +679,9 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* Location Section */}
       <LocationSection />
 
-      {/* Contact CTA Section */}
+      {/* CTA */}
       <section className="py-20 bg-gradient-to-br from-primary to-primary/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
@@ -689,9 +700,7 @@ const Home: React.FC = () => {
                 <Clock className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-lg font-semibold mb-2">Fast Response</h3>
-              <p className="text-accent">
-                Quick quotes and immediate support for urgent projects
-              </p>
+              <p className="text-accent">Quick quotes and immediate support</p>
             </div>
 
             <div className="text-center text-white">
@@ -699,9 +708,7 @@ const Home: React.FC = () => {
                 <Shield className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-lg font-semibold mb-2">Trusted Service</h3>
-              <p className="text-accent">
-                Years of experience serving construction professionals
-              </p>
+              <p className="text-accent">Experience serving professionals</p>
             </div>
 
             <div className="text-center text-white">
@@ -709,9 +716,7 @@ const Home: React.FC = () => {
                 <MapPin className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-lg font-semibold mb-2">Wide Coverage</h3>
-              <p className="text-accent">
-                Delivery across Jakarta and surrounding areas
-              </p>
+              <p className="text-accent">Delivery across Jabodetabek</p>
             </div>
           </div>
 

@@ -3,6 +3,8 @@ import { Search, Filter, ChevronLeft, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "../components/ui/button";
 import { Card, CardContent } from "../components/ui/card";
+import { toPublicUrl } from "../utils/storageUrl";
+
 import { Input } from "../components/ui/input";
 import {
   Select,
@@ -16,14 +18,15 @@ import { useAppStore } from "../stores/appStore";
 import { useDebounce } from "../hooks/useDebounce";
 import useScrollRestoration from "../hooks/useScrollRestoration";
 
-// Small helper for progressive image with blur-up + skeleton
+// Komponen gambar progresif (izin src undefined agar aman di TS)
 const ProgressiveImage: React.FC<{
-  src: string;
+  src?: string; // <-- boleh undefined
   alt: string;
   className?: string;
 }> = ({ src, alt, className }) => {
   const [loaded, setLoaded] = useState(false);
   const [errored, setErrored] = useState(false);
+
   return (
     <div className={`relative ${className ?? ""}`}>
       {!loaded && !errored && (
@@ -32,7 +35,8 @@ const ProgressiveImage: React.FC<{
           aria-hidden="true"
         />
       )}
-      {!errored ? (
+
+      {!errored && src ? (
         <img
           src={src}
           alt={alt}
@@ -57,7 +61,6 @@ const ProgressiveImage: React.FC<{
 };
 
 const Products: React.FC = () => {
-  // Initialize scroll restoration
   useScrollRestoration({
     restoreOnRefresh: true,
     scrollToTopOnRouteChange: true,
@@ -65,19 +68,14 @@ const Products: React.FC = () => {
     delay: 0,
   });
 
-  // Track if component is mounted to prevent multiple fetches
   const isInitialMount = useRef(true);
   const hasInitialized = useRef(false);
 
-  // Animation variants
   const containerVariants: any = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: {
-        duration: 0.6,
-        staggerChildren: 0.1,
-      },
+      transition: { duration: 0.6, staggerChildren: 0.1 },
     },
   };
 
@@ -86,10 +84,7 @@ const Products: React.FC = () => {
     visible: {
       opacity: 1,
       y: 0,
-      transition: {
-        duration: 0.5,
-        ease: "easeOut",
-      },
+      transition: { duration: 0.5, ease: "easeOut" },
     },
   };
 
@@ -99,34 +94,20 @@ const Products: React.FC = () => {
       opacity: 1,
       scale: 1,
       y: 0,
-      transition: {
-        duration: 0.4,
-        ease: "easeOut",
-      },
+      transition: { duration: 0.4, ease: "easeOut" },
     },
     hover: {
       y: -8,
       scale: 1.02,
-      transition: {
-        duration: 0.2,
-        ease: "easeInOut",
-      },
+      transition: { duration: 0.2, ease: "easeInOut" },
     },
   };
 
   const filterVariants: any = {
     hidden: { opacity: 0, y: -10 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.4,
-        delay: 0.2,
-      },
-    },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.4, delay: 0.2 } },
   };
 
-  // Zustand stores
   const {
     products,
     categories,
@@ -144,7 +125,6 @@ const Products: React.FC = () => {
     selectedBrand,
     sortBy,
     isFiltering,
-    getFilteredProductCount,
     setSearchTerm,
     setSelectedCategory,
     setSelectedBrand,
@@ -153,26 +133,19 @@ const Products: React.FC = () => {
     setCurrentPage,
     fetchAllData,
     fetchProducts,
-    fetchCategories,
-    fetchBrands,
     clearError,
     clearCache,
   } = useProductStore();
 
-  const { setPageMeta, addNotification } = useAppStore();
-
-  // Reduced debounce for more responsive search
+  const { addNotification } = useAppStore();
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
-  // Set page metadata only once
-
-  // Initialize data on first mount only
+  // init
   useEffect(() => {
     if (isInitialMount.current && !hasInitialized.current) {
       isInitialMount.current = false;
       hasInitialized.current = true;
 
-      // Only clear cache if no data exists
       if (
         products.length === 0 &&
         categories.length === 0 &&
@@ -181,62 +154,45 @@ const Products: React.FC = () => {
         clearCache();
       }
 
-      // Fetch data without aggressive refresh
-      fetchAllData(false); // Don't force refresh unless necessary
+      fetchAllData(false);
     }
-  }, []); // Empty dependency array for mount-only execution
+  }, []);
 
-  // Handle debounced search changes
+  // search
   useEffect(() => {
     if (!hasInitialized.current) return;
-
-    // Always force refresh for search to get updated results
-    fetchProducts(1, true); // Force refresh for search to bypass cache
+    fetchProducts(1, true);
   }, [debouncedSearchTerm]);
 
-  // Handle errors with notifications
+  // error toast
   useEffect(() => {
     if (error) {
-      addNotification({
-        type: "error",
-        message: error,
-        duration: 5000,
-      });
+      addNotification({ type: "error", message: error, duration: 5000 });
       clearError();
     }
   }, [error, addNotification, clearError]);
 
-  // Handle search term changes
-  const handleSearchChange = (value: string) => {
-    setSearchTerm(value);
-  };
-
-  // Handle page changes
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    // Scroll to top when page changes
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // Handle per page changes
   const handlePerPageChange = (value: string) => {
-    const newPerPage = parseInt(value);
-    setPerPage(newPerPage);
+    setPerPage(parseInt(value));
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("id-ID", {
+  const formatPrice = (price: number) =>
+    new Intl.NumberFormat("id-ID", {
       style: "currency",
       currency: "IDR",
       minimumFractionDigits: 0,
     }).format(price);
-  };
 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
           <p className="text-gray-600">Loading products...</p>
         </div>
       </div>
@@ -280,7 +236,7 @@ const Products: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             {/* Search */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 placeholder="Search products..."
                 value={searchTerm}
@@ -289,34 +245,34 @@ const Products: React.FC = () => {
               />
             </div>
 
-            {/* Category Filter */}
+            {/* Category */}
             <Select
               value={selectedCategory}
               onValueChange={setSelectedCategory}
             >
-              <SelectTrigger className="border-gray-200 focus:border-primary rounded-lg">
+              <SelectTrigger className="border-gray-2 00 focus:border-primary rounded-lg">
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
               <SelectContent className="bg-white">
                 <SelectItem value="all">All Categories</SelectItem>
-                {categories.map((category) => (
-                  <SelectItem key={category.id} value={category.id.toString()}>
-                    {category.name}
+                {categories.map((c) => (
+                  <SelectItem key={c.id} value={c.id.toString()}>
+                    {c.name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
 
-            {/* Brand Filter */}
+            {/* Brand */}
             <Select value={selectedBrand} onValueChange={setSelectedBrand}>
               <SelectTrigger className="border-gray-200 focus:border-primary rounded-lg">
                 <SelectValue placeholder="Brand" />
               </SelectTrigger>
               <SelectContent className="bg-white">
                 <SelectItem value="all">All Brands</SelectItem>
-                {brands.map((brand) => (
-                  <SelectItem key={brand.id} value={brand.id.toString()}>
-                    {brand.name}
+                {brands.map((b) => (
+                  <SelectItem key={b.id} value={b.id.toString()}>
+                    {b.name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -334,7 +290,7 @@ const Products: React.FC = () => {
               </SelectContent>
             </Select>
 
-            {/* Products Per Page */}
+            {/* Per page */}
             <Select
               value={perPage.toString()}
               onValueChange={handlePerPageChange}
@@ -351,7 +307,7 @@ const Products: React.FC = () => {
             </Select>
           </div>
 
-          {/* Results Count */}
+          {/* Result meta */}
           <div className="mt-4 pt-4 border-t border-gray-200">
             <p className="text-gray-600">
               Showing {products.length} of {totalProducts} products
@@ -369,7 +325,7 @@ const Products: React.FC = () => {
           </div>
         </motion.div>
 
-        {/* Product Grid */}
+        {/* Grid */}
         <motion.div
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
           variants={containerVariants}
@@ -388,27 +344,20 @@ const Products: React.FC = () => {
               >
                 <Card className="group cursor-pointer border-0 shadow-lg hover:shadow-xl rounded-2xl overflow-hidden h-full">
                   <div className="relative overflow-hidden">
-                    {product.image_url ? (
-                      <ProgressiveImage
-                        src={product.image_url}
-                        alt={product.name}
-                        className="w-full h-48"
-                      />
-                    ) : (
-                      <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
-                        <span className="text-gray-500">No Image</span>
-                      </div>
-                    )}
-
+                    <ProgressiveImage
+                      src={toPublicUrl(product.image_url ?? undefined)}
+                      alt={product.name}
+                      className="w-full h-48"
+                    />
                     <div className="absolute top-4 right-4">
                       <span
                         className={`px-3 py-1 text-xs font-semibold rounded-full ${
-                          product.stock > 0
+                          (product.stock ?? 0) > 0
                             ? "bg-green-100 text-green-800"
                             : "bg-orange-100 text-orange-800"
                         }`}
                       >
-                        {product.stock > 0 ? "In Stock" : "Out of Stock"}
+                        {(product.stock ?? 0) > 0 ? "In Stock" : "Out of Stock"}
                       </span>
                     </div>
                   </div>
@@ -440,7 +389,7 @@ const Products: React.FC = () => {
           </AnimatePresence>
         </motion.div>
 
-        {/* Pagination Controls - Show when there are multiple pages */}
+        {/* Pagination */}
         {totalPages > 1 && (
           <motion.div
             className="flex justify-center items-center space-x-4 mt-12 mb-8"
@@ -476,7 +425,7 @@ const Products: React.FC = () => {
           </motion.div>
         )}
 
-        {/* No Results */}
+        {/* Empty state */}
         {products.length === 0 && !isLoading && (
           <motion.div
             className="text-center py-16"
