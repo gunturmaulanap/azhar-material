@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useAuth, AuthProvider } from "./hooks/useAuth"; // relatif path
 import LoadingSpinner from "./components/LoadingSpinner";
 import Layout from "./components/Layout"; // Pastikan file ini ada
@@ -23,6 +23,7 @@ import Login from "./pages/Login";
 // kecuali jika Laravel mengarahkan mereka ke dashboard Livewire.
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, loading } = useAuth();
+  const location = useLocation();
 
   // Show loading only for a short time to prevent mobile loading issues
   if (loading) {
@@ -38,7 +39,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
 
   // Jika terautentikasi, izinkan akses ke children.
@@ -115,7 +116,7 @@ function App() {
                   <Route path="/services" element={<Services />} />
                   <Route path="/contact" element={<Contact />} />
                   <Route path="/team" element={<Team />} />
-                  <Route path="/login" element={<Login />} />
+                  <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
                   {/* Tambahkan rute publik lainnya di sini */}
                 </Routes>
               </Layout>

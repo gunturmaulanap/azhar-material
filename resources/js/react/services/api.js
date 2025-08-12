@@ -5,48 +5,58 @@ import Cookies from "js-cookie";
 // Create axios instance with configuration
 const api = axios.create(apiConfig);
 
+const isDev = typeof import.meta !== 'undefined' ? import.meta.env.DEV : (process.env.NODE_ENV !== 'production');
+
 // Request interceptor for CSRF and Authorization tokens
 api.interceptors.request.use(
   async (config) => {
     try {
-      // Get CSRF token if making state-changing requests
-      if (['post', 'put', 'patch', 'delete'].includes(config.method?.toLowerCase?.() || '')) {
-        try {
-          // Try to get fresh CSRF token from Laravel
-          await axios.get(`${window.location.origin}/api/sanctum/csrf-cookie`, { 
-            withCredentials: true,
-            timeout: 3000 // Reduced timeout for mobile
-          });
-        } catch (csrfError) {
-          console.warn('Failed to get CSRF cookie:', csrfError);
-          // Continue with request even if CSRF fetch fails
-        }
-      }
-      
-      // Add CSRF token from meta tag or cookie
-             const csrfToken = getCSRFToken() || getCsrfFromCookie();
-       if (csrfToken) {
-         config.headers["X-CSRF-TOKEN"] = csrfToken;
-         config.headers["X-XSRF-TOKEN"] = csrfToken;
-       }
+      const method = config.method?.toLowerCase?.() || '';
+      const isStateChanging = ['post', 'put', 'patch', 'delete'].includes(method);
 
-      // Add Authorization header if we have a token
+      // Add Authorization header if we have a token early (so CSRF preflight also has it if needed)
       const authToken = Cookies.get("token");
       if (authToken) {
         config.headers["Authorization"] = `Bearer ${authToken}`;
       }
+
+      // Get CSRF token only when needed and not already present
+      if (isStateChanging) {
+        const hasXsrfCookie = !!Cookies.get('XSRF-TOKEN');
+        if (!hasXsrfCookie) {
+          try {
+            // Try to get fresh CSRF token from Laravel only if missing
+            await axios.get(`${window.location.origin}/api/sanctum/csrf-cookie`, {
+              withCredentials: true,
+              timeout: 2500 // Reduced timeout for mobile
+            });
+          } catch (csrfError) {
+            if (isDev) console.warn('Failed to get CSRF cookie:', csrfError);
+            // Continue with request even if CSRF fetch fails
+          }
+        }
+      }
       
-      console.log('API Request:', {
-        url: config.url,
-        method: config.method,
-        headers: config.headers,
-        hasToken: !!authToken,
-        hasCsrf: !!csrfToken
-      });
+      // Add CSRF token from meta tag or cookie
+      const csrfToken = getCSRFToken() || getCsrfFromCookie();
+      if (csrfToken) {
+        config.headers["X-CSRF-TOKEN"] = csrfToken;
+        config.headers["X-XSRF-TOKEN"] = csrfToken;
+      }
+
+      if (isDev) {
+        // Light request log in development only
+        console.log('API Request:', {
+          url: config.url,
+          method: config.method,
+          hasToken: !!authToken,
+          hasCsrf: !!csrfToken
+        });
+      }
       
       return config;
     } catch (error) {
-      console.error('Request interceptor error:', error);
+      if (isDev) console.error('Request interceptor error:', error);
       return config;
     }
   },
@@ -69,7 +79,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       // Handle unauthorized access
       Cookies.remove("token"); // Hapus token jika 401
-      console.warn("Authentication failed, token removed");
+      if (isDev) console.warn("Authentication failed, token removed");
     }
     return Promise.reject(error);
   }

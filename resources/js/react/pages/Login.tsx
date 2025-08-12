@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "../components/ui/select";
 import { useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
 
 // The Login component handles user authentication
@@ -35,14 +36,17 @@ const Login = () => {
   // Get the login function from the authentication context
   const { login, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Redirect if already authenticated
   React.useEffect(() => {
     if (isAuthenticated && user) {
-      // User is already logged in, redirect to home
-      navigate('/', { replace: true });
+      // Prefer returning to the previous route (if provided), otherwise stay on home
+      const state = location.state as { from?: string } | null;
+      const target = state?.from && state.from !== "/login" ? state.from : "/";
+      navigate(target, { replace: true });
     }
-  }, [isAuthenticated, user, navigate]);
+  }, [isAuthenticated, user, navigate, location.state]);
 
   // Handle changes in the input fields
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -95,21 +99,22 @@ const Login = () => {
 
       console.log("Login result:", result);
 
-        if (result.success) {
-          toast.success("Login berhasil! Selamat datang!", {
-            duration: 3000,
-            position: "top-center",
-            style: {
-              background: "#10b981",
-              color: "#fff",
-              borderRadius: "8px",
-            },
-          });
+      if (result.success) {
+        toast.success("Login berhasil! Selamat datang!", {
+          duration: 2000,
+          position: "top-center",
+          style: {
+            background: "#10b981",
+            color: "#fff",
+            borderRadius: "8px",
+          },
+        });
 
-          // Arahkan langsung ke halaman sesuai peran dari backend tanpa reload
-          const target = result?.data?.redirect_url || '/';
-          // full replace to the target without preserving history (prevents back-to-login flicker)
-          window.location.replace(target);
+        // SPA-only: do not full-reload or redirect to homepage automatically
+        // Prefer navigating back to the previous route that initiated login
+        const state = location.state as { from?: string } | null;
+        const target = state?.from && state.from !== "/login" ? state.from : "/";
+        navigate(target, { replace: true });
       } else {
         // --- START: Perubahan di sini untuk pesan error lebih spesifik ---
         let displayMessage: string;
