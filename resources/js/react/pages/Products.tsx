@@ -61,7 +61,7 @@ const Products: React.FC = () => {
   const hasInitialized = useRef(false);
 
   // Animation variants
-  const containerVariants = {
+  const containerVariants: any = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -72,7 +72,7 @@ const Products: React.FC = () => {
     },
   };
 
-  const itemVariants = {
+  const itemVariants: any = {
     hidden: { opacity: 0, y: 20 },
     visible: {
       opacity: 1,
@@ -84,7 +84,7 @@ const Products: React.FC = () => {
     },
   };
 
-  const cardVariants = {
+  const cardVariants: any = {
     hidden: { opacity: 0, scale: 0.95, y: 20 },
     visible: {
       opacity: 1,
@@ -105,7 +105,7 @@ const Products: React.FC = () => {
     },
   };
 
-  const filterVariants = {
+  const filterVariants: any = {
     hidden: { opacity: 0, y: -10 },
     visible: {
       opacity: 1,

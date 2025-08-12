@@ -119,7 +119,7 @@ const LocationSectionSimple: React.FC = () => {
       }}
     >
       {/* CSS Keyframes */}
-      <style jsx>{`
+      <style>{`
         @keyframes fadeInUp {
           from {
             opacity: 0;

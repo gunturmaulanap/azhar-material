@@ -50,23 +50,23 @@ export const endpoints = {
 
   // Content management endpoints (for content-admin)
   heroSections: "/hero-sections",
-  heroSection: (id) => `/hero-sections/${id}`,
+  heroSection: (id: number | string) => `/hero-sections/${id}`,
   activeHeroSection: "/hero-sections/active",
   
   brands: "/brands",
-  brand: (id) => `/brands/${id}`,
+  brand: (id: number | string) => `/brands/${id}`,
   activeBrands: "/brands/active",
   
   products: "/products",
-  product: (id) => `/products/${id}`,
+  product: (id: number | string) => `/products/${id}`,
   featuredProducts: "/products/featured",
   categories: "/categories",
   
   services: "/services",
-  service: (id) => `/services/${id}`,
+  service: (id: number | string) => `/services/${id}`,
   
   teams: "/teams",
-  team: (id) => `/teams/${id}`,
+  team: (id: number | string) => `/teams/${id}`,
   
   about: "/about",
   contact: "/contact",

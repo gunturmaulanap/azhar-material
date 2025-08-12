@@ -5,7 +5,7 @@ import { Card, CardContent } from '../components/ui/card';
 
 const Services: React.FC = () => {
   // Animation variants
-  const containerVariants = {
+  const containerVariants: any = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -16,7 +16,7 @@ const Services: React.FC = () => {
     }
   };
 
-  const itemVariants = {
+  const itemVariants: any = {
     hidden: { opacity: 0, y: 30 },
     visible: {
       opacity: 1,
@@ -28,7 +28,7 @@ const Services: React.FC = () => {
     }
   };
 
-  const cardVariants = {
+  const cardVariants: any = {
     hidden: { opacity: 0, scale: 0.9, y: 20 },
     visible: {
       opacity: 1,
@@ -49,7 +49,7 @@ const Services: React.FC = () => {
     }
   };
 
-  const benefitVariants = {
+  const benefitVariants: any = {
     hidden: { opacity: 0, y: 20 },
     visible: {
       opacity: 1,
