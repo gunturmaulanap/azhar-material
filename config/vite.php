@@ -2,7 +2,7 @@
 
 return [
 
-    'manifest' => public_path('build/manifest.json'),
+    'manifest' => public_path('build/.vite/manifest.json'),
 
     'hot_file' => public_path('hot'),
 
