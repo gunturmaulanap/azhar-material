@@ -14,9 +14,15 @@ interface Project {
   description: string;
 }
 
-const API_BASE =
+// Pakai same-origin by default (paling aman di production HTTPS)
+// Kalau VITE_API_BASE_URL di-set, tetap boleh dipakai
+const RAW_BASE =
   import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "") ||
   window.location.origin.replace(/\/$/, "");
+
+// Hilangin double slash kalau ada
+const makeUrl = (path: string) =>
+  `${RAW_BASE}${path}`.replace(/([^:]\/)\/+/g, "$1");
 
 const Projects: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -40,21 +46,38 @@ const Projects: React.FC = () => {
       setLoading(true);
       setError(null);
 
+      // NOTE: jangan encode lagi, URLSearchParams sudah encode otomatis
       const params = new URLSearchParams({ status: "published" });
       if (selectedCategory !== "all") {
-        params.set("category", encodeURIComponent(selectedCategory));
+        params.set("category", selectedCategory);
       }
-      const apiUrl = `${API_BASE}/api/projects?${params.toString()}`;
+
+      const url = makeUrl(`/api/projects?${params.toString()}`);
+      // console.debug("Projects API URL:", url);
 
       try {
-        const res = await fetch(apiUrl, {
+        const res = await fetch(url, {
           signal: controller.signal,
-          credentials: "same-origin",
+          // Selalu include cookie; aman untuk same-origin/subdomain
+          credentials: "include",
+          headers: {
+            Accept: "application/json",
+            "X-Requested-With": "XMLHttpRequest",
+          },
         });
-        if (!res.ok)
-          throw new Error(`Gagal mengambil data proyek (${res.status})`);
+
+        if (!res.ok) {
+          const text = await res.text().catch(() => "");
+          throw new Error(
+            `Gagal mengambil data proyek (HTTP ${res.status}) ${text?.slice(
+              0,
+              200
+            )}`.trim()
+          );
+        }
+
         const data = await res.json();
-        setProjects(Array.isArray(data.data) ? data.data : []);
+        setProjects(Array.isArray(data?.data) ? data.data : []);
       } catch (e: any) {
         setError(
           e?.name === "AbortError"
@@ -245,8 +268,6 @@ const Projects: React.FC = () => {
             ))}
           </motion.div>
         )}
-
-        {/* …(bagian bawah tetap) */}
       </div>
     </div>
   );
