@@ -234,6 +234,17 @@ html {
   @apply w-8 h-8 border-4 border-gray-200 border-t-primary rounded-full animate-spin;
 }
 
+/* Mobile-optimized loading */
+@media (max-width: 768px) {
+  .loading-spinner {
+    @apply w-6 h-6 border-2;
+  }
+  
+  .spinner {
+    @apply border border-gray-300 border-t-primary;
+  }
+}
+
 /* Video loading overlay */
 .video-loading-overlay {
   background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 50%, #1a1a1a 100%);
