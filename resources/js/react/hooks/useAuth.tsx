@@ -7,8 +7,6 @@ import React, {
   useRef,
 } from "react";
 import { authService } from "../services/api";
-import Cookies from "js-cookie";
-import toast from "react-hot-toast";
 
 interface User {
   id: number;
@@ -82,7 +80,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       try {
         // Fetch current user from server session (no cache)
         const sessionResp = await runSerial(() => authService.getUser());
-        const serverUser: User | null = sessionResp?.data?.data?.user ?? null;
+        const serverUser: User | null = sessionResp?.data?.user ?? null;
         if (!isMounted) return;
         if (serverUser && serverUser.id) {
           setUser(serverUser);
@@ -121,7 +119,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const refresh = async () => {
     try {
       const sessionResp = await runSerial(() => authService.getUser());
-      const serverUser: User | null = sessionResp?.data?.data?.user ?? null;
+      const serverUser: User | null = sessionResp?.data?.user ?? null;
       if (serverUser && serverUser.id) {
         setUser(serverUser);
         setIsAuthenticated(true);

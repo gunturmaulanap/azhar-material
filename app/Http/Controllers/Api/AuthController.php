@@ -189,10 +189,7 @@ class AuthController extends Controller
 
         if (!$user) {
             return response()->json([
-                'success' => true,
-                'data' => [
-                    'user' => null,
-                ],
+                'user' => null,
             ])->withHeaders([
                 'Cache-Control' => 'no-store, no-cache, must-revalidate',
                 'Pragma' => 'no-cache',
@@ -202,10 +199,7 @@ class AuthController extends Controller
         }
 
         return response()->json([
-            'success' => true,
-            'data' => [
-                'user' => $user,
-            ],
+            'user' => $user,
         ])->withHeaders([
             'Cache-Control' => 'no-store, no-cache, must-revalidate',
             'Pragma' => 'no-cache',

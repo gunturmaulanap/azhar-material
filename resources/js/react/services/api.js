@@ -28,8 +28,10 @@ api.interceptors.request.use(
       const method = config.method?.toLowerCase?.() || '';
       const isStateChanging = ['post', 'put', 'patch', 'delete'].includes(method);
 
-      // For SPA using Laravel session, do NOT attach Authorization header.
-      // We rely on HttpOnly session cookies sent via withCredentials.
+      // Always ensure credentials and Accept JSON
+      config.withCredentials = true;
+      config.headers = config.headers || {};
+      config.headers['Accept'] = 'application/json';
 
       // Get CSRF token only when needed and not already present
       if (isStateChanging) {
@@ -66,15 +68,6 @@ api.interceptors.request.use(
         config.headers['Pragma'] = 'no-cache';
       }
 
-      // Serialize auth-changing calls
-      if (config.url && (
-        (isStateChanging && (config.url.includes(endpoints.login) || config.url.includes(endpoints.logout))) ||
-        config.url.includes(endpoints.me) ||
-        config.url.includes(endpoints.user)
-      )) {
-        await withAuthLock(async () => Promise.resolve());
-      }
-      
       if (isDev) {
         // Light request log in development only
         console.log('API Request:', {
@@ -116,13 +109,13 @@ api.interceptors.response.use(
 
 // Auth services
 export const authService = {
-  getCsrf: () => api.get(endpoints.csrf),
-  getSanctumCookie: () => api.get(endpoints.sanctumCookie, { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate', 'Pragma': 'no-cache' } }),
-  login: (credentials) => withAuthLock(() => api.post(endpoints.login, credentials)),
-  register: (userData) => api.post(endpoints.register, userData),
-  logout: () => withAuthLock(() => api.post(endpoints.logout)),
+  getCsrf: () => api.get(endpoints.csrf, { withCredentials: true }),
+  getSanctumCookie: () => api.get(endpoints.sanctumCookie, { withCredentials: true, headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate', 'Pragma': 'no-cache' } }),
+  login: (credentials) => withAuthLock(() => api.post(endpoints.login, credentials, { withCredentials: true })),
+  register: (userData) => api.post(endpoints.register, userData, { withCredentials: true }),
+  logout: () => withAuthLock(() => api.post(endpoints.logout, {}, { withCredentials: true })),
   // Hydrate auth state from the server session
-  getUser: () => withAuthLock(() => api.get(endpoints.me, { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate', 'Pragma': 'no-cache' } })),
+  getUser: () => api.get(endpoints.me, { withCredentials: true, headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate', 'Pragma': 'no-cache' } }),
 };
 
 // Product services (from Laravel Goods model)
