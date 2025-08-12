@@ -35,8 +35,8 @@ Route::get('/sanctum/csrf-cookie', function () {
     ]);
 })->middleware('web');
 
-Route::post('/auth/login', [AuthController::class, 'login']);
-Route::post('/auth/register', [AuthController::class, 'register']);
+Route::post('/auth/login', [AuthController::class, 'login'])->middleware('web');
+Route::post('/auth/register', [AuthController::class, 'register'])->middleware('web');
 
 // Products API routes
 Route::get('/products', [ProductController::class, 'index']);
@@ -79,7 +79,7 @@ Route::post('/contact', [ContactController::class, 'send']);
 Route::get('/user', [AuthController::class, 'user'])->middleware('web');
 
 // Protected routes (memerlukan token Sanctum)
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['web','auth:sanctum'])->group(function () {
     Route::post('/auth/verify', [AuthController::class, 'verify']);
     Route::post('/auth/logout', [AuthController::class, 'logout']);
 
