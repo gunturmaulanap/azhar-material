@@ -18,9 +18,10 @@
     <!-- Favicon & PWA -->
     {{-- manifest & icons --}}
     @env('production')
-    <link rel="manifest" href="{{ asset('site.webmanifest') }}?v=4">
-    <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('img/logo-192.png') }}?v=4">
-    <link rel="apple-touch-icon" sizes="192x192" href="{{ asset('img/logo-192.png') }}?v=4">
+    <link rel="manifest" href="{{ asset('site.webmanifest') }}?v=5">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('img/favicon-32.png') }}?v=5">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('img/favicon-16.png') }}?v=5">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('img/apple-touch-icon.png') }}?v=5">
     @endenv
 
     <!-- Fonts -->
