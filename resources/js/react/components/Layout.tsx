@@ -183,7 +183,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   alt="Azhar Material"
                   className="h-7 w-auto sm:h-8 md:h-10 lg:h-11 object-contain"
                   loading="eager"
-                  {...({ fetchpriority: "high" } as any)} // ⬅️ silence TS, still outputs fetchpriority
+                  // @ts-expect-error: non-React attribute, but valid HTML
+                  fetchpriority="high"
                 />
               </span>
             </Link>

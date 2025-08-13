@@ -17,16 +17,18 @@
 
     <!-- Favicon & PWA -->
     {{-- manifest & icons --}}
-    <link rel="manifest" href="{{ asset('site.webmanifest') }}?v=3">
-    <link rel="icon" type="image/png" href="{{ asset('img/logo-192.png') }}?v=3">
-    <link rel="apple-touch-icon" href="{{ asset('img/logo-192.png') }}?v=3">
+    @env('production')
+    <link rel="manifest" href="{{ asset('site.webmanifest') }}?v=4">
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('img/logo-192.png') }}?v=4">
+    <link rel="apple-touch-icon" sizes="192x192" href="{{ asset('img/logo-192.png') }}?v=4">
+    @endenv
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
         rel="stylesheet">
-    <link rel="preload" as="image" href="/img/header.png?v=2" imagesrcset="/img/header.png?v=2 1x" />
+    {{-- <link rel="preload" as="image" href="/img/header.png?v=2" imagesrcset="/img/header.png?v=2 1x" /> --}}
 
     <!-- Open Graph / Twitter -->
     <meta property="og:type" content="website">
@@ -91,6 +93,7 @@
 
     <!-- Socket.IO (opsional) -->
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" defer></script>
+
 </head>
 
 <body class="font-sans antialiased bg-gradient-to-br from-gray-50 via-white to-gray-100">

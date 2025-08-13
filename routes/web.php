@@ -52,6 +52,7 @@ use App\Http\Livewire\Content\Dashboard as ContentDashboard;
 use App\Http\Livewire\Project\Index as ProjectIndex;
 use App\Http\Livewire\Project\Form as ProjectForm;
 use Laravel\Sanctum\Http\Controllers\CsrfCookieController;
+use Illuminate\Support\Facades\Response;
 
 
 /*
@@ -64,6 +65,27 @@ use Laravel\Sanctum\Http\Controllers\CsrfCookieController;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
+
+Route::get('/site.webmanifest', function () {
+    $path = public_path('site.webmanifest');
+    if (!is_file($path)) {
+        return response()->json(['error' => 'manifest not found'], 404, [
+            'Content-Type' => 'application/manifest+json; charset=utf-8',
+        ]);
+    }
+    return response()->file($path, [
+        'Content-Type' => 'application/manifest+json; charset=utf-8',
+        'Cache-Control' => 'public, max-age=86400',
+    ]);
+});
+
+Route::get('/robots.txt', fn() => Response::file(public_path('robots.txt'), [
+    'Content-Type' => 'text/plain; charset=utf-8',
+]));
+
+Route::get('/sitemap.xml', fn() => Response::file(public_path('sitemap.xml'), [
+    'Content-Type' => 'application/xml; charset=utf-8',
+]));
 
 Route::get('/sanctum/csrf-cookie', [CsrfCookieController::class, 'show'])
     ->name('sanctum.csrf-cookie');

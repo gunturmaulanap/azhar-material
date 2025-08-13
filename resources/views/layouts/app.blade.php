@@ -14,10 +14,11 @@
 
     <!-- Favicon -->
     {{-- manifest & icons --}}
-    <link rel="manifest" href="{{ asset('site.webmanifest') }}?v=3">
-    <link rel="icon" type="image/png" href="{{ asset('img/logo-192.png') }}?v=3">
-    <link rel="apple-touch-icon" href="{{ asset('img/logo-192.png') }}?v=3">
-
+    @env('production')
+    <link rel="manifest" href="{{ asset('site.webmanifest') }}?v=4">
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('img/logo-192.png') }}?v=4">
+    <link rel="apple-touch-icon" sizes="192x192" href="{{ asset('img/logo-192.png') }}?v=4">
+    @endenv
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
