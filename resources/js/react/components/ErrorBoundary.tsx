@@ -1,36 +1,59 @@
-import React, { Component, ReactNode } from 'react';
-import { AlertTriangle, RefreshCw } from 'lucide-react';
+import React, { Component, ReactNode } from "react";
+import { useLocation } from "react-router-dom";
+import { AlertTriangle, RefreshCw } from "lucide-react";
 
-interface Props {
-  children: ReactNode;
-  fallback?: ReactNode;
-}
-
-interface State {
-  hasError: boolean;
+type FallbackRender = (args: {
   error?: Error;
-}
+  reset: () => void;
+}) => React.ReactNode;
 
-class ErrorBoundary extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = { hasError: false };
-  }
+type BoundaryProps = {
+  children: ReactNode;
+  /** Bisa elemen langsung, atau function fallback(error, reset) */
+  fallback?: ReactNode | FallbackRender;
+  /** Kunci yang bila berubah akan mereset boundary (mis. pathname) */
+  resetKeys?: unknown[];
+};
+
+type State = { hasError: boolean; error?: Error };
+
+/** Kelas inti – tidak menyentuh DOM sama sekali */
+class CoreErrorBoundary extends Component<BoundaryProps, State> {
+  state: State = { hasError: false, error: undefined };
 
   static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Error caught by ErrorBoundary:', error, errorInfo);
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    console.error("ErrorBoundary caught:", error, info);
   }
+
+  componentDidUpdate(prevProps: BoundaryProps) {
+    // Reset otomatis saat resetKeys berubah (contoh: pindah route)
+    if (this.state.hasError) {
+      const a = this.props.resetKeys ?? [];
+      const b = prevProps.resetKeys ?? [];
+      const changed = a.length !== b.length || a.some((v, i) => v !== b[i]);
+      if (changed) this.reset();
+    }
+  }
+
+  reset = () => this.setState({ hasError: false, error: undefined });
 
   render() {
     if (this.state.hasError) {
-      if (this.props.fallback) {
-        return this.props.fallback;
-      }
+      const { fallback } = this.props;
 
+      if (typeof fallback === "function") {
+        return (fallback as FallbackRender)({
+          error: this.state.error,
+          reset: this.reset,
+        });
+      }
+      if (fallback) return fallback as React.ReactElement;
+
+      // Default fallback simpel & aman
       return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
           <div className="max-w-md w-full mx-auto p-6">
@@ -42,7 +65,8 @@ class ErrorBoundary extends Component<Props, State> {
                 Terjadi Kesalahan
               </h1>
               <p className="text-gray-600 mb-6">
-                Maaf, terjadi kesalahan yang tidak terduga. Silakan muat ulang halaman atau hubungi administrator.
+                Maaf, terjadi kesalahan yang tidak terduga. Silakan muat ulang
+                halaman atau coba lagi.
               </p>
               <div className="space-y-3">
                 <button
@@ -53,21 +77,20 @@ class ErrorBoundary extends Component<Props, State> {
                   Muat Ulang Halaman
                 </button>
                 <button
-                  onClick={() => {
-                    this.setState({ hasError: false, error: undefined });
-                  }}
+                  onClick={this.reset}
                   className="w-full px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors"
                 >
                   Coba Lagi
                 </button>
               </div>
+
               {this.state.error && (
                 <details className="mt-4 text-left">
                   <summary className="cursor-pointer text-sm text-gray-500">
                     Detail Error (untuk developer)
                   </summary>
                   <pre className="mt-2 text-xs text-red-600 bg-red-50 p-2 rounded overflow-auto">
-                    {this.state.error.toString()}
+                    {String(this.state.error)}
                   </pre>
                 </details>
               )}
@@ -81,4 +104,21 @@ class ErrorBoundary extends Component<Props, State> {
   }
 }
 
+/** Default export: wrapper yang reset saat route berubah */
+const ErrorBoundary: React.FC<Omit<BoundaryProps, "resetKeys">> = ({
+  children,
+  fallback,
+}) => {
+  const location = useLocation(); // React Router v6
+  return (
+    <CoreErrorBoundary
+      fallback={fallback}
+      resetKeys={[location.pathname, location.key]}
+    >
+      {children}
+    </CoreErrorBoundary>
+  );
+};
+
 export default ErrorBoundary;
+export { CoreErrorBoundary as RawErrorBoundary };

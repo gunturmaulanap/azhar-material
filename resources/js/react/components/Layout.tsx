@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate, Outlet } from "react-router-dom"; // <- tambah Outlet
 import {
   Menu,
   X,
@@ -14,7 +14,7 @@ import { useAuth } from "../hooks/useAuth";
 import { Button } from "./ui/button";
 
 interface LayoutProps {
-  children: React.ReactNode;
+  children?: React.ReactNode; // <- opsional, biar aman saat dipakai di <Route element={<Layout/>}>
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
@@ -24,18 +24,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   const location = useLocation();
   const navigate = useNavigate();
-
   const { user, isAuthenticated, logout, loading } = useAuth();
 
-  // 👉 compute AFTER we have user from context
   const displayName = useMemo(
     () => user?.name || user?.username || "User",
     [user]
   );
-  useEffect(() => {
-    document.title = getTitleFromPath(location.pathname);
-  }, [location.pathname]);
-  // Debounced scroll (ringan)
+
   useEffect(() => {
     let t: any;
     const onScroll = () => {
@@ -50,17 +45,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     };
   }, []);
 
-  // Tutup mobile menu saat pindah halaman
   useEffect(() => {
     setIsMobileMenuOpen(false);
     setShowUserMenu(false);
   }, [location.pathname]);
 
-  // Sinkronisasi logout antar-tab
   useEffect(() => {
     const onStorage = (e: StorageEvent) => {
       if (e.key === "logout-broadcast") {
-        // Jangan panggil API lagi; cukup cleanup lokal
         logout(true);
         navigate("/", { replace: true });
       }
@@ -70,18 +62,15 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   }, [logout, navigate]);
 
   const handleLogout = async () => {
-    // Broadcast ke tab lain
     localStorage.setItem("logout-broadcast", String(Date.now()));
     try {
-      await logout(); // API + cleanup
+      await logout();
     } finally {
-      // Redirect halus tanpa reload penuh, lalu bersihkan broadcast
       navigate("/", { replace: true });
       setTimeout(() => localStorage.removeItem("logout-broadcast"), 800);
     }
   };
 
-  // Route dashboard per role (selaras backend)
   const getDashboardRoute = (role: string, userId?: number) => {
     const routes: Record<string, string> = {
       customer: userId ? `/customer/${userId}` : "/customer",
@@ -113,13 +102,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       { name: "Products", href: "/products" },
       { name: "Services", href: "/services" },
       { name: "Contact", href: "/contact" },
-      // { name: "Team", href: "/team" },
     ],
     []
   );
-  // --- Title mapping per route ---
-  const BASE_TITLE = "AZHAR";
 
+  const BASE_TITLE = "AZHAR";
   const TITLE_MAP: Record<string, string> = {
     "/": `Home – ${BASE_TITLE}`,
     "/projects": `Projects – ${BASE_TITLE}`,
@@ -128,12 +115,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     "/contact": `Contact – ${BASE_TITLE}`,
     "/login": `Login – ${BASE_TITLE}`,
   };
-
   const getTitleFromPath = (path: string) => {
-    // exact match dulu
     if (TITLE_MAP[path]) return TITLE_MAP[path];
-
-    // prefix match untuk grup route
     if (path.startsWith("/customer")) return `My Transactions – ${BASE_TITLE}`;
     if (path.startsWith("/admin")) return `Admin Panel – ${BASE_TITLE}`;
     if (path.startsWith("/superadmin")) return `Dashboard – ${BASE_TITLE}`;
@@ -141,87 +124,18 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       return `Content Panel – ${BASE_TITLE}`;
     if (path.startsWith("/owner")) return `Owner Panel – ${BASE_TITLE}`;
     if (path.startsWith("/driver")) return `Driver Dashboard – ${BASE_TITLE}`;
-
-    // fallback
     return BASE_TITLE;
   };
-
-  // set title tiap kali route berubah
   useEffect(() => {
-    if (!import.meta.env.PROD) return; // ⛔️ dev/local: jangan apa-apa
-
-    // helper kecil buat update href + cache-buster
-    const bump = (href: string, v: string) => {
-      try {
-        const url = new URL(href, window.location.origin);
-        url.searchParams.set("v", v);
-        return url.pathname + "?" + url.searchParams.toString();
-      } catch {
-        // kalau relative path biasa
-        const hasQ = href.includes("?");
-        return href + (hasQ ? "&" : "?") + "v=" + v;
-      }
-    };
-
-    const V = "5";
-
-    const setIfExists = (
-      selector: string,
-      fallbackHref: string,
-      sizes?: string,
-      type?: string
-    ) => {
-      const link = document.querySelector(selector) as HTMLLinkElement | null;
-      if (!link) return; // biarkan; Blade yang mengatur pembuatan tag
-      if (sizes) link.sizes = sizes;
-      if (type) link.type = type;
-      link.href = bump(link.getAttribute("href") || fallbackHref, V);
-    };
-
-    // Sama persis dengan yang ada di Blade (react.blade.php)
-    setIfExists(
-      'link[rel="icon"][sizes="32x32"]',
-      "/img/favicon-32.png",
-      "32x32",
-      "image/png"
-    );
-    setIfExists(
-      'link[rel="icon"][sizes="16x16"]',
-      "/img/favicon-16.png",
-      "16x16",
-      "image/png"
-    );
-    setIfExists(
-      'link[rel="apple-touch-icon"]',
-      "/img/apple-touch-icon.png",
-      "180x180"
-    );
-    setIfExists('link[rel="shortcut icon"]', "/img/favicon-32.png");
-
-    // manifest juga hanya diupdate kalau sudah ada
-    const manifest = document.querySelector(
-      'link[rel="manifest"]'
-    ) as HTMLLinkElement | null;
-    if (manifest) {
-      manifest.href = bump(
-        manifest.getAttribute("href") || "/site.webmanifest",
-        V
-      );
-    }
+    document.title = getTitleFromPath(location.pathname);
   }, [location.pathname]);
-  // Komponen kecil: placeholder agar tidak kedip saat loading
+
   const AuthPlaceholder = () => (
     <div className="hidden md:flex items-center space-x-4">
       <div className="h-9 w-28 rounded-md bg-gray-200/70 animate-pulse" />
     </div>
   );
-  type ImgProps = React.ImgHTMLAttributes<HTMLImageElement> & {
-    fetchpriority?: "high" | "low" | "auto";
-  };
 
-  const Img: React.FC<ImgProps> = ({ fetchpriority, ...rest }) => (
-    <img {...rest} {...({ fetchpriority } as any)} />
-  );
   return (
     <div className="min-h-screen bg-neutral-50">
       {/* Header */}
@@ -238,14 +152,16 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               className="flex items-center gap-3"
             >
               <span className="inline-flex items-center justify-center px-1.5 py-1">
-                <Img
+                <img
                   src="/img/header.png?v=2"
                   alt="Azhar Material"
                   className="h-7 w-auto sm:h-8 md:h-10 lg:h-11 object-contain"
-                  fetchpriority="high"
+                  loading="eager"
+                  {...({ fetchpriority: "high" } as any)}
                 />
               </span>
             </Link>
+
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center space-x-8">
               {navigation.map((item) => (
@@ -265,6 +181,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 </Link>
               ))}
             </nav>
+
             {/* Auth Section */}
             {loading ? (
               <AuthPlaceholder />
@@ -272,17 +189,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <div className="hidden md:flex items-center space-x-4">
                 {isAuthenticated ? (
                   <>
-                    {/* Dashboard Button */}
                     <Button
                       variant="ghost"
                       className="flex items-center space-x-2 text-primary hover:bg-primary hover:text-white"
                       onClick={() => {
-                        // Redirect full page ke route dashboard sesuai role
                         const url = getDashboardRoute(
                           user?.role || "customer",
                           user?.id
                         );
-                        // GET sudah cukup; CSRF tidak diperlukan
                         window.location.href = url;
                       }}
                     >
@@ -290,7 +204,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                       <span>{getDashboardLabel(user?.role || "customer")}</span>
                     </Button>
 
-                    {/* User Menu */}
                     <div className="relative">
                       <Button
                         variant="ghost"
@@ -300,7 +213,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                         aria-expanded={showUserMenu}
                       >
                         <User className="h-4 w-4" />
-                        <span>{displayName}</span>{" "}
+                        <span>{displayName}</span>
                       </Button>
                       {showUserMenu && (
                         <div
@@ -331,6 +244,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 )}
               </div>
             )}
+
             {/* Mobile Menu Button */}
             <button
               className="md:hidden p-2"
@@ -377,7 +291,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   ) : isAuthenticated ? (
                     <div className="px-3 py-2 space-y-2">
                       <p className="text-sm text-gray-600 mb-2">
-                        Welcome, {displayName}{" "}
+                        Welcome, {displayName}
                       </p>
 
                       <Button
@@ -424,13 +338,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       </header>
 
       {/* Main Content */}
-      <main className="pt-16">{children}</main>
-
+      <main className="pt-16">
+        <Outlet /> {/* <- ini menggantikan {children} */}
+      </main>
       {/* Footer */}
       <footer className="bg-neutral-800 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Left Column - Logo & Tagline */}
             <div>
               <h3 className="text-2xl font-bold mb-4">Azhar Material</h3>
               <p className="text-gray-300 mb-6">
@@ -458,7 +372,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               </div>
             </div>
 
-            {/* Center Column - Links */}
             <div>
               <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
               <ul className="space-y-2">
@@ -497,7 +410,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               </ul>
             </div>
 
-            {/* Right Column - Contact Info */}
             <div>
               <h4 className="text-lg font-semibold mb-4">Contact Info</h4>
               <div className="text-gray-300 space-y-2">

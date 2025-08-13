@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import {
   MessageCircle,
   Mail,
@@ -12,9 +12,6 @@ import { Button } from "../components/ui/button";
 import { Card, CardContent } from "../components/ui/card";
 
 const Contact: React.FC = () => {
-  useEffect(() => {
-    document.title = "Contact – Azhar Material";
-  }, []);
   // Animation variants
   const containerVariants: any = {
     hidden: { opacity: 0 },

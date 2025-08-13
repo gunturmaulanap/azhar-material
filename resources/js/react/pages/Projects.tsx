@@ -1,3 +1,4 @@
+// resources/js/react/pages/Projects.tsx
 import React, { useState, useEffect } from "react";
 import { ChevronDown, MapPin, Calendar, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
@@ -14,24 +15,67 @@ interface Project {
   description: string;
 }
 
-/* =========================
-   BASE URL (aman production)
-   ========================= */
-// Utamakan same-origin. Abaikan env kalau menunjuk localhost/127.* saat build prod.
-const originBase = window.location.origin.replace(/\/$/, "");
-const envBaseRaw = (
+/* ==== Base URL dengan fallback ==== */
+const ORIGIN = window.location.origin.replace(/\/$/, "");
+const ENV_BASE = (
   import.meta.env.VITE_API_BASE_URL as string | undefined
 )?.replace(/\/$/, "");
-const isLocalEnvBase =
-  !!envBaseRaw &&
-  /^(https?:\/\/)?(localhost|127\.0\.0\.1)(:\d+)?$/i.test(envBaseRaw);
-const API_BASE = !envBaseRaw || isLocalEnvBase ? originBase : envBaseRaw;
+const PROD_BASE = "https://azharmaterial.store";
 
-// Hilangkan double slash
-const makeUrl = (path: string) =>
-  `${API_BASE}${path}`.replace(/([^:]\/)\/+/g, "$1");
+const uniq = <T,>(arr: T[]) => Array.from(new Set(arr.filter(Boolean))) as T[];
+const BASE_CANDIDATES = uniq<string>([
+  ORIGIN, // same-origin dulu
+  ENV_BASE, // kalau ada
+  PROD_BASE, // fallback terakhir (optional)
+]);
 
-/* =================================================== */
+const withTimeout = (ms: number, signal?: AbortSignal) =>
+  new Promise((_res, rej) => {
+    const id = setTimeout(
+      () => rej(new DOMException("Timeout", "AbortError")),
+      ms
+    );
+    signal?.addEventListener("abort", () => clearTimeout(id));
+  });
+
+async function fetchJsonWithFallback(path: string, init?: RequestInit) {
+  let lastErr: any;
+  for (const base of BASE_CANDIDATES) {
+    const url = `${base}${path}`.replace(/([^:]\/)\/+/g, "$1");
+    const controller = new AbortController();
+    try {
+      const res = (await Promise.race([
+        fetch(url, {
+          ...init,
+          signal: controller.signal,
+          // same-origin => include cookie; cross-origin => no credentials
+          credentials: base === ORIGIN ? "include" : "omit",
+          mode: base === ORIGIN ? "same-origin" : "cors",
+          headers: {
+            Accept: "application/json",
+            "X-Requested-With": "XMLHttpRequest",
+            ...(init?.headers || {}),
+          },
+          cache: "no-store",
+        }),
+        withTimeout(6000, controller.signal) as unknown as Promise<Response>,
+      ])) as Response;
+
+      if (!res.ok) {
+        throw new Error(
+          `HTTP ${res.status} — ${(await res.text()).slice(0, 200)}`
+        );
+      }
+      return await res.json();
+    } catch (e) {
+      lastErr = e;
+    } finally {
+      controller.abort();
+    }
+  }
+  throw lastErr;
+}
+/* ================================== */
 
 const Projects: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -48,56 +92,31 @@ const Projects: React.FC = () => {
   ];
 
   useEffect(() => {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10000);
-
     (async () => {
-      setLoading(true);
-      setError(null);
-
-      const params = new URLSearchParams({ status: "published" });
-      if (selectedCategory !== "all") params.set("category", selectedCategory);
-
-      const url = makeUrl(`/api/projects?${params.toString()}`);
-
       try {
-        const res = await fetch(url, {
-          signal: controller.signal,
-          credentials: "include", // kirim cookie di same-origin/subdomain
-          headers: {
-            Accept: "application/json",
-            "X-Requested-With": "XMLHttpRequest",
-          },
-          cache: "no-store",
-          // Pertegas same-origin; jika API_BASE beda origin, ini akan error (lebih cepat ketahuan)
-          mode: API_BASE === originBase ? "same-origin" : "cors",
-        });
+        setLoading(true);
+        setError(null);
 
-        if (!res.ok) {
-          const text = await res.text().catch(() => "");
-          throw new Error(`HTTP ${res.status} — ${text?.slice(0, 200)}`.trim());
-        }
+        const params = new URLSearchParams({ status: "published" });
+        if (selectedCategory !== "all")
+          params.set("category", selectedCategory);
 
-        const data = await res.json();
+        const data = await fetchJsonWithFallback(
+          `/api/projects?${params.toString()}`
+        );
         setProjects(Array.isArray(data?.data) ? data.data : []);
       } catch (err: any) {
         const msg =
-          err?.name === "AbortError"
+          err?.name === "AbortError" || /Timeout/i.test(err?.message)
             ? "Permintaan timeout, coba lagi."
-            : err?.message?.includes("Failed to fetch")
-            ? "Gagal terhubung ke server. Pastikan URL API benar (https) & tidak mengarah ke localhost."
+            : /Failed to fetch/i.test(err?.message)
+            ? "Gagal terhubung ke server. Pastikan API hidup & URL benar."
             : err?.message || "Terjadi kesalahan.";
         setError(msg);
       } finally {
-        clearTimeout(timeout);
         setLoading(false);
       }
     })();
-
-    return () => {
-      clearTimeout(timeout);
-      controller.abort();
-    };
   }, [selectedCategory]);
 
   const containerVariants = {

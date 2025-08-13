@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import {
   Truck,
   Users,
@@ -12,16 +12,25 @@ import {
 import { motion } from "framer-motion";
 import { Card, CardContent } from "../components/ui/card";
 
+const colorMap: Record<
+  "green" | "blue" | "purple",
+  { bg: string; text: string }
+> = {
+  green: { bg: "bg-green-100", text: "text-green-600" },
+  blue: { bg: "bg-blue-100", text: "text-blue-600" },
+  purple: { bg: "bg-purple-100", text: "text-purple-600" },
+};
+
 const Services: React.FC = () => {
-  useEffect(() => {
-    document.title = "Services – Azhar Material";
-  }, []);
   // Animation variants
   const containerVariants: any = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: { duration: 0.6, staggerChildren: 0.15 },
+      transition: {
+        duration: 0.6,
+        staggerChildren: 0.15,
+      },
     },
   };
 
@@ -30,7 +39,10 @@ const Services: React.FC = () => {
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.6, ease: "easeOut" },
+      transition: {
+        duration: 0.6,
+        ease: "easeOut",
+      },
     },
   };
 
@@ -40,12 +52,18 @@ const Services: React.FC = () => {
       opacity: 1,
       scale: 1,
       y: 0,
-      transition: { duration: 0.5, ease: "easeOut" },
+      transition: {
+        duration: 0.5,
+        ease: "easeOut",
+      },
     },
     hover: {
       y: -8,
       scale: 1.02,
-      transition: { duration: 0.2, ease: "easeInOut" },
+      transition: {
+        duration: 0.2,
+        ease: "easeInOut",
+      },
     },
   };
 
@@ -54,7 +72,10 @@ const Services: React.FC = () => {
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.5, ease: "easeOut" },
+      transition: {
+        duration: 0.5,
+        ease: "easeOut",
+      },
     },
   };
 
@@ -64,14 +85,6 @@ const Services: React.FC = () => {
     building: Building,
     package: Package,
   };
-
-  // ---- FIX: mapping kelas statis (hindari purge Tailwind) ----
-  const benefitStyles = {
-    green: { bg: "bg-green-100", text: "text-green-600" },
-    blue: { bg: "bg-blue-100", text: "text-blue-600" },
-    purple: { bg: "bg-purple-100", text: "text-purple-600" },
-  } as const;
-  type BenefitColor = keyof typeof benefitStyles;
 
   return (
     <motion.div
@@ -190,47 +203,46 @@ const Services: React.FC = () => {
                 title: "Fast Delivery",
                 description:
                   "Same-day delivery available for orders placed before 2 PM within the city area.",
-                color: "green" as BenefitColor,
+                color: "green" as const,
               },
               {
                 icon: Shield,
                 title: "Quality Guarantee",
                 description:
                   "All materials come with quality assurance and warranty coverage.",
-                color: "blue" as BenefitColor,
+                color: "blue" as const,
               },
               {
                 icon: MapPin,
                 title: "Wide Coverage",
                 description:
                   "We deliver across the region with flexible scheduling options.",
-                color: "purple" as BenefitColor,
+                color: "purple" as const,
               },
-            ].map((benefit, index) => {
-              const styles = benefitStyles[benefit.color];
-              const Icon = benefit.icon;
-
-              return (
+            ].map((benefit, index) => (
+              <motion.div
+                key={benefit.title}
+                className="text-center"
+                variants={benefitVariants}
+                transition={{ delay: index * 0.2 }}
+              >
                 <motion.div
-                  key={benefit.title}
-                  className="text-center"
-                  variants={benefitVariants}
-                  transition={{ delay: index * 0.2 }}
+                  className={`w-16 h-16 ${
+                    colorMap[benefit.color].bg
+                  } rounded-full flex items-center justify-center mx-auto mb-4`}
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  transition={{ duration: 0.3 }}
                 >
-                  <motion.div
-                    className={`w-16 h-16 ${styles.bg} rounded-full flex items-center justify-center mx-auto mb-4`}
-                    whileHover={{ scale: 1.1, rotate: 5 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <Icon className={`h-8 w-8 ${styles.text}`} />
-                  </motion.div>
-                  <h3 className="text-lg font-semibold text-neutral-800 mb-2">
-                    {benefit.title}
-                  </h3>
-                  <p className="text-gray-600">{benefit.description}</p>
+                  <benefit.icon
+                    className={`h-8 w-8 ${colorMap[benefit.color].text}`}
+                  />
                 </motion.div>
-              );
-            })}
+                <h3 className="text-lg font-semibold text-neutral-800 mb-2">
+                  {benefit.title}
+                </h3>
+                <p className="text-gray-600">{benefit.description}</p>
+              </motion.div>
+            ))}
           </div>
         </motion.div>
 

@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from "../components/ui/select";
 import { useNavigate } from "react-router-dom";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 
 const Login: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -29,9 +29,14 @@ const Login: React.FC = () => {
   });
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [mounted, setMounted] = useState(false); // cegah glitch portal Radix
 
   const { login, isAuthenticated, user, refresh } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Kalau sudah login, jangan tampilkan form lagi
   useEffect(() => {
@@ -41,7 +46,8 @@ const Login: React.FC = () => {
   }, [isAuthenticated, user, navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData((s) => ({ ...s, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    setFormData((s) => ({ ...s, [name]: value }));
   };
 
   const handleRoleChange = (value: string) => {
@@ -86,34 +92,22 @@ const Login: React.FC = () => {
           position: "top-center",
         });
 
-        // Pastikan state user tersinkron dari server (tanpa reload)
-        // await refresh();
+        // sinkronkan state auth & arahkan ke beranda
+        await refresh?.();
+        navigate("/", { replace: true });
 
-        // // Arahkan ke home; tombol Dashboard akan muncul sesuai role
-        // navigate("/", { replace: true });
-
-        // Reset form
+        // reset form
         setFormData({ username: "", password: "", role: "" });
       } else {
-        let displayMessage: string;
         const backendError = result.error;
-
-        switch (backendError) {
-          case "Username tidak ditemukan.":
-            displayMessage = "Username tidak ditemukan. Mohon periksa kembali.";
-            break;
-          case "Password salah.":
-            displayMessage = "Password salah. Mohon periksa kembali.";
-            break;
-          case "Role yang digunakan salah.":
-            displayMessage =
-              "Role yang Anda pilih tidak sesuai dengan akun ini.";
-            break;
-          default:
-            displayMessage =
-              backendError || "Login gagal: kredensial tidak valid.";
-            break;
-        }
+        const displayMessage =
+          backendError === "Username tidak ditemukan."
+            ? "Username tidak ditemukan. Mohon periksa kembali."
+            : backendError === "Password salah."
+            ? "Password salah. Mohon periksa kembali."
+            : backendError === "Role yang digunakan salah."
+            ? "Role yang Anda pilih tidak sesuai dengan akun ini."
+            : backendError || "Login gagal: kredensial tidak valid.";
 
         toast.error(displayMessage, { duration: 3500, position: "top-center" });
         setError(displayMessage);
@@ -148,7 +142,7 @@ const Login: React.FC = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-orange-50 py-12 px-4 sm:px-6 lg:px-8">
-      <Toaster />
+      {/* Toaster lokal DIHAPUS — pakai global dari <Notifications /> */}
       <Card className="w-full max-w-md shadow-xl border-0 bg-white/80 backdrop-blur-sm">
         <CardHeader className="space-y-1">
           <div className="flex justify-center mb-4">
@@ -173,18 +167,23 @@ const Login: React.FC = () => {
 
             <div className="space-y-2">
               <Label htmlFor="role">Pilih Role</Label>
-              <Select onValueChange={handleRoleChange} value={formData.role}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Pilih role Anda..." />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  {roleOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {/* Delay mount untuk mencegah konflik portal Radix pada dev/HMR */}
+              {mounted && (
+                <Select onValueChange={handleRoleChange} value={formData.role}>
+                  <SelectTrigger id="role" aria-label="Pilih Role">
+                    <SelectValue placeholder="Pilih role Anda..." />
+                  </SelectTrigger>
+
+                  {/* penting: matikan portal di halaman Login */}
+                  <SelectContent disablePortal className="bg-white">
+                    {roleOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
 
             <div className="space-y-2">
