@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id" class="scroll-smooth">
+<html lang="id" class="scroll-smooth notranslate" translate="no">
 
 <head>
     <meta charset="utf-8">
@@ -7,6 +7,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="theme-color" content="#A57C52">
     <meta property="og:locale" content="id_ID">
+    <meta name="google" content="notranslate" />
     <link rel="alternate" href="https://azharmaterial.com/" hreflang="id">
     <link rel="alternate" href="https://azharmaterial.com/" hreflang="x-default">
 
