@@ -10,18 +10,16 @@ use Livewire\WithPagination;
 
 class Data extends Component
 {
-    use WithPagination; // Class dari livewire untuk fitur pagination
+    use WithPagination;
 
-    public $search, $byCategory, $byBrand;
+    protected $paginationTheme = 'tailwind';
 
+    public $search = '';
+    public $byCategory = '';
+    public $byBrand = '';
     public $perPage = 10;
 
-    public function setPerPage($value)
-    {
-        $this->perPage = $value;
-    }
-
-    protected $listeners = [ // listeners handler untuk menjalankan delete setelah confirm
+    protected $listeners = [
         'confirm' => 'delete',
         'perpage' => 'setPerPage',
     ];
@@ -29,25 +27,45 @@ class Data extends Component
     public $deleteId;
     public $deleteType;
 
+    public function setPerPage($value)
+    {
+        $this->perPage = (int) $value ?: 10;
+        $this->resetPage();
+    }
+
+    /** Pastikan reset page saat input berubah */
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+    public function updatingByCategory()
+    {
+        $this->resetPage();
+    }
+    public function updatingByBrand()
+    {
+        $this->resetPage();
+    }
+    public function updatingPerPage()
+    {
+        $this->resetPage();
+    }
+
     public function validationDelete($id, $type)
     {
         $this->deleteId = $id;
         $this->deleteType = $type;
-
         $this->dispatchBrowserEvent('validation');
     }
 
     public function delete()
     {
-        if ($this->deleteType === 'goods') {
-            $model = \App\Models\Goods::find($this->deleteId);
-        } elseif ($this->deleteType === 'brand') {
-            $model = \App\Models\Brand::find($this->deleteId);
-        } elseif ($this->deleteType === 'category') {
-            $model = \App\Models\Category::find($this->deleteId);
-        } else {
-            $model = null;
-        }
+        $model = match ($this->deleteType) {
+            'goods'    => \App\Models\Goods::find($this->deleteId),
+            'brand'    => \App\Models\Brand::find($this->deleteId),
+            'category' => \App\Models\Category::find($this->deleteId),
+            default    => null,
+        };
 
         if (!$model) {
             $this->dispatchBrowserEvent('not-found');
@@ -62,30 +80,18 @@ class Data extends Component
 
     public function render()
     {
-        // Mendapatkan daftar semua kategori dan mengurutkan berdasarkan nama A-Z
-        $categories = Category::orderBy('name', 'asc')->get();
+        // Dropdown sumber
+        $categories = Category::orderBy('name')->get();
+        $brands     = Brand::orderBy('name')->get();
 
-        // Mendapatkan daftar semua Brand dan mengurutkan berdasarkan nama A-Z
-        $brands = Brand::orderBy('name', 'asc')->get();
-
-        // Query data berdasarkan pencarian dan filter
-        $data = Goods::when($this->search, function ($query) {
-            $query->search($this->search); // Menjalankan query pencarian
-        })
-            ->when($this->byCategory, function ($query) {
-                $query->where('category_id', $this->byCategory); // Menjalankan query filter berdasarkan kategori
-            })
-            ->when($this->byBrand, function ($query) {
-                $query->where('brand_id', $this->byBrand); // Menjalankan query filter berdasarkan brand
-            })
-            ->orderBy('created_at', 'desc')
+        // Data tabel (eager-load supaya aman saat akses relasi)
+        $data = Goods::with(['category:id,name', 'brand:id,name'])
+            ->when($this->search, fn($q) => $q->search($this->search))
+            ->when($this->byCategory, fn($q) => $q->where('category_id', $this->byCategory))
+            ->when($this->byBrand, fn($q) => $q->where('brand_id', $this->byBrand))
+            ->orderByDesc('created_at')
             ->paginate($this->perPage);
 
-        // Mengembalikan data ke view
-        return view('livewire.goods.data', [
-            'categories' => $categories,
-            'brands' => $brands,
-            'data' => $data,
-        ]);
+        return view('livewire.goods.data', compact('categories', 'brands', 'data'));
     }
 }
