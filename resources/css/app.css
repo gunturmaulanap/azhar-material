@@ -131,7 +131,8 @@ html {
 }
 
 @keyframes pulseGlow {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
     transform: scale(1);
   }
@@ -193,14 +194,30 @@ html {
 }
 
 /* Stagger Animation Delays */
-.animate-delay-75 { animation-delay: 75ms; }
-.animate-delay-100 { animation-delay: 100ms; }
-.animate-delay-150 { animation-delay: 150ms; }
-.animate-delay-200 { animation-delay: 200ms; }
-.animate-delay-300 { animation-delay: 300ms; }
-.animate-delay-500 { animation-delay: 500ms; }
-.animate-delay-700 { animation-delay: 700ms; }
-.animate-delay-1000 { animation-delay: 1000ms; }
+.animate-delay-75 {
+  animation-delay: 75ms;
+}
+.animate-delay-100 {
+  animation-delay: 100ms;
+}
+.animate-delay-150 {
+  animation-delay: 150ms;
+}
+.animate-delay-200 {
+  animation-delay: 200ms;
+}
+.animate-delay-300 {
+  animation-delay: 300ms;
+}
+.animate-delay-500 {
+  animation-delay: 500ms;
+}
+.animate-delay-700 {
+  animation-delay: 700ms;
+}
+.animate-delay-1000 {
+  animation-delay: 1000ms;
+}
 
 /* Custom button styles */
 .btn-primary {
@@ -239,7 +256,7 @@ html {
   .loading-spinner {
     @apply w-6 h-6 border-2;
   }
-  
+
   .spinner {
     @apply border border-gray-300 border-t-primary;
   }
@@ -271,7 +288,7 @@ html {
 .page-transition {
   opacity: 0;
   transform: translateY(20px);
-  transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .page-transition.loaded {
@@ -437,100 +454,105 @@ html {
   .hover-lift {
     @apply transition-all duration-300 ease-out;
   }
-  
+
   .hover-lift:hover {
     @apply -translate-y-2 shadow-xl;
     box-shadow: 0 25px 50px -12px rgba(165, 124, 82, 0.25);
   }
-  
+
   .hover-scale {
     @apply transition-transform duration-300 ease-out;
   }
-  
+
   .hover-scale:hover {
     @apply scale-105;
   }
-  
+
   .hover-glow {
     @apply transition-all duration-300 ease-out;
   }
-  
+
   .hover-glow:hover {
     box-shadow: 0 0 30px rgba(165, 124, 82, 0.3);
   }
-  
+
   /* Glass Morphism */
   .glass {
     background: rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.2);
   }
-  
+
   .glass-dark {
     background: rgba(0, 0, 0, 0.1);
     backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.1);
   }
-  
+
   /* Enhanced Buttons */
   .btn-enhanced {
     @apply relative overflow-hidden transition-all duration-300 ease-out;
   }
-  
+
   .btn-enhanced::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.2),
+      transparent
+    );
     transition: left 0.5s;
   }
-  
+
   .btn-enhanced:hover::before {
     left: 100%;
   }
-  
+
   .btn-primary-enhanced {
-    background: linear-gradient(135deg, #A57C52 0%, #8B6A42 100%);
+    background: linear-gradient(135deg, #a57c52 0%, #8b6a42 100%);
     @apply text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300;
   }
-  
+
   .btn-primary-enhanced:hover {
     @apply -translate-y-1;
     box-shadow: 0 8px 25px rgba(165, 124, 82, 0.4);
-    background: linear-gradient(135deg, #8B6A42 0%, #A57C52 100%);
+    background: linear-gradient(135deg, #8b6a42 0%, #a57c52 100%);
   }
-  
+
   .btn-secondary-enhanced {
-    background: linear-gradient(135deg, #E8D3B9 0%, #F5F5F5 100%);
+    background: linear-gradient(135deg, #e8d3b9 0%, #f5f5f5 100%);
     @apply text-primary font-semibold rounded-xl border border-primary/20 hover:shadow-lg transition-all duration-300;
   }
-  
+
   .btn-secondary-enhanced:hover {
     @apply -translate-y-1;
     box-shadow: 0 8px 25px rgba(232, 211, 185, 0.4);
-    background: linear-gradient(135deg, #F5F5F5 0%, #E8D3B9 100%);
+    background: linear-gradient(135deg, #f5f5f5 0%, #e8d3b9 100%);
   }
-  
+
   /* Card Effects */
   .card-enhanced {
     @apply bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border border-white/20 transition-all duration-300;
   }
-  
+
   .card-enhanced:hover {
     @apply -translate-y-2 shadow-2xl;
   }
-  
+
   /* Loading States */
   .loading-shimmer {
     position: relative;
     overflow: hidden;
   }
-  
+
   .loading-shimmer::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: -100%;
@@ -544,62 +566,62 @@ html {
     );
     animation: shimmerEffect 2s infinite;
   }
-  
+
   /* Responsive Text */
   .text-responsive {
     font-size: clamp(1rem, 2.5vw, 1.25rem);
   }
-  
+
   .text-responsive-lg {
     font-size: clamp(1.25rem, 4vw, 2rem);
   }
-  
+
   .text-responsive-xl {
     font-size: clamp(1.5rem, 5vw, 3rem);
   }
-  
+
   /* Shadow Variations */
   .shadow-primary {
     box-shadow: 0 4px 25px rgba(165, 124, 82, 0.15);
   }
-  
+
   .shadow-primary-lg {
     box-shadow: 0 8px 35px rgba(165, 124, 82, 0.2);
   }
-  
+
   .shadow-glow-primary {
     box-shadow: 0 0 30px rgba(165, 124, 82, 0.3);
   }
-  
+
   /* Scroll Animation Utilities */
   .scroll-animate {
     @apply opacity-0 translate-y-8 transition-all duration-700 ease-out;
   }
-  
+
   .scroll-animate.in-view {
     @apply opacity-100 translate-y-0;
   }
-  
+
   /* Gradient Text */
   .gradient-text-primary {
-    background: linear-gradient(135deg, #A57C52 0%, #8B6A42 100%);
+    background: linear-gradient(135deg, #a57c52 0%, #8b6a42 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
-  
+
   .gradient-text-accent {
-    background: linear-gradient(135deg, #E8D3B9 0%, #A57C52 100%);
+    background: linear-gradient(135deg, #e8d3b9 0%, #a57c52 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
-  
+
   /* Custom Borders */
   .border-gradient-primary {
     border: 2px solid transparent;
     background: linear-gradient(white, white) padding-box,
-                linear-gradient(135deg, #A57C52, #E8D3B9) border-box;
+      linear-gradient(135deg, #a57c52, #e8d3b9) border-box;
   }
 }
 
@@ -677,7 +699,7 @@ html {
   .App-logo {
     animation: App-logo-spin infinite 20s linear;
     -webkit-animation: App-logo-spin infinite 20s linear;
-}
+  }
 }
 
 .App-header {

@@ -1,63 +1,94 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="id" class="scroll-smooth">
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="theme-color" content="#A57C52">
+    <meta property="og:locale" content="id_ID">
+    <link rel="alternate" href="https://azharmaterial.com/" hreflang="id">
+    <link rel="alternate" href="https://azharmaterial.com/" hreflang="x-default">
+
+    <title>Azhar Material — Toko Bahan Bangunan Terpercaya</title>
     <meta name="description"
         content="Azhar Material - Toko Besi Terpercaya di Cilacap. Menyediakan material konstruksi berkualitas tinggi dengan pelayanan profesional.">
-    <title>{{ config('app.name', 'Azhar Material') }}</title>
-    <link rel="icon" type="image/png" href="{{ asset('img/azhar.jpg') }}">
+    <link rel="canonical" href="https://azharmaterial.com/">
 
+    <!-- Favicon & PWA -->
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" href="/img/logo.png">
+    <link rel="apple-touch-icon" href="/img/logo.png">
+    <link rel="manifest" href="/site.webmanifest">
+
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
         rel="stylesheet">
 
+    <!-- Open Graph / Twitter -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Azhar Material — Toko Bahan Bangunan Terpercaya">
+    <meta property="og:description" content="Material konstruksi terpercaya. Pengiriman cepat sekitar Cilacap Barat.">
+    <meta property="og:url" content="https://azharmaterial.com/">
+    <meta property="og:image" content="https://azharmaterial.com/img/og/og-home.jpg">
+    <meta property="og:site_name" content="Azhar Material">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Azhar Material — Toko Bahan Bangunan Terpercaya">
+    <meta name="twitter:description" content="Material konstruksi terpercaya. Pengiriman cepat sekitar Cilacap Barat.">
+    <meta name="twitter:image" content="https://azharmaterial.com/img/og/og-home.jpg">
+    <meta name="robots" content="index, follow">
+
+    <!-- Schema.org -->
+    <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"Organization",
+    "name":"Azhar Material",
+    "url":"https://azharmaterial.com/",
+    "logo":"https://azharmaterial.com/img/logo.png",
+    "sameAs":[]
+  }
+  </script>
+    <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"WebSite",
+    "name":"Azhar Material",
+    "url":"https://azharmaterial.com/",
+    "potentialAction":{
+      "@type":"SearchAction",
+      "target":"https://azharmaterial.com/products?search={query}",
+      "query-input":"required name=query"
+    }
+  }
+  </script>
+
     @env('local')
     @viteReactRefresh
     @endenv
 
-    {{-- BOOTSTRAP AUTH – satu kali saja, cek web/customer --}}
-    {{-- BOOTSTRAP AUTH – satu kali saja, cek web/customer --}}
+    {{-- Bootstrap auth utk FE --}}
     @php
         $isWeb = auth('web')->check();
         $isCustomer = auth('customer')->check();
         $authed = $isWeb || $isCustomer;
-
         $u = $isWeb ? auth('web')->user() : ($isCustomer ? auth('customer')->user() : null);
         if ($u && empty($u->role)) {
-            // customer biasanya tidak punya kolom role; set supaya konsisten di FE
             $u->role = 'customer';
         }
-
-        // Susun data user aman untuk dikirim ke JS
-        $bootUser = $u
-            ? [
-                'id' => $u->id,
-                'name' => $u->name,
-                'email' => $u->email,
-                'role' => $u->role,
-            ]
-            : null;
-
-        $boot = [
-            'isAuth' => (bool) $authed,
-            'user' => $bootUser,
-        ];
+        $bootUser = $u ? ['id' => $u->id, 'name' => $u->name, 'email' => $u->email, 'role' => $u->role] : null;
+        $boot = ['isAuth' => (bool) $authed, 'user' => $bootUser];
     @endphp
-
     <script>
-        // kirim JSON mentah supaya tidak ada masalah escape
         window.__BOOT__ = {!! json_encode($boot, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!};
     </script>
 
-    {{-- Vite assets --}}
+    <!-- Vite assets -->
     @vite(['resources/css/app.css', 'resources/js/react/main.tsx'])
 
-    {{-- Socket.IO (opsional) --}}
+    <!-- Socket.IO (opsional) -->
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" defer></script>
 </head>
 
@@ -73,16 +104,15 @@
 
     <script>
         (function() {
-            var appRoot = document.getElementById('app');
-            var fallback = document.getElementById('fallback-content');
+            var appRoot = document.getElementById('app'),
+                fallback = document.getElementById('fallback-content');
             if (!appRoot || !fallback) return;
-
             try {
-                var observer = new MutationObserver(function() {
+                var obs = new MutationObserver(function() {
                     fallback.style.display = 'none';
-                    observer.disconnect();
+                    obs.disconnect();
                 });
-                observer.observe(appRoot, {
+                obs.observe(appRoot, {
                     childList: true,
                     subtree: true
                 });
@@ -105,11 +135,10 @@
                 return v.toString(16);
             });
 
-            const VISITOR_KEY = 'am_visitor_id';
-            const LAST_VISIT_KEY = 'am_last_visit_date';
+            const VISITOR_KEY = 'am_visitor_id',
+                LAST_VISIT_KEY = 'am_last_visit_date';
             let visitorId = null,
                 storeOK = true;
-
             try {
                 visitorId = localStorage.getItem(VISITOR_KEY);
             } catch (_) {
@@ -155,7 +184,6 @@
                         if (socket.connected) socket.emit('public-online');
                     }, 25000);
                 };
-
                 socket.on('connect', () => {
                     if (PREFIX) socket.emit('join', {
                         room: `${PREFIX}-analytics`
@@ -170,7 +198,6 @@
                     }
                     socket.emit('track-visitor', payload());
                 });
-
                 addEventListener('hashchange', () => {
                     if (socket.connected) socket.emit('track-visitor', payload());
                 });

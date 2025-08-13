@@ -5,16 +5,25 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="theme-color" content="#A57C52">
+    <meta property="og:locale" content="id_ID">
+    <link rel="alternate" href="https://azharmaterial.com/" hreflang="id">
+    <link rel="alternate" href="https://azharmaterial.com/" hreflang="x-default">
 
     <title>@yield('title', $title ?? config('app.name'))</title>
-    <link rel="icon" type="image/png" href="{{ asset('img/azhar.jpg') }}">
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
+    <!-- Favicon -->
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" href="/img/logo.png">
+    <link rel="apple-touch-icon" href="/img/logo.png">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('vendor/izitoast/dist/css/iziToast.min.css') }}">
 
-    <!-- Scripts -->
+    <!-- Assets -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
 </head>
@@ -22,13 +31,10 @@
 <body class="font-sans antialiased">
     <div x-data="{ side: false }" class="min-h-screen">
         <nav x-data="{ open: false }" class="bg-white shadow-sm border-b py-4">
-            <!-- Primary Navigation Menu -->
             <div class="mx-6 sm-mx-8">
                 <div class="flex justify-between sm:h-16">
                     <div class="flex items-center text-primary">
-                        <!-- Heading -->
                         <div class="shrink-0 flex items-center">
-                            <!-- Humburger -->
                             <svg @click="side = !side" xmlns="http://www.w3.org/2000/svg" fill="none"
                                 viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
                                 class="xl:hidden size-8 font-bold mr-10 subpixel-antialiased">
@@ -36,12 +42,11 @@
                                     d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
                             </svg>
 
-                            {{-- LOGIKA PENENTUAN RUTE DASHBOARD BERDASARKAN ROLE --}}
+                            {{-- Route dashboard sesuai role --}}
                             @php
-                                $dashboardRoute = url('/'); // Default fallback
+                                $dashboardRoute = url('/');
                                 $user = Auth::user();
                                 $customer = Auth::guard('customer')->user();
-
                                 if ($user) {
                                     switch ($user->role) {
                                         case 'super_admin':
@@ -70,7 +75,6 @@
                                 {{ __('INVENTORY') }}
                             </a>
 
-                            <!-- Settings Dropdown -->
                             <div class="flex sm:hidden items-center ms-10">
                                 <x-dropdown align="right" width="48">
                                     <x-slot name="trigger">
@@ -101,12 +105,10 @@
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                                 stroke-width="1.5" stroke="currentColor" class="w-4 h-4 mr-2">
                                                 <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                                                    d="M15.75 6a3 3 0 1 1-7.5 0 3 3 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
                                             </svg>
                                             {{ __('Profile') }}
                                         </x-dropdown-link>
-
-                                        <!-- Go to React Homepage -->
                                         <a href="/"
                                             class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center">
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -122,7 +124,6 @@
                         </div>
                     </div>
 
-                    <!-- Settings Dropdown -->
                     <div class="hidden sm:flex sm:items-center sm:ms-6">
                         <x-dropdown align="right" width="48">
                             <x-slot name="trigger">
@@ -153,15 +154,13 @@
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                             stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-3">
                                             <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                                                d="M15.75 6a3 3 0 1 1-7.5 0 3 3 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
                                         </svg>
                                         {{ __('Profile') }}
                                     </x-dropdown-link>
                                 @endif
-
-                                <!-- Go to React Homepage -->
                                 <a href="/"
-                                    class="w-full text-left block px-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:text-gray-800 focus:bg-gray-50 focus:border-gray-300 transition duration-150 ease-in-out flex items-center">
+                                    class="w-full text-left block px-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300 focus:outline-none transition duration-150 ease-in-out flex items-center">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                         stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mr-3">
                                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -177,15 +176,14 @@
         </nav>
 
         <div class="flex overflow-y-auto overflow-x-hidden">
-            {{-- SIDEBAR --}}
             @if (Auth::check() && in_array(Auth::user()->role, ['super_admin', 'admin', 'owner', 'content-admin', 'driver']))
                 <aside :class="side ? 'block' : 'hidden'"
                     class="w-72 bg-white shadow-xl border-r border-gray-100 xl:block">
                     @include('layouts.sidebar', ['dashboardRoute' => $dashboardRoute])
                 </aside>
             @endif
+
             <div class="w-full">
-                {{-- HEADER --}}
                 <header class="bg-white shadow-sm border-b border-gray-100">
                     <div class="max-w-7xl mx-auto sm:flex items-center py-6 px-4 sm:px-8 divide-x divide-gray-200">
                         <h2 class="font-semibold mb-4 sm:mb-0 text-2xl text-gray-900 leading-tight pr-6">
@@ -210,7 +208,6 @@
                     </div>
                 </header>
 
-                {{-- MAIN CONTENT --}}
                 <main class="overflow-y-auto h-[calc(100vh-200px)] bg-neutral-50">
                     <div class="max-w-7xl mx-auto px-4 py-6 sm:px-8 sm:py-8">
                         @if (isset($slot))
@@ -226,6 +223,7 @@
         @include('layouts.js.alert')
         @livewireScripts
         @stack('scripts')
+    </div>
 </body>
 
 </html>

@@ -116,7 +116,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     []
   );
   // --- Title mapping per route ---
-  const BASE_TITLE = "Azhar Material";
+  const BASE_TITLE = "AZHAR";
 
   const TITLE_MAP: Record<string, string> = {
     "/": `Home – ${BASE_TITLE}`,
@@ -166,13 +166,21 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <Link to="/" className="flex items-center">
-              <span className="text-2xl font-bold text-primary">
-                Azhar Material
+            <Link
+              to="/"
+              aria-label="Azhar Material"
+              className="flex items-center gap-3"
+            >
+              <span className="inline-flex items-center justify-center px-1.5 py-1">
+                <img
+                  src="/img/header.png?v=1" // pastikan file ada di public/img/header.png
+                  alt="Azhar Material"
+                  className="h-7 w-auto sm:h-8 md:h-10 lg:h-11 object-contain"
+                  loading="eager"
+                  fetchPriority="high"
+                />
               </span>
             </Link>
-
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center space-x-8">
               {navigation.map((item) => (
@@ -192,7 +200,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 </Link>
               ))}
             </nav>
-
             {/* Auth Section */}
             {loading ? (
               <AuthPlaceholder />
@@ -259,7 +266,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 )}
               </div>
             )}
-
             {/* Mobile Menu Button */}
             <button
               className="md:hidden p-2"

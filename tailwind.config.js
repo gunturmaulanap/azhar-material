@@ -9,7 +9,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Figtree', 'ui-sans-serif', 'system-ui'],
+        sans: ["Figtree", "ui-sans-serif", "system-ui"],
+        logo: ["Raleway", "sans-serif"], // font khusus logo
       },
       colors: {
         border: "hsl(var(--border))",
@@ -68,4 +69,4 @@ export default {
     },
   },
   plugins: [require("tailwindcss-animate")],
-}
+};
