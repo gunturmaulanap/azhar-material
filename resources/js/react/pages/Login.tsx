@@ -175,7 +175,7 @@ const Login: React.FC = () => {
                   </SelectTrigger>
 
                   {/* penting: matikan portal di halaman Login */}
-                  <SelectContent disablePortal className="bg-white">
+                  <SelectContent className="bg-white">
                     {roleOptions.map((option) => (
                       <SelectItem key={option.value} value={option.value}>
                         {option.label}

@@ -138,7 +138,8 @@ const Products: React.FC = () => {
   } = useProductStore();
 
   const { addNotification } = useAppStore();
-  const debouncedSearchTerm = useDebounce(searchTerm, 300);
+  // 👉 debounce dibuat sedikit lebih lama agar benar-benar menunggu user “berhenti mengetik”
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   // init
   useEffect(() => {
@@ -154,15 +155,22 @@ const Products: React.FC = () => {
         clearCache();
       }
 
+      // initial load (hard loading)
       fetchAllData(false);
     }
   }, []);
 
-  // search
+  // search (soft loading – tidak memunculkan spinner halaman penuh)
   useEffect(() => {
     if (!hasInitialized.current) return;
-    fetchProducts(1, true);
+    fetchProducts(1, true, true); // page=1, force=true, soft=true
   }, [debouncedSearchTerm]);
+
+  // filter/pagination/sort/perPage => fetch
+  useEffect(() => {
+    if (!hasInitialized.current) return;
+    fetchProducts(currentPage, true); // hard loading hanya jika perlu (awal/pindah halaman/filter)
+  }, [selectedCategory, selectedBrand, sortBy, perPage, currentPage]);
 
   // error toast
   useEffect(() => {
@@ -188,18 +196,17 @@ const Products: React.FC = () => {
       minimumFractionDigits: 0,
     }).format(price);
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
-          <p className="text-gray-600">Loading products...</p>
-        </div>
-      </div>
-    );
-  }
+  // 👉 TAMPILKAN spinner penuh HANYA saat initial/halaman kosong
+  const showFullPageSpinner = isLoading && products.length === 0;
 
-  return (
+  return showFullPageSpinner ? (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
+        <p className="text-gray-600">Loading products...</p>
+      </div>
+    </div>
+  ) : (
     <motion.div
       className="min-h-screen bg-gray-50"
       initial="hidden"
@@ -250,7 +257,8 @@ const Products: React.FC = () => {
               value={selectedCategory}
               onValueChange={setSelectedCategory}
             >
-              <SelectTrigger className="border-gray-2 00 focus:border-primary rounded-lg">
+              {/* typo diperbaiki: border-gray-200 */}
+              <SelectTrigger className="border-gray-200 focus:border-primary rounded-lg">
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
               <SelectContent className="bg-white">
@@ -327,7 +335,9 @@ const Products: React.FC = () => {
 
         {/* Grid */}
         <motion.div
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+          className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 ${
+            isLoading ? "opacity-90" : ""
+          }`}
           variants={containerVariants}
         >
           <AnimatePresence>

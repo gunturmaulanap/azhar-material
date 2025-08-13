@@ -30,7 +30,7 @@
                     <div class="relative flex gap-x-3">
                         <div class="flex h-6 items-center">
                             <input id="customer" type="checkbox" wire:model="customer"
-                                class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600">
+                                class="h-4 w-4 rounded px-3 border-gray-300 text-indigo-600 focus:ring-indigo-600">
                         </div>
                         <div class="text-sm leading-6">
                             <label for="customer" class="font-medium text-gray-900">Informasi customer</label>
@@ -49,7 +49,7 @@
                             <div class="flex items-center gap-x-4">
                                 <input wire:model="transaction.name" type="text" id="transaction.name"
                                     autocomplete="off"
-                                    class="block w-full rounded-md border-0 py-1.5 text-gray-900 px-3 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6">
+                                    class="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 px-3 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6">
                                 <button type="button"
                                     class="flex items-center gap-x-2 bg-blue-500 rounded-md px-3 py-2 text-white"
                                     @click="open = true">
@@ -208,14 +208,17 @@
                             telp
                             <span class="text-xs text-red-500">*</span></label>
                         <div class="mt-2" x-data="{ phone: @entangle('transaction.phone') }">
-                            <input wire:model="transaction.phone" id="transaction.phone" type="number"
-                                maxlength="15"
-                                class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6" />
+                            <input x-model="phone" @input="phone = phone.replace(/\D/g, '').slice(0, 15)"
+                                type="tel" inputmode="numeric" pattern="\d*" maxlength="15"
+                                class="block px-3 w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6" />
 
-                            <template x-if="phone.length >= 15">
-                                <span class="text-xs text-red-500">Nomor telp customer terlalu panjang. Maksimal 15
-                                    karakter</span>
+                            <!-- Pakai helper len() agar aman ketika null/angka -->
+                            <template x-if="len(phone) >= 15">
+                                <span class="text-xs text-red-500">
+                                    Nomor telp customer terlalu panjang. Maksimal 15 karakter
+                                </span>
                             </template>
+
                             @error('transaction.phone')
                                 <span class="text-xs text-red-500">{{ $message }}</span>
                             @enderror
@@ -229,7 +232,7 @@
                             class="block text-sm font-medium leading-6 text-gray-900">Alamat</label>
                         <div class="mt-2">
                             <textarea wire:model="transaction.address" id="transaction.address" rows="3"
-                                class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"></textarea>
+                                class="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"></textarea>
                         </div>
                     </div>
                 </div>
@@ -310,7 +313,7 @@
                                                 </div>
                                                 <input type="text" id="price-{{ $index }}"
                                                     wire:model="goodTransaction.{{ $index }}.price"
-                                                    class="block w-40 rounded-md border-0 py-1.5 pl-9 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                                                    class="block px-3 w-40 rounded-md border-0 py-1.5 pl-9 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
                                             </div>
                                         </div>
                                     </td>
@@ -339,7 +342,7 @@
                                                 <input id="delivery{{ $index }}" type="checkbox"
                                                     wire:model="goodTransaction.{{ $index }}.delivery"
                                                     @if (!$customer) disabled @endif
-                                                    class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600">
+                                                    class="h-4 w-4 px-3 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600">
                                             </div>
                                             <div class="text-sm leading-6">
                                                 <label for="delivery{{ $index }}"

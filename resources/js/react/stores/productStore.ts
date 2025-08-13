@@ -50,7 +50,12 @@ type Store = {
   clearError: () => void;
 
   fetchAllData: (force?: boolean) => Promise<void>;
-  fetchProducts: (page?: number, force?: boolean) => Promise<void>;
+  // 👉 tambahkan argumen ketiga: soft (untuk search tanpa spinner penuh)
+  fetchProducts: (
+    page?: number,
+    force?: boolean,
+    soft?: boolean
+  ) => Promise<void>;
 };
 
 /** ==== Helpers ==== */
@@ -79,13 +84,11 @@ const mapProduct = (p: any): Product => ({
   image_url: typeof pickImage(p) === "string" ? String(pickImage(p)) : null,
 });
 
-// Ambil angka aman
 const num = (v: any, fallback: number) => {
   const n = Number(v);
   return Number.isFinite(n) ? n : fallback;
 };
 
-// Ekstrak array item + meta dari berbagai bentuk respons
 function extractItemsAndMeta(
   body: any,
   pageFallback: number,
@@ -97,7 +100,6 @@ function extractItemsAndMeta(
   current: number;
   last: number;
 } {
-  // 1) Array langsung
   if (Array.isArray(body)) {
     const arr = body;
     return {
@@ -109,7 +111,6 @@ function extractItemsAndMeta(
     };
   }
 
-  // 2) { data: [] , meta?: {...} }
   if (body?.data && Array.isArray(body.data)) {
     const arr = body.data;
     const meta = body.meta ?? {};
@@ -122,7 +123,6 @@ function extractItemsAndMeta(
     };
   }
 
-  // 3) { data: { data: [] , meta: {...} } } (Laravel Resource + Pagination)
   if (body?.data?.data && Array.isArray(body.data.data)) {
     const arr = body.data.data;
     const meta = body.data.meta ??
@@ -141,7 +141,6 @@ function extractItemsAndMeta(
     };
   }
 
-  // 4) { items: [] , ... }
   if (Array.isArray(body?.items)) {
     const arr = body.items;
     const meta = body.meta ?? {};
@@ -154,7 +153,6 @@ function extractItemsAndMeta(
     };
   }
 
-  // 5) { products: [] , ... }
   if (Array.isArray(body?.products)) {
     const arr = body.products;
     const meta = body.meta ?? {};
@@ -167,7 +165,6 @@ function extractItemsAndMeta(
     };
   }
 
-  // 6) Fallback kosong
   return {
     items: [],
     total: 0,
@@ -231,7 +228,6 @@ export const useProductStore = create<Store>()(
       await Promise.all([
         get().fetchProducts(force ? 1 : get().currentPage, force),
         (async () => {
-          // kategori
           try {
             const res = await productService.getCategories?.();
             const arr = Array.isArray(res?.data?.data)
@@ -250,7 +246,6 @@ export const useProductStore = create<Store>()(
           }
         })(),
         (async () => {
-          // brand aktif
           try {
             const res = await brandService.getActive?.();
             const arr = Array.isArray(res?.data?.data)
@@ -272,9 +267,11 @@ export const useProductStore = create<Store>()(
       ]);
     },
 
-    fetchProducts: async (page = 1, force = false) => {
+    // 👉 tambahkan argumen soft (default false)
+    fetchProducts: async (page = 1, force = false, soft = false) => {
       const s = get();
-      set({ isLoading: true });
+      // soft=false => tampilkan spinner penuh bila perlu; soft=true => jangan ganggu UI
+      if (!soft) set({ isLoading: true });
 
       try {
         const params: any = {
@@ -296,7 +293,6 @@ export const useProductStore = create<Store>()(
         const res = await productService.getAll(params);
         const body = res?.data;
 
-        // Ekstraksi fleksibel
         const { items, total, perPage, current, last } = extractItemsAndMeta(
           body,
           page,

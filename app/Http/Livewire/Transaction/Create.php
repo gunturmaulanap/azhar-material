@@ -164,18 +164,39 @@ class Create extends Component
 
     public function updatedTransactionDiscount($value)
     {
-        $balance = $this->transaction['balance'] ?? 0;
-        $bill = $this->transaction['bill'] ?? 0;
-        $this->transaction['grand_total'] = $this->transaction['total'] - $value - $balance;
-        if ($this->transaction['grand_total'] < 0) {
-            $this->transaction['grand_total'] = 0;
+        $max = (int) ($this->transaction['total'] ?? 0);
+        $v = (int) preg_replace('/\D/', '', (string) $value);
+        $v = max(0, min($v, $max));
+        $this->transaction['discount'] = $v;
+
+        $balance = (int) ($this->transaction['balance'] ?? 0);
+        $total   = (int) ($this->transaction['total'] ?? 0);
+
+        // grand total = total - discount - balance (minimal 0)
+        $grand = max(0, $total - $v - $balance);
+        $this->transaction['grand_total'] = $grand;
+
+        // jika bill kebablasan melebihi sisa (grand), rapikan ke grand
+        $bill = (int) ($this->transaction['bill'] ?? 0);
+        if ($bill > $grand) {
+            $bill = $grand;
+            $this->transaction['bill'] = $bill;
         }
-        $this->transaction['return'] = $bill - $this->transaction['grand_total'];
+
+        // return = bill - grand
+        $this->transaction['return'] = $bill - $grand;
     }
 
     public function updatedTransactionBill($value)
     {
-        $this->transaction['return'] = $value - $this->transaction['grand_total'];
+        // BATAS bayar adalah 'kurang' = grand_total saat ini
+        $max = (int) ($this->transaction['grand_total'] ?? 0);
+        $v = (int) preg_replace('/\D/', '', (string) $value);
+        $v = max(0, min($v, $max));
+        $this->transaction['bill'] = $v;
+
+        $grand = (int) ($this->transaction['grand_total'] ?? 0);
+        $this->transaction['return'] = $v - $grand;
     }
 
     public function increment($index)

@@ -10,6 +10,7 @@
     <meta name="google" content="notranslate" />
     <link rel="alternate" href="https://azharmaterial.com/" hreflang="id">
     <link rel="alternate" href="https://azharmaterial.com/" hreflang="x-default">
+    <link rel="icon" type="image/png" href="{{ asset('img/logo.png') }}">
 
     <title>Azhar Material — Toko Bahan Bangunan Terpercaya</title>
     <meta name="description"
