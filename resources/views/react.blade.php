@@ -16,27 +16,29 @@
     <link rel="canonical" href="https://azharmaterial.com/">
 
     <!-- Favicon & PWA -->
-    <link rel="manifest" href="/site.webmanifest?v=2">
-    <link rel="icon" type="image/png" href="/img/logo-192.png?v=2">
-    <link rel="apple-touch-icon" href="/img/logo-192.png?v=2">
+    {{-- manifest & icons --}}
+    <link rel="manifest" href="{{ asset('site.webmanifest') }}?v=3">
+    <link rel="icon" type="image/png" href="{{ asset('img/logo-192.png') }}?v=3">
+    <link rel="apple-touch-icon" href="{{ asset('img/logo-192.png') }}?v=3">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
         rel="stylesheet">
+    <link rel="preload" as="image" href="/img/header.png?v=2" imagesrcset="/img/header.png?v=2 1x" />
 
     <!-- Open Graph / Twitter -->
     <meta property="og:type" content="website">
     <meta property="og:title" content="Azhar Material — Toko Bahan Bangunan Terpercaya">
     <meta property="og:description" content="Material konstruksi terpercaya. Pengiriman cepat sekitar Cilacap Barat.">
     <meta property="og:url" content="https://azharmaterial.com/">
-    <meta property="og:image" content="https://azharmaterial.com/img/og/og-home.jpg">
+    <meta property="og:image" content="{{ asset('img/og/og-home.jpg') }}">
+    <meta name="twitter:image" content="{{ asset('img/og/og-home.jpg') }}">
     <meta property="og:site_name" content="Azhar Material">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Azhar Material — Toko Bahan Bangunan Terpercaya">
     <meta name="twitter:description" content="Material konstruksi terpercaya. Pengiriman cepat sekitar Cilacap Barat.">
-    <meta name="twitter:image" content="https://azharmaterial.com/img/og/og-home.jpg">
     <meta name="robots" content="index, follow">
 
     <!-- Schema.org -->

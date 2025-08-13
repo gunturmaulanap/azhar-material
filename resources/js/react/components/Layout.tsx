@@ -155,7 +155,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <div className="h-9 w-28 rounded-md bg-gray-200/70 animate-pulse" />
     </div>
   );
+  type ImgProps = React.ImgHTMLAttributes<HTMLImageElement> & {
+    fetchpriority?: "high" | "low" | "auto";
+  };
 
+  const Img: React.FC<ImgProps> = ({ fetchpriority, ...rest }) => (
+    <img {...rest} {...({ fetchpriority } as any)} />
+  );
   return (
     <div className="min-h-screen bg-neutral-50">
       {/* Header */}
@@ -173,11 +179,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             >
               <span className="inline-flex items-center justify-center px-1.5 py-1">
                 <img
-                  src="/img/header.png?v=1" // pastikan file ada di public/img/header.png
+                  src="/img/header.png?v=2"
                   alt="Azhar Material"
                   className="h-7 w-auto sm:h-8 md:h-10 lg:h-11 object-contain"
                   loading="eager"
-                  fetchPriority="high"
+                  {...({ fetchpriority: "high" } as any)} // ⬅️ silence TS, still outputs fetchpriority
                 />
               </span>
             </Link>
