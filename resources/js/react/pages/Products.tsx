@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "../components/ui/button";
 import { Card, CardContent } from "../components/ui/card";
 import { toPublicUrl } from "../utils/storageUrl";
-
 import { Input } from "../components/ui/input";
 import {
   Select,
@@ -18,9 +17,9 @@ import { useAppStore } from "../stores/appStore";
 import { useDebounce } from "../hooks/useDebounce";
 import useScrollRestoration from "../hooks/useScrollRestoration";
 
-// Komponen gambar progresif (izin src undefined agar aman di TS)
+// Komponen gambar progresif (meng-handle src undefined + error)
 const ProgressiveImage: React.FC<{
-  src?: string; // <-- boleh undefined
+  src?: string;
   alt: string;
   className?: string;
 }> = ({ src, alt, className }) => {
@@ -178,7 +177,7 @@ const Products: React.FC = () => {
   };
 
   const handlePerPageChange = (value: string) => {
-    setPerPage(parseInt(value));
+    setPerPage(parseInt(value, 10));
   };
 
   const formatPrice = (price: number) =>
@@ -250,7 +249,8 @@ const Products: React.FC = () => {
               value={selectedCategory}
               onValueChange={setSelectedCategory}
             >
-              <SelectTrigger className="border-gray-2 00 focus:border-primary rounded-lg">
+              {/* FIX TYPO: border-gray-200 (bukan 'border-gray-2 00') */}
+              <SelectTrigger className="border-gray-200 focus:border-primary rounded-lg">
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
               <SelectContent className="bg-white">

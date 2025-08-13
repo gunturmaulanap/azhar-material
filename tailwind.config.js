@@ -10,7 +10,7 @@ export default {
     extend: {
       fontFamily: {
         sans: ["Figtree", "ui-sans-serif", "system-ui"],
-        logo: ["Raleway", "sans-serif"], // font khusus logo
+        logo: ["Raleway", "sans-serif"], // font khusus logo jika dipakai
       },
       colors: {
         border: "hsl(var(--border))",

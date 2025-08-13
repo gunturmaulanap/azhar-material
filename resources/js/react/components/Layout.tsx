@@ -32,7 +32,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     () => user?.name || user?.username || "User",
     [user]
   );
-
+  useEffect(() => {
+    document.title = getTitleFromPath(location.pathname);
+  }, [location.pathname]);
   // Debounced scroll (ringan)
   useEffect(() => {
     let t: any;
@@ -146,9 +148,67 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   // set title tiap kali route berubah
   useEffect(() => {
-    document.title = getTitleFromPath(location.pathname);
-  }, [location.pathname]);
+    if (!import.meta.env.PROD) return; // ⛔️ dev/local: jangan apa-apa
 
+    // helper kecil buat update href + cache-buster
+    const bump = (href: string, v: string) => {
+      try {
+        const url = new URL(href, window.location.origin);
+        url.searchParams.set("v", v);
+        return url.pathname + "?" + url.searchParams.toString();
+      } catch {
+        // kalau relative path biasa
+        const hasQ = href.includes("?");
+        return href + (hasQ ? "&" : "?") + "v=" + v;
+      }
+    };
+
+    const V = "5";
+
+    const setIfExists = (
+      selector: string,
+      fallbackHref: string,
+      sizes?: string,
+      type?: string
+    ) => {
+      const link = document.querySelector(selector) as HTMLLinkElement | null;
+      if (!link) return; // biarkan; Blade yang mengatur pembuatan tag
+      if (sizes) link.sizes = sizes;
+      if (type) link.type = type;
+      link.href = bump(link.getAttribute("href") || fallbackHref, V);
+    };
+
+    // Sama persis dengan yang ada di Blade (react.blade.php)
+    setIfExists(
+      'link[rel="icon"][sizes="32x32"]',
+      "/img/favicon-32.png",
+      "32x32",
+      "image/png"
+    );
+    setIfExists(
+      'link[rel="icon"][sizes="16x16"]',
+      "/img/favicon-16.png",
+      "16x16",
+      "image/png"
+    );
+    setIfExists(
+      'link[rel="apple-touch-icon"]',
+      "/img/apple-touch-icon.png",
+      "180x180"
+    );
+    setIfExists('link[rel="shortcut icon"]', "/img/favicon-32.png");
+
+    // manifest juga hanya diupdate kalau sudah ada
+    const manifest = document.querySelector(
+      'link[rel="manifest"]'
+    ) as HTMLLinkElement | null;
+    if (manifest) {
+      manifest.href = bump(
+        manifest.getAttribute("href") || "/site.webmanifest",
+        V
+      );
+    }
+  }, [location.pathname]);
   // Komponen kecil: placeholder agar tidak kedip saat loading
   const AuthPlaceholder = () => (
     <div className="hidden md:flex items-center space-x-4">
@@ -178,12 +238,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               className="flex items-center gap-3"
             >
               <span className="inline-flex items-center justify-center px-1.5 py-1">
-                <img
+                <Img
                   src="/img/header.png?v=2"
                   alt="Azhar Material"
                   className="h-7 w-auto sm:h-8 md:h-10 lg:h-11 object-contain"
-                  loading="eager"
-                  // @ts-expect-error: non-React attribute, but valid HTML
                   fetchpriority="high"
                 />
               </span>

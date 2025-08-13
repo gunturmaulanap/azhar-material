@@ -111,6 +111,11 @@ interface Brand {
 }
 
 const Home: React.FC = () => {
+  // ✅ Samakan title halaman Home
+  useEffect(() => {
+    document.title = "Home – Azhar Material";
+  }, []);
+
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [heroSection, setHeroSection] = useState<HeroSection | null>(null);
   const [brands, setBrands] = useState<Brand[]>([]);

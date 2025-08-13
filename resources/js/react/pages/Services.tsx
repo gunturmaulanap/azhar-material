@@ -1,19 +1,28 @@
-import React from 'react';
-import { Truck, Users, Building, Package, Clock, Shield, MapPin, Phone } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { Card, CardContent } from '../components/ui/card';
+import React, { useEffect } from "react";
+import {
+  Truck,
+  Users,
+  Building,
+  Package,
+  Clock,
+  Shield,
+  MapPin,
+  Phone,
+} from "lucide-react";
+import { motion } from "framer-motion";
+import { Card, CardContent } from "../components/ui/card";
 
 const Services: React.FC = () => {
+  useEffect(() => {
+    document.title = "Services – Azhar Material";
+  }, []);
   // Animation variants
   const containerVariants: any = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: {
-        duration: 0.6,
-        staggerChildren: 0.15
-      }
-    }
+      transition: { duration: 0.6, staggerChildren: 0.15 },
+    },
   };
 
   const itemVariants: any = {
@@ -21,11 +30,8 @@ const Services: React.FC = () => {
     visible: {
       opacity: 1,
       y: 0,
-      transition: {
-        duration: 0.6,
-        ease: "easeOut"
-      }
-    }
+      transition: { duration: 0.6, ease: "easeOut" },
+    },
   };
 
   const cardVariants: any = {
@@ -34,19 +40,13 @@ const Services: React.FC = () => {
       opacity: 1,
       scale: 1,
       y: 0,
-      transition: {
-        duration: 0.5,
-        ease: "easeOut"
-      }
+      transition: { duration: 0.5, ease: "easeOut" },
     },
     hover: {
       y: -8,
       scale: 1.02,
-      transition: {
-        duration: 0.2,
-        ease: "easeInOut"
-      }
-    }
+      transition: { duration: 0.2, ease: "easeInOut" },
+    },
   };
 
   const benefitVariants: any = {
@@ -54,11 +54,8 @@ const Services: React.FC = () => {
     visible: {
       opacity: 1,
       y: 0,
-      transition: {
-        duration: 0.5,
-        ease: "easeOut"
-      }
-    }
+      transition: { duration: 0.5, ease: "easeOut" },
+    },
   };
 
   const iconMap = {
@@ -68,18 +65,23 @@ const Services: React.FC = () => {
     package: Package,
   };
 
+  // ---- FIX: mapping kelas statis (hindari purge Tailwind) ----
+  const benefitStyles = {
+    green: { bg: "bg-green-100", text: "text-green-600" },
+    blue: { bg: "bg-blue-100", text: "text-blue-600" },
+    purple: { bg: "bg-purple-100", text: "text-purple-600" },
+  } as const;
+  type BenefitColor = keyof typeof benefitStyles;
+
   return (
-    <motion.div 
+    <motion.div
       className="min-h-screen bg-gray-50"
       initial="hidden"
       animate="visible"
       variants={containerVariants}
     >
       {/* Breadcrumb */}
-      <motion.div 
-        className="bg-white py-4 border-b"
-        variants={itemVariants}
-      >
+      <motion.div className="bg-white py-4 border-b" variants={itemVariants}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <nav className="text-sm">
             <span className="text-gray-500">Home</span>
@@ -91,51 +93,53 @@ const Services: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         {/* Header */}
-        <motion.div 
-          className="text-center mb-16"
-          variants={itemVariants}
-        >
+        <motion.div className="text-center mb-16" variants={itemVariants}>
           <h1 className="text-4xl md:text-5xl font-bold text-neutral-800 mb-6">
             Our Services
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Comprehensive construction material solutions designed to support your building projects from start to finish.
+            Comprehensive construction material solutions designed to support
+            your building projects from start to finish.
           </p>
         </motion.div>
 
         {/* Main Services Grid */}
-        <motion.div 
+        <motion.div
           className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16"
           variants={containerVariants}
         >
           {[
             {
               id: 1,
-              title: 'Pengantaran Bahan Bangunan',
-              description: 'Layanan antar langsung ke lokasi proyek Anda dengan armada terpercaya dan jadwal yang fleksibel.',
-              icon: 'truck'
+              title: "Pengantaran Bahan Bangunan",
+              description:
+                "Layanan antar langsung ke lokasi proyek Anda dengan armada terpercaya dan jadwal yang fleksibel.",
+              icon: "truck",
             },
             {
               id: 2,
-              title: 'Konsultasi Kebutuhan Material',
-              description: 'Konsultasi gratis untuk menentukan kebutuhan material proyek Anda dengan tim ahli berpengalaman.',
-              icon: 'users'
+              title: "Konsultasi Kebutuhan Material",
+              description:
+                "Konsultasi gratis untuk menentukan kebutuhan material proyek Anda dengan tim ahli berpengalaman.",
+              icon: "users",
             },
             {
               id: 3,
-              title: 'Kerjasama Proyek Besar',
-              description: 'Solusi material untuk proyek skala besar dengan harga khusus dan dukungan teknis lengkap.',
-              icon: 'building'
+              title: "Kerjasama Proyek Besar",
+              description:
+                "Solusi material untuk proyek skala besar dengan harga khusus dan dukungan teknis lengkap.",
+              icon: "building",
             },
             {
               id: 4,
-              title: 'Pembelian Grosir dan Eceran',
-              description: 'Melayani pembelian dalam jumlah besar maupun eceran dengan sistem pembayaran yang fleksibel.',
-              icon: 'package'
-            }
+              title: "Pembelian Grosir dan Eceran",
+              description:
+                "Melayani pembelian dalam jumlah besar maupun eceran dengan sistem pembayaran yang fleksibel.",
+              icon: "package",
+            },
           ].map((service, index) => {
             const IconComponent = iconMap[service.icon as keyof typeof iconMap];
-            
+
             return (
               <motion.div
                 key={service.id}
@@ -147,7 +151,7 @@ const Services: React.FC = () => {
                   <CardContent className="p-8">
                     <div className="flex items-start space-x-6">
                       <div className="flex-shrink-0">
-                        <motion.div 
+                        <motion.div
                           className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all duration-300"
                           whileHover={{ rotate: 360 }}
                           transition={{ duration: 0.6 }}
@@ -172,7 +176,7 @@ const Services: React.FC = () => {
         </motion.div>
 
         {/* Additional Services */}
-        <motion.div 
+        <motion.div
           className="bg-white rounded-2xl p-8 md:p-12 shadow-lg mb-16"
           variants={itemVariants}
         >
@@ -183,45 +187,55 @@ const Services: React.FC = () => {
             {[
               {
                 icon: Clock,
-                title: 'Fast Delivery',
-                description: 'Same-day delivery available for orders placed before 2 PM within the city area.',
-                color: 'green'
+                title: "Fast Delivery",
+                description:
+                  "Same-day delivery available for orders placed before 2 PM within the city area.",
+                color: "green" as BenefitColor,
               },
               {
                 icon: Shield,
-                title: 'Quality Guarantee',
-                description: 'All materials come with quality assurance and warranty coverage.',
-                color: 'blue'
+                title: "Quality Guarantee",
+                description:
+                  "All materials come with quality assurance and warranty coverage.",
+                color: "blue" as BenefitColor,
               },
               {
                 icon: MapPin,
-                title: 'Wide Coverage',
-                description: 'We deliver across the region with flexible scheduling options.',
-                color: 'purple'
-              }
-            ].map((benefit, index) => (
-              <motion.div
-                key={benefit.title}
-                className="text-center"
-                variants={benefitVariants}
-                transition={{ delay: index * 0.2 }}
-              >
-                <motion.div 
-                  className={`w-16 h-16 bg-${benefit.color}-100 rounded-full flex items-center justify-center mx-auto mb-4`}
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                  transition={{ duration: 0.3 }}
+                title: "Wide Coverage",
+                description:
+                  "We deliver across the region with flexible scheduling options.",
+                color: "purple" as BenefitColor,
+              },
+            ].map((benefit, index) => {
+              const styles = benefitStyles[benefit.color];
+              const Icon = benefit.icon;
+
+              return (
+                <motion.div
+                  key={benefit.title}
+                  className="text-center"
+                  variants={benefitVariants}
+                  transition={{ delay: index * 0.2 }}
                 >
-                  <benefit.icon className={`h-8 w-8 text-${benefit.color}-600`} />
+                  <motion.div
+                    className={`w-16 h-16 ${styles.bg} rounded-full flex items-center justify-center mx-auto mb-4`}
+                    whileHover={{ scale: 1.1, rotate: 5 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <Icon className={`h-8 w-8 ${styles.text}`} />
+                  </motion.div>
+                  <h3 className="text-lg font-semibold text-neutral-800 mb-2">
+                    {benefit.title}
+                  </h3>
+                  <p className="text-gray-600">{benefit.description}</p>
                 </motion.div>
-                <h3 className="text-lg font-semibold text-neutral-800 mb-2">{benefit.title}</h3>
-                <p className="text-gray-600">{benefit.description}</p>
-              </motion.div>
-            ))}
+              );
+            })}
           </div>
         </motion.div>
 
         {/* CTA Section */}
-        <motion.div 
+        <motion.div
           className="bg-primary text-white rounded-2xl p-8 md:p-12 text-center"
           variants={itemVariants}
           whileHover={{ scale: 1.02 }}
@@ -231,7 +245,8 @@ const Services: React.FC = () => {
             Need Custom Solutions?
           </h2>
           <p className="text-xl mb-8 text-accent">
-            Contact us for personalized service packages tailored to your project requirements.
+            Contact us for personalized service packages tailored to your
+            project requirements.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <motion.a
