@@ -202,8 +202,9 @@
     </div>
 
 
-
-    <canvas id="first-chart" class="w-full h-[250px] overflow-auto shadow p-4 rounded-md mt-4"></canvas>
+    <div wire:ignore>
+        <canvas id="first-chart" class="w-full h-[250px] overflow-auto shadow p-4 rounded-md mt-4"></canvas>
+    </div>
     {{-- <div id="sec-chart" class="w-full h-[250px] overflow-auto bg-gray-100 rounded-md mt-4"></div> --}}
 
 
@@ -251,9 +252,10 @@
         </div>
 
 
-
-        <div class=" max-w-sm w-full rounded-sm  bg-white  shadow row-span-2">
-            <canvas class="w-full h-[250px] overflow-auto shadow p-4 rounded-md mt-4" id="donut-chart"></canvas>
+        <div wire:ignore>
+            <div class=" max-w-sm w-full rounded-sm  bg-white  shadow row-span-2">
+                <canvas class="w-full h-[250px] overflow-auto shadow p-4 rounded-md mt-4" id="donut-chart"></canvas>
+            </div>
         </div>
 
 
@@ -352,96 +354,101 @@
     </div>
 
 </div>
-
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        document.addEventListener('livewire:load', function() {
-            const ctx = document.getElementById('first-chart');
-            const myChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: @json($data['labels']),
-                    datasets: [{
-                        label: 'Pemasukan',
-                        data: @json($data['incomeData']),
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        borderWidth: 1
-                    }, {
-                        label: 'Pengeluaran',
-                        data: @json($data['expenseData']),
-                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                        borderColor: 'rgba(255, 99, 132, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    },
-                }
-            });
+        document.addEventListener('livewire:load', () => {
+            function initCharts() {
+                const barCanvas = document.getElementById('first-chart');
+                const donutCanvas = document.getElementById('donut-chart');
+                if (!barCanvas || !donutCanvas) return;
 
-            const ctxx = document.getElementById('donut-chart').getContext('2d');
-            const donutData = {
-                labels: @json($donutChartData['labels']),
-                datasets: [{
-                    label: 'Barang Terjual',
-                    data: @json($donutChartData['data']),
-                    backgroundColor: [
-                        'rgb(255, 99, 132)',
-                        'rgb(54, 162, 235)',
-                        'rgb(255, 205, 86)',
-                        'rgb(75, 192, 192)',
-                        'rgb(153, 102, 255)',
-                        'rgb(255, 159, 64)'
-                    ],
-                    hoverOffset: 4
-                }]
-            };
-            const myDonutChart = new Chart(ctxx, {
-                type: 'doughnut',
-                data: donutData,
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                        },
-                        title: {
-                            display: false,
-                            text: 'Barang Terjual Berdasarkan Kategori'
+                // Hancurkan jika sudah ada
+                const oldBar = Chart.getChart(barCanvas);
+                if (oldBar) oldBar.destroy();
+                const oldDonut = Chart.getChart(donutCanvas);
+                if (oldDonut) oldDonut.destroy();
+
+                const barCtx = barCanvas.getContext('2d');
+                const donutCtx = donutCanvas.getContext('2d');
+
+                // Simpan ke window agar bisa diakses ulang
+                window.firstChart = new Chart(barCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: @json($data['labels']),
+                        datasets: [{
+                                label: 'Pemasukan',
+                                data: @json($data['incomeData']),
+                                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                borderWidth: 1
+                            },
+                            {
+                                label: 'Pengeluaran',
+                                data: @json($data['expenseData']),
+                                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                                borderColor: 'rgba(255, 99, 132, 1)',
+                                borderWidth: 1
+                            },
+                        ]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
                         }
                     }
-                }
+                });
+
+                window.donutChart = new Chart(donutCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: @json($donutChartData['labels']),
+                        datasets: [{
+                            label: 'Barang Terjual',
+                            data: @json($donutChartData['data']),
+                            backgroundColor: [
+                                'rgb(255, 99, 132)', 'rgb(54, 162, 235)', 'rgb(255, 205, 86)',
+                                'rgb(75, 192, 192)', 'rgb(153, 102, 255)', 'rgb(255, 159, 64)'
+                            ],
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'top'
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Inisiasi awal
+            initCharts();
+
+            // Setelah setiap patch Livewire (kalau canvas sempat terganti), init ulang aman
+            Livewire.hook('message.processed', () => {
+                initCharts();
             });
 
-            Livewire.on('refreshChart', function(data, donut) {
-                myChart.data = {
-                    labels: data.labels,
-                    datasets: [{
-                            label: 'Pemasukan',
-                            data: data.incomeData,
-                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                            borderColor: 'rgba(75, 192, 192, 1)',
-                            borderWidth: 1
-                        },
-                        {
-                            label: 'Pengeluaran',
-                            data: data.expenseData,
-                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                            borderColor: 'rgba(255, 99, 132, 1)',
-                            borderWidth: 1
-                        }
-                    ]
-                };
-                myChart.update();
-                myDonutChart.data.labels = donut.labels;
-                myDonutChart.data.datasets[0].data = donut.data;
-                myDonutChart.update();
+            // Update data tanpa bikin instance baru
+            Livewire.on('refreshChart', (data, donut) => {
+                if (!window.firstChart || !window.donutChart) {
+                    initCharts();
+                }
+
+                window.firstChart.data.labels = data.labels;
+                window.firstChart.data.datasets[0].data = data.incomeData;
+                window.firstChart.data.datasets[1].data = data.expenseData;
+                window.firstChart.update();
+
+                window.donutChart.data.labels = donut.labels;
+                window.donutChart.data.datasets[0].data = donut.data;
+                window.donutChart.update();
             });
         });
     </script>

@@ -11,7 +11,8 @@
     <link rel="alternate" href="https://azharmaterial.com/" hreflang="id">
     <link rel="alternate" href="https://azharmaterial.com/" hreflang="x-default">
     <link rel="icon" type="image/png" href="{{ asset('img/logo.png') }}">
-
+    {{-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/izitoast@1.4.0/dist/css/iziToast.min.css" --}}
+    {{-- referrerpolicy="no-referrer" /> --}}
     <title>@yield('title', $title ?? config('app.name'))</title>
 
     <!-- Favicon -->
@@ -33,7 +34,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('vendor/izitoast/dist/css/iziToast.min.css') }}">
+    {{-- <link rel="stylesheet" href="{{ asset('vendor/izitoast/dist/css/iziToast.min.css') }}"> --}}
     <style>
         [x-cloak] {
             display: none !important;
@@ -236,10 +237,9 @@
                 </main>
             </div>
         </div>
-        <script src="https://code.jquery.com/jquery-3.7.1.min.js"
-            integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous" defer></script>
-        <script src="https://cdn.jsdelivr.net/npm/izitoast@1.4.0/dist/js/iziToast.min.js" defer></script>
-
+        {{-- <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+            integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous" defer></script> --}}
+        {{-- <script src="https://cdn.jsdelivr.net/npm/izitoast@1.4.0/dist/js/iziToast.min.js" defer></script> --}}
         {{-- Livewire harus lebih dulu, sebelum script lain yang memanggil Livewire --}}
         @livewireScripts
 

@@ -87,10 +87,10 @@ const Login: React.FC = () => {
       });
 
       if (result.success) {
-        toast.success("Login berhasil! Selamat datang 👋", {
-          duration: 2000,
-          position: "top-center",
-        });
+        // toast.success("Login berhasil! Selamat datang 👋", {
+        //   duration: 2000,
+        //   position: "top-center",
+        // });
 
         // sinkronkan state auth & arahkan ke beranda
         await refresh?.();
