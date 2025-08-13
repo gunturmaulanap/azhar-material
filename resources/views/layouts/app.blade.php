@@ -13,9 +13,9 @@
     <title>@yield('title', $title ?? config('app.name'))</title>
 
     <!-- Favicon -->
-    <link rel="icon" href="/favicon.ico" sizes="any">
-    <link rel="icon" type="image/png" href="/img/logo.png">
-    <link rel="apple-touch-icon" href="/img/logo.png">
+    <link rel="manifest" href="/site.webmanifest?v=2">
+    <link rel="icon" type="image/png" href="/img/logo-192.png?v=2">
+    <link rel="apple-touch-icon" href="/img/logo-192.png?v=2">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
