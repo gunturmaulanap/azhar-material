@@ -165,7 +165,17 @@ const Products: React.FC = () => {
     if (!hasInitialized.current) return;
     fetchProducts(1, true, true); // page=1, force=true, soft=true
   }, [debouncedSearchTerm]);
+  useEffect(() => {
+    if (!hasInitialized.current) return;
+    // fetch normal (boleh tampil spinner), bukan soft
+    fetchProducts(1, true);
+  }, [selectedCategory, selectedBrand, sortBy, perPage]);
 
+  // trigger saat ganti halaman
+  useEffect(() => {
+    if (!hasInitialized.current) return;
+    fetchProducts(currentPage, true);
+  }, [currentPage]);
   // filter/pagination/sort/perPage => fetch
   useEffect(() => {
     if (!hasInitialized.current) return;

@@ -270,8 +270,9 @@ export const useProductStore = create<Store>()(
     // 👉 tambahkan argumen soft (default false)
     fetchProducts: async (page = 1, force = false, soft = false) => {
       const s = get();
-      // soft=false => tampilkan spinner penuh bila perlu; soft=true => jangan ganggu UI
-      if (!soft) set({ isLoading: true });
+      if (!soft) {
+        set({ isLoading: true });
+      }
 
       try {
         const params: any = {
@@ -281,12 +282,16 @@ export const useProductStore = create<Store>()(
           category_id:
             s.selectedCategory !== "all" ? s.selectedCategory : undefined,
           brand_id: s.selectedBrand !== "all" ? s.selectedBrand : undefined,
+          // hint yang mungkin dipakai backend Anda
           sort:
             s.sortBy === "name"
               ? "name"
               : s.sortBy === "price-low"
               ? "price_asc"
               : "price_desc",
+          // opsi tambahan agar kompatibel dengan variasi backend (abaikan jika tak dipakai)
+          sort_by: s.sortBy === "name" ? "name" : "price",
+          order: s.sortBy === "price-high" ? "desc" : "asc",
           ...(force ? { _fresh: Date.now() } : {}),
         };
 
@@ -305,8 +310,21 @@ export const useProductStore = create<Store>()(
 
         const mapped = items.map(mapProduct);
 
+        // --- Fallback sorting di client: pastikan urutan sesuai pilihan ---
+        const sorted = [...mapped];
+        if (s.sortBy === "name") {
+          // locale 'id' supaya urutan nama Indonesia rapi
+          sorted.sort((a, b) =>
+            a.name.localeCompare(b.name, "id", { sensitivity: "base" })
+          );
+        } else if (s.sortBy === "price-low") {
+          sorted.sort((a, b) => a.price - b.price);
+        } else {
+          sorted.sort((a, b) => b.price - a.price);
+        }
+
         set({
-          products: mapped,
+          products: sorted,
           totalProducts: total,
           perPage,
           currentPage: current,
