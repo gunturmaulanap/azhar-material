@@ -20,12 +20,12 @@ class Data extends Component
     public $perPage = 10;
 
     protected $listeners = [
-        'confirm' => 'delete',
+        'confirm' => 'delete',   // dipanggil dari alert.blade (Livewire.emit('confirm', id))
         'perpage' => 'setPerPage',
     ];
 
-    public $deleteId;
-    public $deleteType;
+    public $deleteId = null;
+    public $deleteType = null;
 
     public function setPerPage($value)
     {
@@ -33,7 +33,7 @@ class Data extends Component
         $this->resetPage();
     }
 
-    /** Pastikan reset page saat input berubah */
+    // Reset page saat filter berubah
     public function updatingSearch()
     {
         $this->resetPage();
@@ -53,38 +53,54 @@ class Data extends Component
 
     public function validationDelete($id, $type)
     {
-        $this->deleteId = $id;
+        $this->deleteId   = $id;
         $this->deleteType = $type;
-        $this->dispatchBrowserEvent('validation');
+
+        // Panggil dialog konfirmasi yang didengar alert.blade.php
+        $this->dispatchBrowserEvent('toast:confirm', [
+            'id'      => $id,
+            'title'   => 'Hapus data?',
+            'message' => 'Tindakan ini tidak bisa dibatalkan.',
+        ]);
     }
 
-    public function delete()
+    // Akan dipanggil setelah user klik "YA" di dialog
+    public function delete($id = null)
     {
-        $model = match ($this->deleteType) {
-            'goods'    => \App\Models\Goods::find($this->deleteId),
-            'brand'    => \App\Models\Brand::find($this->deleteId),
-            'category' => \App\Models\Category::find($this->deleteId),
+        $id   = $id ?: $this->deleteId;
+        $type = $this->deleteType ?: 'goods';
+
+        $model = match ($type) {
+            'goods'    => Goods::find($id),
+            'brand'    => Brand::find($id),
+            'category' => Category::find($id),
             default    => null,
         };
 
         if (!$model) {
-            $this->dispatchBrowserEvent('not-found');
+            $this->dispatchBrowserEvent('toast:error', [
+                'message' => 'Data tidak ditemukan!'
+            ]);
             return;
         }
 
         $model->delete();
 
-        $this->dispatchBrowserEvent('deleted');
+        $this->dispatchBrowserEvent('toast:warning', [
+            'message' => 'Data terhapus!'
+        ]);
+
+        // bersihkan state & refresh
+        $this->deleteId = null;
+        $this->deleteType = null;
         $this->resetPage();
     }
 
     public function render()
     {
-        // Dropdown sumber
         $categories = Category::orderBy('name')->get();
         $brands     = Brand::orderBy('name')->get();
 
-        // Data tabel (eager-load supaya aman saat akses relasi)
         $data = Goods::with(['category:id,name', 'brand:id,name'])
             ->when($this->search, fn($q) => $q->search($this->search))
             ->when($this->byCategory, fn($q) => $q->where('category_id', $this->byCategory))

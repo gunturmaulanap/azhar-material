@@ -2,9 +2,7 @@
     <x-slot name="title">{{ __('Data Order') }}</x-slot>
 
     <x-slot name="breadcrumb">
-        @php
-            $data = ['Data Order'];
-        @endphp
+        @php $data = ['Data Order']; @endphp
         @foreach ($data as $item)
             <li class="rtl:rotate-180">
                 <svg xmlns="http://www.w3.org/2000/svg" class="size-4" viewBox="0 0 20 20" fill="currentColor">
@@ -13,7 +11,6 @@
                         clip-rule="evenodd" />
                 </svg>
             </li>
-
             <li>
                 <span
                     class="block transition hover:text-gray-700 @if ($loop->last) text-gray-950 font-medium @endif">
@@ -38,6 +35,7 @@
                 <option value="250">250</option>
             </select>
         </div>
+
         <div class="flex flex-wrap items-center justify-start sm:justify-between gap-2 sm:gap-4 w-full ">
             <div class="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-4 ml-auto">
                 <label for="startDate" class="flex items-center gap-x-2 bg-gradient-to-r from-gray-200 rounded-s-md">
@@ -60,7 +58,6 @@
                     Tambah Data
                 </a>
             </div>
-
         </div>
     </div>
 
@@ -70,44 +67,29 @@
             <table class="w-full text-sm whitespace-nowrap">
                 <thead>
                     <tr class="border-b">
-                        <th class="h-10 px-4 text-left">
-                            <span class="inline-flex font-medium items-center justify-center px-3 text-sm -ml-3">
-                                Nama Supplier
-                            </span>
+                        <th class="h-10 px-4 text-left"><span
+                                class="inline-flex font-medium items-center justify-center px-3 text-sm -ml-3">Nama
+                                Supplier</span></th>
+                        <th class="h-10 px-2 text-center"><span
+                                class="inline-flex font-medium items-center justify-center px-3 text-sm -ml-3">Jumlah
+                                Barang</span></th>
+                        <th class="h-10 px-2 text-center"><span
+                                class="inline-flex font-medium items-center justify-center px-3 text-sm -ml-3">Tagihan</span>
                         </th>
-                        <th class="h-10 px-2 text-center">
-                            <span class="inline-flex font-medium items-center justify-center px-3 text-sm -ml-3">
-                                Jumlah Barang
-                            </span>
-                        </th>
-                        <th class="h-10 px-2 text-center">
-                            <span class="inline-flex font-medium items-center justify-center px-3 text-sm -ml-3">
-                                Tagihan
-                            </span>
-                        </th>
-                        <th class="h-10 px-2 text-right">
-                            <span class="inline-flex font-medium items-center justify-center px-3 text-sm -ml-3">
-                                Tanggal Order
-                            </span>
-                        </th>
+                        <th class="h-10 px-2 text-right"><span
+                                class="inline-flex font-medium items-center justify-center px-3 text-sm -ml-3">Tanggal
+                                Order</span></th>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($orders as $item)
                         <tr class="border-b transition-colors hover:bg-gray-50">
-                            <td class="p-2 px-4 w-[20%]">
-                                {{ $item->supplier->name }}
-                            </td>
-                            <td class="p-2 text-center">
-                                {{ $item->goods()->count() }}
-                            </td>
-                            <td class="p-2 text-center">
-                                @currency($item->total)
-                            </td>
+                            <td class="p-2 px-4 w-[20%]">{{ $item->supplier->name }}</td>
+                            <td class="p-2 text-center">{{ $item->goods()->count() }}</td>
+                            <td class="p-2 text-center">@currency($item->total)</td>
                             <td class="px-4 text-right">
-                                {{ \Carbon\Carbon::parse($item->created_at)->translatedFormat('d F Y') }}
-                            </td>
+                                {{ \Carbon\Carbon::parse($item->created_at)->translatedFormat('d F Y') }}</td>
                             <td class="py-2">
                                 <div class="flex items-center gap-x-4 justify-center">
                                     <a href="{{ route(str_replace('_', '', auth()->user()->role) . '.order.detail', ['id' => $item->id]) }}"
@@ -122,7 +104,7 @@
                                         Detail
                                     </a>
                                     @if ($item->status !== 'Selesai')
-                                        <button wire:click="validationDelete({{ $item->id }})"
+                                        <button type="button" wire:click="validationDelete({{ $item->id }})"
                                             class="px-2 py-1 flex items-center gap-x-2 rounded-md bg-red-500 text-xs text-white">
                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
                                                 fill="currentColor" class="size-3">
@@ -139,9 +121,7 @@
                     @empty
                         <tr>
                             <td colspan="5">
-                                <div class="py-2 text-red-500 text-center">
-                                    Data tidak ditemukan
-                                </div>
+                                <div class="py-2 text-red-500 text-center">Data tidak ditemukan</div>
                             </td>
                         </tr>
                     @endforelse
@@ -153,7 +133,8 @@
     {{-- Mobile Table --}}
     <div class="space-y-3 sm:hidden">
         @foreach ($orders as $item)
-            <button class="flex flex-col items-start gap-2 rounded-lg border p-3 text-left text-sm w-full">
+            {{-- GANTI wrapper <button> jadi <div> agar klik internal tidak ketelan --}}
+            <div class="flex flex-col items-start gap-2 rounded-lg border p-3 text-left text-sm w-full">
                 <div class="flex w-full flex-col gap-1">
                     <div class="text-lg font-semibold">{{ $item->supplier->company }}</div>
                 </div>
@@ -173,7 +154,8 @@
                 <div class="flex items-center gap-2 w-full justify-end mt-2">
                     <a href="{{ route(str_replace('_', '', auth()->user()->role) . '.order.detail', ['id' => $item->id]) }}"
                         class="px-2 py-1 flex items-center gap-x-2 rounded-md bg-sky-500 text-white text-xs">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                            class="size-3">
                             <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
                             <path fill-rule="evenodd"
                                 d="M1.323 11.447C2.811 6.976 7.028 3.75 12.001 3.75c4.97 0 9.185 3.223 10.675 7.69.12.362.12.752 0 1.113-1.487 4.471-5.705 7.697-10.677 7.697-4.97 0-9.186-3.223-10.675-7.69a1.762 1.762 0 0 1 0-1.113ZM17.25 12a5.25 5.25 0 1 1-10.5 0 5.25 5.25 0 0 1 10.5 0Z"
@@ -182,7 +164,8 @@
                         Detail
                     </a>
                     @if ($item->status !== 'Selesai')
-                        <a wire:click="validationDelete({{ $item->id }})"
+                        {{-- GANTI <a wire:click> jadi <button type="button"> --}}
+                        <button type="button" wire:click="validationDelete({{ $item->id }})"
                             class="px-2 py-1 flex items-center gap-x-2 rounded-md bg-red-500 text-xs text-white">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
                                 class="size-3">
@@ -191,30 +174,20 @@
                                     clip-rule="evenodd" />
                             </svg>
                             Hapus
-                        </a>
+                        </button>
                     @endif
                 </div>
-            </button>
+            </div>
         @endforeach
     </div>
-    <div class="pt-4">
-        {{ $orders->links() }}
-    </div>
+
+    <div class="pt-4">{{ $orders->links() }}</div>
 </div>
 
+{{-- Emit perpage setelah Livewire siap --}}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Fungsi untuk mendeteksi ukuran layar
-        function isMobile() {
-            return window.innerWidth <= 768; // Misalkan 768px adalah batas untuk mobile
-        }
-
-        // Jika layar dalam mode mobile
-        if (isMobile()) {
-            // Mengirim nilai ke Livewire
-            Livewire.emit('perpage', 2); // Atur perPage menjadi 5 untuk mobile
-        } else {
-            Livewire.emit('perpage', 10); // Atur perPage menjadi 10 untuk desktop
-        }
+    document.addEventListener('livewire:init', function() {
+        const isMobile = () => window.innerWidth <= 768;
+        Livewire.emit('perpage', isMobile() ? 2 : 10);
     });
 </script>

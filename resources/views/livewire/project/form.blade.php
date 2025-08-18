@@ -4,9 +4,7 @@
     </x-slot>
 
     <x-slot name="breadcrumb">
-        @php
-            $breadcrumb = ['Content', 'Projects', $isEditing ? 'Edit' : 'Create'];
-        @endphp
+        @php $breadcrumb = ['Content','Projects', $isEditing ? 'Edit' : 'Create']; @endphp
         @foreach ($breadcrumb as $item)
             <li class="rtl:rotate-180">
                 <svg xmlns="http://www.w3.org/2000/svg" class="size-4" viewBox="0 0 20 20" fill="currentColor">
@@ -17,166 +15,82 @@
             </li>
             <li>
                 <span
-                    class="block transition hover:text-gray-700 @if ($loop->last) text-gray-950 font-medium @endif">
-                    {{ $item }}
-                </span>
+                    class="block transition hover:text-gray-700 @if ($loop->last) text-gray-950 font-medium @endif">{{ $item }}</span>
             </li>
         @endforeach
     </x-slot>
 
-    <div class="space-y-6">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-            <div>
-                <h1 class="text-3xl font-bold text-gray-900">{{ $isEditing ? 'Edit Project' : 'Create New Project' }}
-                </h1>
-                <p class="mt-2 text-gray-600">
-                    {{ $isEditing ? 'Update project information' : 'Add a new project to showcase' }}</p>
+    <form wire:submit.prevent="save" class="space-y-6">
+        <div class="border-b border-gray-900/10 pb-12">
+            <div class="px-6 py-5 border-b border-gray-100">
+                <h2 class="text-base font-semibold leading-7 text-gray-900">Formulir Data Project</h2>
+                <p class="mt-1 text-sm text-gray-500"> Lengkapi data berikut ini untuk
+                    {{ $isEditing ? 'Mengubah informasi project' : 'Menambah informasi project' }}
+                </p>
             </div>
-            <div class="mt-4 sm:mt-0">
-                <a href="{{ route('content-admin.projects') }}"
-                    class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-                    </svg>
-                    Back to Projects
-                </a>
-            </div>
-        </div>
 
-        <form wire:submit.prevent="save" class="space-y-8">
-            <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
-                    <h3 class="text-lg font-medium text-gray-900">Project Information</h3>
-                </div>
-
-                <div class="p-6 space-y-6">
+            <div class="p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+                {{-- LEFT COLUMN: main info --}}
+                <div class="lg:col-span-7 space-y-6">
+                    {{-- Title --}}
                     <div>
-                        <label for="title" class="block text-sm font-medium text-gray-700 mb-2">
-                            Project Title <span class="text-red-500">*</span>
+                        <label for="title"
+                            class="flex items-center justify-between text-sm font-medium text-gray-700 mb-2">
+                            <span>Nama Projects<span class="text-red-500">*</span></span>
                         </label>
-                        <input type="text" wire:model.defer="title" id="title"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent @error('title') border-red-300 @enderror"
-                            placeholder="Enter project title">
+                        <input id="title" type="text" wire:model.defer="title"
+                            class="mt-1 block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300
+                                   focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6">
                         @error('title')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
 
+                    {{-- Description --}}
                     <div>
-                        <label for="description" class="block text-sm font-medium text-gray-700 mb-2">
-                            Description <span class="text-red-500">*</span>
+                        <label for="description"
+                            class="flex items-center justify-between text-sm font-medium text-gray-700 mb-2">
+                            <span>Deskripsi Project <span class="text-red-500">*</span></span>
                         </label>
-                        <textarea wire:model.defer="description" id="description" rows="4"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent @error('description') border-red-300 @enderror"
-                            placeholder="Describe the project..."></textarea>
+                        <textarea id="description" rows="6" wire:model.defer="description"
+                            class="mt-1 block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300
+                                   focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6"></textarea>
                         @error('description')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
 
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Project Image
-                        </label>
-
-                        <div class="mb-4 flex items-center space-x-2">
-                            <span class="text-sm text-gray-500">Use File Upload</span>
-                            <label for="useExternalImageToggle"
-                                class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="useExternalImageToggle" class="sr-only peer"
-                                    wire:model.live="useExternalImage">
-                                <div
-                                    class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
-                                </div>
-                            </label>
-                            <span class="text-sm text-gray-500">Use External URL</span>
-                        </div>
-
-                        @if (!$useExternalImage)
-                            @if ($existing_image)
-                                <div class="mb-4">
-                                    <p class="text-sm text-gray-600 mb-2">Current Image:</p>
-                                    <div class="relative inline-block">
-                                        <img src="{{ asset('storage/' . $existing_image) }}" alt="Current project image"
-                                            class="w-32 h-32 object-cover rounded-lg">
-                                        <button type="button" wire:click="removeImage"
-                                            class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
-                                            title="Remove image">
-                                            ×
-                                        </button>
-                                    </div>
-                                </div>
-                            @endif
-
-                            <input type="file" wire:model="image" accept="image/*"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 @error('image') border-red-300 @enderror">
-
-                            @if ($image)
-                                <div class="mt-2">
-                                    <p class="text-sm text-gray-600">Preview:</p>
-                                    <img src="{{ $image->temporaryUrl() }}" alt="Preview"
-                                        class="w-32 h-32 object-cover rounded-lg">
-                                </div>
-                            @endif
-
-                            @error('image')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                            <p class="mt-1 text-sm text-gray-500">Max file size: 2MB. Accepted formats: JPG, PNG, GIF
-                            </p>
-                        @else
-                            <input type="text" wire:model.defer="external_image_url" id="external_image_url"
-                                placeholder="e.g. https://images.unsplash.com/photo-..."
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent @error('external_image_url') border-red-300 @enderror">
-
-                            @if ($external_image_url)
-                                <div class="mt-2">
-                                    <p class="text-sm text-gray-600">Preview:</p>
-                                    <img src="{{ $external_image_url }}" alt="External image preview"
-                                        class="w-32 h-32 object-cover rounded-lg">
-                                </div>
-                            @endif
-
-                            @error('external_image_url')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        @endif
-                    </div>
-
+                    {{-- Meta grid --}}
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label for="category" class="block text-sm font-medium text-gray-700 mb-2">
-                                Category
-                            </label>
-                            <input type="text" wire:model.defer="category" id="category"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent @error('category') border-red-300 @enderror"
+                            <label for="category" class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                            <input id="category" type="text" wire:model.defer="category"
+                                class="mt-1 block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300
+                                   focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6"
+                                @error('category') border-red-300 @enderror"
                                 placeholder="e.g. Construction, Renovation">
+
                             @error('category')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
 
                         <div>
-                            <label for="client" class="block text-sm font-medium text-gray-700 mb-2">
-                                Client
-                            </label>
-                            <input type="text" wire:model.defer="client" id="client"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent @error('client') border-red-300 @enderror"
-                                placeholder="Client name">
+                            <label for="client" class="block text-sm font-medium text-gray-700 mb-2">Client</label>
+                            <input id="client" type="text" wire:model.defer="client"
+                                class="mt-1 block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300
+                                   focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6"
+                                placeholder="e.g. Partai Gerindra">
                             @error('client')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
-                    </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div>
-                            <label for="location" class="block text-sm font-medium text-gray-700 mb-2">
-                                Location
-                            </label>
-                            <input type="text" wire:model.defer="location" id="location"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent @error('location') border-red-300 @enderror"
+                            <label for="location" class="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                            <input id="location" type="text" wire:model.defer="location"
+                                class="mt-1 block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300
+                                   focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6"
                                 placeholder="Project location">
                             @error('location')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -184,12 +98,11 @@
                         </div>
 
                         <div>
-                            <label for="year" class="block text-sm font-medium text-gray-700 mb-2">
-                                Year
-                            </label>
-                            <input type="number" wire:model.defer="year" id="year" min="1900"
-                                max="{{ date('Y') + 10 }}"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent @error('year') border-red-300 @enderror"
+                            <label for="year" class="block text-sm font-medium text-gray-700 mb-2">Year</label>
+                            <input id="year" type="number" min="1900" max="{{ date('Y') + 10 }}"
+                                wire:model.defer="year"
+                                class="mt-1 block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300
+                                   focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6"
                                 placeholder="{{ date('Y') }}">
                             @error('year')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -197,55 +110,158 @@
                         </div>
 
                         <div>
-                            <label for="sort_order" class="block text-sm font-medium text-gray-700 mb-2">
-                                Sort Order
-                            </label>
-                            <input type="number" wire:model.defer="sort_order" id="sort_order" min="0"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent @error('sort_order') border-red-300 @enderror"
+                            <label for="sort_order" class="block text-sm font-medium text-gray-700 mb-2">Sort
+                                Order</label>
+                            <input id="sort_order" type="number" min="0" wire:model.defer="sort_order"
+                                class="mt-1 block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300
+                                   focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6"
                                 placeholder="0">
+                            <p class="mt-1 text-xs text-gray-500">Lower numbers appear first.</p>
                             @error('sort_order')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
-                            <p class="mt-1 text-sm text-gray-500">Lower numbers appear first</p>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- RIGHT COLUMN: media & status --}}
+                {{-- RIGHT COLUMN: media & visibility --}}
+                <div class="lg:col-span-5 space-y-6 mt-8">
+                    {{-- Project Image --}}
+                    <div class="bg-gray-200 rounded-xl border border-gray-200 p-5">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-sm font-semibold text-gray-900">Project Image</h3>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs text-gray-500">Upload</span>
+                                <label class="relative inline-flex items-center">
+                                    <input type="checkbox" wire:model="useExternalImage" class="sr-only peer">
+                                    <span
+                                        class="h-6 w-11 rounded-full bg-gray-200 ring-1 ring-inset ring-gray-300 transition
+                               peer-checked:bg-sky-600
+                               after:absolute after:top-[2px] after:left-[2px] after:h-5 after:w-5 after:bg-white after:rounded-full after:shadow
+                               after:transition peer-checked:after:translate-x-5">
+                                    </span>
+                                </label>
+                                <span class="text-xs text-gray-500">External URL</span>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 space-y-3">
+                            @if (!$useExternalImage)
+                                {{-- preview existing (edit) --}}
+                                @if ($existing_image)
+                                    <div>
+                                        <p class="text-xs text-gray-500 mb-2">Current Image</p>
+                                        <div class="relative inline-block">
+                                            <img src="{{ asset('storage/' . $existing_image) }}" alt="Current image"
+                                                class="w-32 h-32 object-cover rounded-lg ring-1 ring-gray-200">
+                                            <button type="button" wire:click="removeImage"
+                                                class="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white text-xs flex items-center justify-center hover:bg-red-600"
+                                                title="Remove image">×</button>
+                                        </div>
+                                    </div>
+                                @endif
+
+                                {{-- file input --}}
+                                <label class="block">
+                                    <input type="file" wire:model="image" accept="image/*"
+                                        class="mt-1 block w-full rounded-md border-0 text-gray-900 shadow-sm
+                                  ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm
+                                  file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:bg-gray-100 file:text-gray-700">
+                                </label>
+                                @error('image')
+                                    <p class="text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+
+                                @if ($image)
+                                    <div>
+                                        <p class="text-xs text-gray-500 mb-1">Preview</p>
+                                        <img src="{{ $image->temporaryUrl() }}" alt="Preview"
+                                            class="w-32 h-32 object-cover rounded-lg ring-1 ring-gray-200">
+                                    </div>
+                                @endif
+
+                                <p class="text-xs text-gray-500">Max 2MB — JPG, PNG, GIF.</p>
+                            @else
+                                {{-- external url --}}
+                                <label for="external_image_url"
+                                    class="block text-sm font-medium text-gray-700">External Image URL</label>
+                                <input id="external_image_url" type="url" wire:model.defer="external_image_url"
+                                    placeholder="https://images.unsplash.com/photo-…"
+                                    class="mt-1 block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm
+                              ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm">
+                                @error('external_image_url')
+                                    <p class="text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+
+                                @if ($external_image_url)
+                                    <div>
+                                        <p class="text-xs text-gray-500 mb-1">Preview</p>
+                                        <img src="{{ $external_image_url }}" alt="External preview"
+                                            class="w-32 h-32 object-cover rounded-lg ring-1 ring-gray-200"
+                                            onerror="this.style.display='none'">
+                                    </div>
+                                @endif
+                            @endif
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label for="status" class="block text-sm font-medium text-gray-700 mb-2">
-                                Status <span class="text-red-500">*</span>
-                            </label>
-                            <select wire:model.defer="status" id="status"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 @error('status') border-red-300 @enderror">
-                                <option value="draft">Draft</option>
-                                <option value="published">Published</option>
-                            </select>
-                            @error('status')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
+                    {{-- Visibility --}}
+                    <div class="bg-gray-200 rounded-xl border border-gray-200 p-5">
+                        <h3 class="text-sm font-semibold text-gray-900 mb-3">Visibility</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="status" class="block text-sm font-medium text-gray-700">
+                                    Status <span class="text-red-500">*</span>
+                                </label>
+                                <select id="status" wire:model.defer="status"
+                                    class="mt-1 block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm
+                               ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm">
+                                    <option value="draft">Draft</option>
+                                    <option value="published">Published</option>
+                                </select>
+                                @error('status')
+                                    <p class="text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
 
-                        <div class="flex items-center pt-6">
-                            <input type="checkbox" wire:model.defer="featured" id="featured"
-                                class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-                            <label for="featured" class="ml-2 block text-sm font-medium text-gray-700">
-                                Mark as Featured Project
+                            <label class="inline-flex items-center gap-2">
+                                <input type="checkbox" wire:model.defer="featured"
+                                    class="h-4 w-4 rounded border-gray-300 text-sky-600 focus:ring-sky-500">
+                                <span class="text-sm text-gray-700">Mark as Featured Project</span>
                             </label>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <div class="flex items-center justify-end space-x-4">
-                <a href="{{ route('content-admin.projects') }}"
-                    class="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors">
-                    Cancel
-                </a>
-                <button type="submit"
-                    class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
-                    {{ $isEditing ? 'Update Project' : 'Create Project' }}
-                </button>
-            </div>
-        </form>
-    </div>
+        {{-- Actions --}}
+        <div class="mt-6 flex items-center justify-end gap-x-6">
+            <button type="button" wire:click="resetInput" class="text-sm font-semibold text-gray-900">Reset</button>
+            <button type="submit"
+                class="rounded-md bg-sky-500 px-3 py-2 text-sm font-semibold text-white shadow-sm
+                       hover:bg-sky-400 focus-visible:outline focus-visible:outline-2
+                       focus-visible:outline-offset-2 focus-visible:outline-sky-500">
+                <span wire:loading.remove>{{ $isEditing ? 'Ubah Project' : 'Tambah Project' }}</span>
+                <span wire:loading>Processing...</span> </button>
+            {{-- <a href="{{ route('content-admin.projects') }}"
+                class="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 transition">
+                Cancel
+            </a>
+
+            <button type="submit"
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                wire:loading.attr="disabled">
+                <svg wire:loading class="animate-spin -ml-1 mr-1 h-4 w-4 text-white"
+                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                        stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4A4 4 0 004 12z"></path>
+                </svg>
+                <span wire:loading.remove>{{ $isEditing ? 'Update Project' : 'Create Project' }}</span>
+                <span wire:loading>Processing...</span>
+            </button> --}}
+        </div>
+    </form>
 </div>

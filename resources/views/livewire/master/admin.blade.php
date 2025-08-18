@@ -90,8 +90,9 @@
                                 {{ $item->username }}
                             </td>
                             <td class="p-2">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                    @if($item->role === 'super_admin') bg-purple-100 text-purple-800
+                                <span
+                                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                    @if ($item->role === 'super_admin') bg-purple-100 text-purple-800
                                     @elseif($item->role === 'admin') bg-blue-100 text-blue-800
                                     @elseif($item->role === 'content-admin') bg-green-100 text-green-800
                                     @elseif($item->role === 'owner') bg-yellow-100 text-yellow-800
@@ -113,7 +114,7 @@
                                         </svg>
                                         Ubah
                                     </a>
-                                    <button wire:click="validationDelete({{ $item->id }})"
+                                    <button type="button" wire:click="validationDelete({{ $item->id }})"
                                         class="px-2 py-1 flex items-center gap-x-2 rounded-md bg-red-500 text-xs text-white">
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
                                             class="size-3">

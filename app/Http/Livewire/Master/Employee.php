@@ -22,22 +22,34 @@ class Employee extends Component
         'confirm' => 'delete',
         'perpage' => 'setPerPage',
     ];
-
-    public function validationDelete($id) // function menjalankan confirm delete
+    public function validationDelete($id)
     {
-        $this->dispatchBrowserEvent('validation', [
-            'id' => $id
+        $this->dispatchBrowserEvent('toast:confirm', [
+            'id'      => $id,
+            'title'   => 'Hapus pegawai?',
+            'message' => 'Akun pegawai akan dihapus. Lanjutkan?',
         ]);
     }
 
     public function delete($id)
     {
-        $deleted = ModelsEmployee::find($id)->delete();
+        $user = ModelsEmployee::find($id);
+
+        if (!$user) {
+            $this->dispatchBrowserEvent('toast:error', ['message' => 'Data tidak ditemukan!']);
+            return;
+        }
+
+        $deleted = $user->delete();
 
         if ($deleted) {
-            $this->dispatchBrowserEvent('deleted');
+            $this->dispatchBrowserEvent('toast:warning', ['message' => 'Data terhapus!']);
+            $this->resetPage();
+        } else {
+            $this->dispatchBrowserEvent('toast:error', ['message' => 'Gagal menghapus data.']);
         }
     }
+
 
     public function render()
     {

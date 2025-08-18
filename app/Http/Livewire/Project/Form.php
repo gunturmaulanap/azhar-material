@@ -13,6 +13,8 @@ class Form extends Component
     use WithFileUploads;
 
     public $projectId;
+    public $project = [];
+
     public $title = '';
     public $description = '';
     public $category = '';
@@ -23,11 +25,10 @@ class Form extends Component
     public $featured = false;
     public $sort_order = 0;
 
-    // Properti untuk gambar
-    public $image; // Temporary file upload
-    public $existing_image; // Path local dari DB
-    public $external_image_url; // URL eksternal
-    public $useExternalImage = false; // Toggle switch state
+    public $image;                // upload file sementara
+    public $existing_image;       // path lokal dari DB
+    public $external_image_url;   // URL eksternal
+    public $useExternalImage = false;
 
     public $isEditing = false;
 
@@ -35,18 +36,17 @@ class Form extends Component
     {
         $maxYear = date('Y') + 10;
         $rules = [
-            'title' => 'required|string|max:255',
+            'title'       => 'required|string|max:255',
             'description' => 'required|string',
-            'category' => 'nullable|string|max:255',
-            'client' => 'nullable|string|max:255',
-            'location' => 'nullable|string|max:255',
-            'year' => 'nullable|integer|min:1900|max:' . $maxYear,
-            'status' => 'required|in:draft,published',
-            'featured' => 'boolean',
-            'sort_order' => 'integer|min:0',
+            'category'    => 'nullable|string|max:255',
+            'client'      => 'nullable|string|max:255',
+            'location'    => 'nullable|string|max:255',
+            'year'        => 'nullable|integer|min:1900|max:' . $maxYear,
+            'status'      => 'required|in:draft,published',
+            'featured'    => 'boolean',
+            'sort_order'  => 'integer|min:0',
         ];
 
-        // Validasi kondisional untuk gambar
         if ($this->useExternalImage) {
             $rules['external_image_url'] = 'required|url|max:2048';
             $rules['image'] = 'nullable';
@@ -63,15 +63,15 @@ class Form extends Component
     {
         $maxYear = date('Y') + 10;
         return [
-            'title.required' => 'Project title is required.',
-            'description.required' => 'Project description is required.',
-            'external_image_url.required' => 'External image URL is required when using this option.',
-            'external_image_url.url' => 'Please enter a valid URL.',
-            'image.image' => 'The uploaded file must be an image.',
-            'image.max' => 'The image size must be less than 2MB.',
-            'image.required' => 'An image file is required.',
-            'year.min' => 'Year must be at least 1900.',
-            'year.max' => 'Year cannot be more than ' . $maxYear . '.',
+            'title.required'               => 'Project title is required.',
+            'description.required'         => 'Project description is required.',
+            'external_image_url.required'  => 'External image URL is required when using this option.',
+            'external_image_url.url'       => 'Please enter a valid URL.',
+            'image.image'                  => 'The uploaded file must be an image.',
+            'image.max'                    => 'The image size must be less than 2MB.',
+            'image.required'               => 'An image file is required.',
+            'year.min'                     => 'Year must be at least 1900.',
+            'year.max'                     => 'Year cannot be more than ' . $maxYear . '.',
         ];
     }
 
@@ -90,34 +90,38 @@ class Form extends Component
     {
         $project = Project::findOrFail($this->projectId);
 
-        $this->title = $project->title;
+        $this->title       = $project->title;
         $this->description = $project->description;
-        $this->category = $project->category ?? '';
-        $this->client = $project->client ?? '';
-        $this->location = $project->location ?? '';
-        $this->year = $project->year;
-        $this->status = $project->status;
-        $this->featured = $project->featured;
-        $this->sort_order = $project->sort_order;
+        $this->category    = $project->category ?? '';
+        $this->client      = $project->client ?? '';
+        $this->location    = $project->location ?? '';
+        $this->year        = $project->year;
+        $this->status      = $project->status;
+        $this->featured    = $project->featured;
+        $this->sort_order  = $project->sort_order;
 
-        // Cek apakah gambar yang ada adalah URL eksternal
         if ($project->external_image_url) {
-            $this->useExternalImage = true;
+            $this->useExternalImage   = true;
             $this->external_image_url = $project->external_image_url;
-            $this->existing_image = null;
+            $this->existing_image     = null;
         } else {
-            $this->useExternalImage = false;
+            $this->useExternalImage   = false;
             $this->external_image_url = null;
-            $this->existing_image = $project->image;
+            $this->existing_image     = $project->image;
         }
+    }
+    public function resetInput()
+    {
+        // kalau sedang edit -> muat ulang dari DB, kalau create -> kosongkan
+        $this->project = $this->projectId ? $this->setData() : [];
     }
 
     public function updatedUseExternalImage($value)
     {
         if ($value) {
-            $this->reset('image'); // Hapus file yang diunggah jika beralih ke URL eksternal
+            $this->reset('image');
         } else {
-            $this->reset('external_image_url'); // Hapus URL jika beralih ke unggahan file
+            $this->reset('external_image_url');
         }
     }
 
@@ -126,15 +130,12 @@ class Form extends Component
         $this->validate();
 
         try {
-            if ($this->isEditing) {
-                $project = Project::findOrFail($this->projectId);
-            } else {
-                $project = new Project();
-            }
+            $project = $this->isEditing
+                ? Project::findOrFail($this->projectId)
+                : new Project();
 
-            // Reset field gambar yang tidak digunakan
+            // Kelola gambar
             if ($this->useExternalImage) {
-                // Hapus gambar lokal jika ada
                 if ($project->image && Storage::disk('public')->exists($project->image)) {
                     Storage::disk('public')->delete($project->image);
                 }
@@ -142,42 +143,46 @@ class Form extends Component
                 $project->external_image_url = $this->external_image_url;
             } else {
                 $project->external_image_url = null;
-                // Handle image upload
+
                 if ($this->image) {
-                    if ($this->isEditing && $project->image) {
+                    if ($this->isEditing && $project->image && Storage::disk('public')->exists($project->image)) {
                         Storage::disk('public')->delete($project->image);
                     }
-                    $imagePath = $this->image->store('projects', 'public');
-                    $project->image = $imagePath;
-                } elseif ($this->isEditing && !$this->existing_image) {
-                    // Hapus gambar lokal jika user menghapusnya
-                    if ($project->image) {
-                        Storage::disk('public')->delete($project->image);
-                    }
+                    $project->image = $this->image->store('projects', 'public');
+                } elseif ($this->isEditing && !$this->existing_image && $project->image) {
+                    Storage::disk('public')->delete($project->image);
                     $project->image = null;
                 }
             }
 
-            // Save project data
+            // Simpan data lain
             $project->fill([
-                'title' => $this->title,
+                'title'       => $this->title,
                 'description' => $this->description,
-                'category' => $this->category ?: null,
-                'client' => $this->client ?: null,
-                'location' => $this->location ?: null,
-                'year' => $this->year,
-                'status' => $this->status,
-                'featured' => $this->featured,
-                'sort_order' => $this->sort_order,
-            ]);
+                'category'    => $this->category ?: null,
+                'client'      => $this->client ?: null,
+                'location'    => $this->location ?: null,
+                'year'        => $this->year,
+                'status'      => $this->status,
+                'featured'    => (bool) $this->featured,
+                'sort_order'  => (int) $this->sort_order,
+            ])->save();
 
-            $project->save();
+            // Flash untuk iziToast di halaman index
+            session()->flash(
+                'success',
+                $this->isEditing
+                    ? 'Project updated successfully!'
+                    : 'Project created successfully!'
+            );
 
-            session()->flash('message', $this->isEditing ? 'Project updated successfully!' : 'Project created successfully!');
-
+            // LIVEWIRE v2: redirect server-side (langsung pindah halaman)
             return redirect()->route('content-admin.projects');
-        } catch (\Exception $e) {
-            session()->flash('error', 'An error occurred while saving the project: ' . $e->getMessage());
+        } catch (\Throwable $e) {
+            report($e);
+            // kalau gagal, tetap di halaman & tampilkan toast error
+            session()->flash('error', 'An error occurred while saving the project.');
+            return null;
         }
     }
 
@@ -190,8 +195,12 @@ class Form extends Component
                 $project->image = null;
                 $project->save();
                 $this->existing_image = null;
-                $this->image = null; // Clear temporary upload as well
-                session()->flash('message', 'Image removed successfully!');
+                $this->image = null;
+
+                // ====> IZITOAST: info sukses hapus gambar
+                $this->dispatchBrowserEvent('toast:success', [
+                    'message' => 'Image removed successfully!'
+                ]);
             }
         }
     }

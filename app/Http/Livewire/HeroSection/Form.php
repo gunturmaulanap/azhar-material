@@ -16,19 +16,16 @@ class Form extends Component
     public $title, $subtitle, $description, $button_text, $background_image, $background_video, $background_type;
     public $isEdit = false;
 
-    // Perbaikan: Hapus properti yang tidak lagi dibutuhkan
     public $existing_background_image_path;
     public $existing_background_video_path;
 
-    // Perbaikan: Pindahkan rules ke metode agar dapat diakses oleh $this
     protected function rules()
     {
         return [
-            'title' => 'required|string|max:255',
-            'subtitle' => 'required|string|max:255',
-            'description' => 'required|string',
-            'button_text' => 'required|string|max:100',
-            // Perbaikan: Hapus aturan validasi untuk button_url
+            'title'           => 'required|string|max:255',
+            'subtitle'        => 'required|string|max:255',
+            'description'     => 'required|string',
+            'button_text'     => 'required|string|max:100',
             'background_type' => 'required|in:image,video',
             'background_image' => [
                 'nullable',
@@ -46,9 +43,6 @@ class Form extends Component
         ];
     }
 
-    // Perbaikan: Hapus properti messages atau perbaiki sintaksnya jika masih dibutuhkan
-    // Menghapus properti $messages karena tidak lagi dibutuhkan.
-
     public function mount($id = null)
     {
         if ($id) {
@@ -63,13 +57,11 @@ class Form extends Component
     public function loadHeroSection()
     {
         $hero = HeroSection::findOrFail($this->heroId);
-        $this->title = $hero->title;
-        $this->subtitle = $hero->subtitle;
+        $this->title       = $hero->title;
+        $this->subtitle    = $hero->subtitle;
         $this->description = $hero->description;
         $this->button_text = $hero->button_text;
-        // Perbaikan: Hapus inisialisasi $button_url
         $this->background_type = $hero->background_type ?? 'image';
-
         $this->existing_background_image_path = $hero->background_image;
         $this->existing_background_video_path = $hero->background_video;
     }
@@ -82,16 +74,14 @@ class Form extends Component
 
     public function save()
     {
-        // Perbaikan: Panggil metode rules() untuk mendapatkan aturan validasi
         $this->validate($this->rules());
 
         $data = [
-            'title' => $this->title,
-            'subtitle' => $this->subtitle,
-            'description' => $this->description,
-            'button_text' => $this->button_text,
-            // Perbaikan: Set button_url menjadi nilai default yang tetap, karena tidak ada input dari form
-            'button_url' => '#product-preview',
+            'title'           => $this->title,
+            'subtitle'        => $this->subtitle,
+            'description'     => $this->description,
+            'button_text'     => $this->button_text,
+            'button_url'      => '#product-preview', // default karena input URL ditiadakan
             'background_type' => $this->background_type,
         ];
 
@@ -109,6 +99,7 @@ class Form extends Component
                 $data['background_video'] = $this->background_video->store('hero-sections/videos', 'public');
                 $data['background_image'] = null;
             } else {
+                // Pastikan field yang tidak dipilih null
                 if ($this->background_type === 'image') {
                     $data['background_video'] = null;
                 } else {
@@ -117,6 +108,7 @@ class Form extends Component
             }
 
             $hero->update($data);
+            // pakai flash + iziToast di index
             session()->flash('success', 'Hero section berhasil diperbarui.');
         } else {
             $data['is_active'] = true;
@@ -138,7 +130,6 @@ class Form extends Component
 
     public function render()
     {
-        return view('livewire.hero-section.form')
-            ->layout('layouts.app');
+        return view('livewire.hero-section.form')->layout('layouts.app');
     }
 }

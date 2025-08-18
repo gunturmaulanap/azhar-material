@@ -77,7 +77,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       super_admin: "/superadmin/dashboard",
       driver: "/driver/pengiriman-barang",
       admin: "/admin/transactions/create",
-      "content-admin": "/content-admin/analytics",
+      "content-admin": "/content-admin/hero-sections",
       owner: "/owner/laporan-penjualan",
     };
     return routes[role] ?? "/";

@@ -54,39 +54,52 @@ class FormLogo extends Component
     {
         $this->validate($this->rules());
 
-        $data = [
-            'name' => $this->name,
-            // 'description' sudah dihapus dari array data
-            'website_url' => $this->website_url,
-            'is_active' => $this->is_active ?? true,
-        ];
+        try {
+            $brand = $this->isEdit
+                ? Brand::findOrFail($this->brandId)
+                : new Brand();
 
-        if ($this->isEdit) {
-            $brand = Brand::findOrFail($this->brandId);
+            // data dasar
+            $brand->name        = $this->name;
+            $brand->website_url = $this->website_url;
+            $brand->is_active   = $this->is_active ?? true;
 
+            // handle logo
             if ($this->logo) {
-                if ($brand->logo) {
-                    Storage::disk('public')->delete($brand->logo);
+                // hapus file lama jika ada
+                if ($brand->logo && \Storage::disk('public')->exists($brand->logo)) {
+                    \Storage::disk('public')->delete($brand->logo);
                 }
-                $data['logo'] = $this->logo->store('brands', 'public');
-            } else {
-                $data['logo'] = $brand->logo;
+                $brand->logo = $this->logo->store('brands', 'public');
+            } elseif (!$this->isEdit) {
+                // create tanpa upload
+                $brand->logo = null;
             }
 
-            $brand->update($data);
-            session()->flash('message', 'Brand berhasil diperbarui.');
-        } else {
-            if ($this->logo) {
-                $data['logo'] = $this->logo->store('brands', 'public');
-            } else {
-                $data['logo'] = null;
-            }
+            $brand->save();
 
-            Brand::create($data);
-            session()->flash('message', 'Brand berhasil dibuat.');
+            // sukses: flash untuk ditampilkan di halaman index via iziToast
+            session()->flash(
+                'success',
+                $this->isEdit
+                    ? 'Brand berhasil diperbarui.'
+                    : 'Brand berhasil dibuat.'
+            );
+
+            // Livewire v2 → redirect server-side (langsung pindah halaman)
+            return redirect()->route('content-admin.brand.index');
+        } catch (\Throwable $e) {
+            report($e);
+
+            // gagal: tampilkan toast di halaman ini (tanpa redirect)
+            $this->dispatchBrowserEvent('toast', [
+                'type'    => 'error',
+                'title'   => 'Gagal',
+                'message' => 'Terjadi kesalahan saat menyimpan brand.'
+            ]);
+
+            return null;
         }
-
-        return redirect()->route('content-admin.brand.index');
     }
 
     public function render()

@@ -173,7 +173,7 @@ Route::middleware(['auth:web', 'role:driver'])->prefix('driver')->group(function
 // Grup rute untuk Content Admin
 Route::middleware(['auth:web', 'role:content-admin'])->prefix('content-admin')->group(function () {
     // Dashboard
-    Route::get('/dashboard', ContentDashboard::class)->name('content-admin.dashboard');
+    Route::get('/dashboard', ContentDashboard::class)->name('content-admin.hero-sections');
     Route::get('/analytics', ContentAnalytics::class)->name('content-admin.analytics');
     // Goods Routes
     Route::get('data-barang', GoodsData::class)->name('content-admin.goods.data');

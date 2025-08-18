@@ -2,9 +2,7 @@
     <x-slot name="title">{{ __('Riwayat Transaksi') }}</x-slot>
 
     <x-slot name="breadcrumb">
-        @php
-            $breadcumb = ['Transaksi', 'Riwayat Transaksi'];
-        @endphp
+        @php $breadcumb = ['Transaksi', 'Riwayat Transaksi']; @endphp
         @foreach ($breadcumb as $item)
             <li class="rtl:rotate-180">
                 <svg xmlns="http://www.w3.org/2000/svg" class="size-4" viewBox="0 0 20 20" fill="currentColor">
@@ -13,7 +11,6 @@
                         clip-rule="evenodd" />
                 </svg>
             </li>
-
             <li>
                 <span
                     class="block transition hover:text-gray-700 @if ($loop->last) text-gray-950 font-medium @endif">
@@ -61,96 +58,64 @@
                 <thead>
                     <tr class="border-b">
                         <th class="h-10 px-4 text-left">
-                            <span class="inline-flex font-medium items-center justify-center px-3 text-sm -ml-3">
-                                Nama Customer
-                            </span>
+                            <span class="inline-flex font-medium items-center justify-center px-3 text-sm -ml-3">Nama
+                                Customer</span>
                         </th>
                         <th class="h-10 px-2 text-center">
-                            <span class="inline-flex font-medium items-center justify-center px-3 text-sm -ml-3">
-                                Jumlah <span class="hidden sm:flex">Barang</span>
-                            </span>
+                            <span class="inline-flex font-medium items-center justify-center px-3 text-sm -ml-3">Jumlah
+                                <span class="hidden sm:flex">Barang</span></span>
                         </th>
                         <th class="h-10 px-2 text-center">
-                            <span class="inline-flex font-medium items-center justify-center px-3 text-sm -ml-3">
-                                Tagihan
-                            </span>
+                            <span
+                                class="inline-flex font-medium items-center justify-center px-3 text-sm -ml-3">Tagihan</span>
                         </th>
                         <th class="h-10 px-2 text-center">
-                            <span class="inline-flex font-medium items-center justify-center px-3 text-sm -ml-3">
-                                Status
-                            </span>
+                            <span
+                                class="inline-flex font-medium items-center justify-center px-3 text-sm -ml-3">Status</span>
                         </th>
                         <th class="h-10 px-2 text-center">
-                            <span class="inline-flex font-medium items-center justify-center px-3 text-sm -ml-3">
-                                Pengiriman
-                            </span>
+                            <span
+                                class="inline-flex font-medium items-center justify-center px-3 text-sm -ml-3">Pengiriman</span>
                         </th>
                         <th class="h-10 px-2 text-right">
-                            <span class="inline-flex font-medium items-center justify-center px-3 text-sm -ml-3">
-                                Tanggal Transaksi
-                            </span>
+                            <span class="inline-flex font-medium items-center justify-center px-3 text-sm -ml-3">Tanggal
+                                Transaksi</span>
                         </th>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($data as $item)
-                        <tr class="border-b transition-colors hover:bg-gray-50">
-                            <td class="p-2 px-4 w-[20%]">
-                                {{ $item->name }}
-                            </td>
-                            <td class="p-2 text-center">
-                                {{ $item->goods()->count() }}
-                            </td>
-                            <td class="p-2 text-center">
-                                @currency($item->total)
-                            </td>
+                        <tr class="border-b transition-colors hover:bg-gray-50" wire:key="tx-{{ $item->id }}">
+                            <td class="p-2 px-4 w-[20%]">{{ $item->name }}</td>
+                            <td class="p-2 text-center">{{ $item->goods()->count() }}</td>
+                            <td class="p-2 text-center">@currency($item->total)</td>
                             <td
                                 class="p-2 text-center capitalize @if ($item->status !== 'selesai') text-yellow-600 @else text-green-600 @endif">
-                                {{ $item->status }}
-                            </td>
-                            <td class="p-2 text-center">
-                                <span class="capitalize">{{ $item->delivery->status ?? '' }}</span>
-                            </td>
+                                {{ $item->status }}</td>
+                            <td class="p-2 text-center"><span
+                                    class="capitalize">{{ $item->delivery->status ?? '' }}</span></td>
                             <td class="px-4 text-right">
-                                {{ \Carbon\Carbon::parse($item->created_at)->translatedFormat('d F Y') }}
-                            </td>
+                                {{ \Carbon\Carbon::parse($item->created_at)->translatedFormat('d F Y') }}</td>
                             <td class="py-2">
                                 <div class="flex items-center gap-x-4 justify-center">
                                     <a href="{{ route(str_replace('_', '', auth()->user()->role) . '.transaction.detail', ['id' => $item->id]) }}"
                                         class="px-2 py-1 flex items-center gap-x-2 rounded-md bg-sky-500 text-white text-xs">
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
-                                            class="size-3">
-                                            <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
-                                            <path fill-rule="evenodd"
-                                                d="M1.323 11.447C2.811 6.976 7.028 3.75 12.001 3.75c4.97 0 9.185 3.223 10.675 7.69.12.362.12.752 0 1.113-1.487 4.471-5.705 7.697-10.677 7.697-4.97 0-9.186-3.223-10.675-7.69a1.762 1.762 0 0 1 0-1.113ZM17.25 12a5.25 5.25 0 1 1-10.5 0 5.25 5.25 0 0 1 10.5 0Z"
-                                                clip-rule="evenodd" />
-                                        </svg>
-                                        Detail
+                                        {{-- icon --}} Detail
                                     </a>
+
                                     @if (auth()->user()->role === 'super_admin')
-                                        <button wire:click="validationDelete({{ $item->id }})"
+                                        <button type="button" wire:click="validationDelete({{ $item->id }})"
+                                            wire:loading.attr="disabled"
                                             class="px-2 py-1 flex items-center gap-x-2 rounded-md bg-red-500 text-xs text-white">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                                                fill="currentColor" class="size-3">
-                                                <path fill-rule="evenodd"
-                                                    d="M16.5 4.478v.227a48.816 48.816 0 0 1 3.878.512.75.75 0 1 1-.256 1.478l-.209-.035-1.005 13.07a3 3 0 0 1-2.991 2.77H8.084a3 3 0 0 1-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 0 1-.256-1.478A48.567 48.567 0 0 1 7.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 0 1 3.369 0c1.603.051 2.815 1.387 2.815 2.951Zm-6.136-1.452a51.196 51.196 0 0 1 3.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 0 0-6 0v-.113c0-.794.609-1.428 1.364-1.452Zm-.355 5.945a.75.75 0 1 0-1.5.058l.347 9a.75.75 0 1 0 1.499-.058l-.346-9Zm5.48.058a.75.75 0 1 0-1.498-.058l-.347 9a.75.75 0 0 0 1.5.058l.345-9Z"
-                                                    clip-rule="evenodd" />
-                                            </svg>
-                                            Hapus
+                                            {{-- icon --}} Hapus
                                         </button>
                                     @endif
-
 
                                     @if ($item->status == 'draft')
                                         <a href="{{ route('master.update-customer', ['id' => $item->id]) }}"
                                             class="px-2 py-1 flex items-center gap-x-2 rounded-md bg-gray-100 text-xs">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                                stroke-width="1.5" stroke="currentColor" class="size-3">
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                                            </svg>
-                                            Ubah
+                                            {{-- icon --}} Ubah
                                         </a>
                                     @endif
                                 </div>
@@ -158,10 +123,8 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6">
-                                <div class="py-2 text-red-500 text-center">
-                                    Data tidak ditemukan
-                                </div>
+                            <td colspan="7">
+                                <div class="py-2 text-red-500 text-center">Data tidak ditemukan</div>
                             </td>
                         </tr>
                     @endforelse
@@ -173,7 +136,8 @@
     {{-- Mobile Table --}}
     <div class="space-y-3 sm:hidden">
         @foreach ($data as $item)
-            <button class="flex flex-col items-start gap-2 rounded-lg border p-3 text-left text-sm w-full">
+            <div class="flex flex-col items-start gap-2 rounded-lg border p-3 text-left text-sm w-full"
+                wire:key="txm-{{ $item->id }}">
                 <div class="flex w-full flex-col gap-1">
                     <div class="text-lg font-semibold">{{ $item->name }}</div>
                 </div>
@@ -192,58 +156,50 @@
                 </div>
                 <div class="flex items-center justify-between text-sm w-full pb-2 border-b border-slate-100">
                     <span>Status</span>
-                    @if ($item->status == 'selesai')
-                        <span class="font-normal capitalize text-green-600">{{ $item->status }}</span>
-                    @else
-                        <span class="font-normal capitalize text-yellow-600">{{ $item->status }}</span>
-                    @endif
+                    <span
+                        class="font-normal capitalize {{ $item->status == 'selesai' ? 'text-green-600' : 'text-yellow-600' }}">{{ $item->status }}</span>
                 </div>
                 <div class="flex items-center gap-2 w-full justify-end mt-2">
                     <a href="{{ route(str_replace('_', '', auth()->user()->role) . '.transaction.detail', ['id' => $item->id]) }}"
-                        class="px-2 py-1 flex items-center gap-x-2 rounded-md bg-sky-500 text-white text-xs">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
-                            class="size-3">
-                            <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
-                            <path fill-rule="evenodd"
-                                d="M1.323 11.447C2.811 6.976 7.028 3.75 12.001 3.75c4.97 0 9.185 3.223 10.675 7.69.12.362.12.752 0 1.113-1.487 4.471-5.705 7.697-10.677 7.697-4.97 0-9.186-3.223-10.675-7.69a1.762 1.762 0 0 1 0-1.113ZM17.25 12a5.25 5.25 0 1 1-10.5 0 5.25 5.25 0 0 1 10.5 0Z"
-                                clip-rule="evenodd" />
-                        </svg>
-                        Detail
-                    </a>
+                        class="px-2 py-1 flex items-center gap-x-2 rounded-md bg-sky-500 text-white text-xs">Detail</a>
+
                     @if (auth()->user()->role === 'super_admin')
-                        <a wire:click="validationDelete({{ $item->id }})"
+                        <button type="button" wire:click="validationDelete({{ $item->id }})"
+                            wire:loading.attr="disabled"
                             class="px-2 py-1 flex items-center gap-x-2 rounded-md bg-red-500 text-xs text-white">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
-                                class="size-3">
-                                <path fill-rule="evenodd"
-                                    d="M16.5 4.478v.227a48.816 48.816 0 0 1 3.878.512.75.75 0 1 1-.256 1.478l-.209-.035-1.005 13.07a3 3 0 0 1-2.991 2.77H8.084a3 3 0 0 1-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 0 1-.256-1.478A48.567 48.567 0 0 1 7.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 0 1 3.369 0c1.603.051 2.815 1.387 2.815 2.951Zm-6.136-1.452a51.196 51.196 0 0 1 3.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 0 0-6 0v-.113c0-.794.609-1.428 1.364-1.452Zm-.355 5.945a.75.75 0 1 0-1.5.058l.347 9a.75.75 0 1 0 1.499-.058l-.346-9Zm5.48.058a.75.75 0 1 0-1.498-.058l-.347 9a.75.75 0 0 0 1.5.058l.345-9Z"
-                                    clip-rule="evenodd" />
-                            </svg>
                             Hapus
-                        </a>
+                        </button>
                     @endif
                 </div>
-            </button>
+            </div>
         @endforeach
     </div>
+
     <div class="pt-4">
         {{ $data->links() }}
     </div>
 </div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Fungsi untuk mendeteksi ukuran layar
-        function isMobile() {
-            return window.innerWidth <= 768; // Misalkan 768px adalah batas untuk mobile
-        }
-
-        // Jika layar dalam mode mobile
-        if (isMobile()) {
-            // Mengirim nilai ke Livewire
-            Livewire.emit('perpage', 2); // Atur perPage menjadi 5 untuk mobile
-        } else {
-            Livewire.emit('perpage', 10); // Atur perPage menjadi 10 untuk desktop
-        }
-    });
-</script>
+@push('scripts')
+    <script>
+        // Set perPage berdasarkan lebar layar (tanpa membuat root kedua & tanpa listener ganda)
+        (function() {
+            function applyPerPage() {
+                var isMobile = window.matchMedia('(max-width: 768px)').matches;
+                try {
+                    @this.set('perPage', isMobile ? 2 : 10);
+                } catch (e) {
+                    // no-op
+                }
+            }
+            document.addEventListener('livewire:load', function() {
+                applyPerPage();
+                window.addEventListener('resize', applyPerPage, {
+                    passive: true
+                });
+            }, {
+                once: true
+            });
+        })();
+    </script>
+@endpush

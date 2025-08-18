@@ -105,7 +105,7 @@
                                         </svg>
                                         Ubah
                                     </a>
-                                    <button wire:click="validationDelete({{ $item->id }})"
+                                    <button type="button" wire:click="validationDelete({{ $item->id }})"
                                         class="px-2 py-1 flex items-center gap-x-2 rounded-md bg-red-500 text-xs text-white">
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
                                             class="size-3">

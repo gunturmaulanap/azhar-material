@@ -9,34 +9,36 @@ use Livewire\WithPagination;
 
 class History extends Component
 {
-    use WithPagination; // Class dari livewire untuk fitur pagination
+    use WithPagination;
 
     public $search, $startDate, $endDate;
     public $perPage = 10;
+
+    protected $listeners = [
+        // ketika dialog konfirmasi pilih YA, alert.js akan emit 'confirm'
+        'confirm' => 'delete',
+        'perpage' => 'setPerPage',
+    ];
 
     public function setPerPage($value)
     {
         $this->perPage = $value;
     }
 
-    protected $listeners = [ // listeners handler untuk menjalankan delete setelah confirm
-        'confirm' => 'delete',
-        'perpage' => 'setPerPage',
-    ];
-
-    public function validationDelete($id) // function menjalankan confirm delete
+    /** Tampilkan dialog konfirmasi (sesuai alert.blade.php) */
+    public function validationDelete($id)
     {
-        $this->dispatchBrowserEvent('validation', [
-            'id' => $id
+        $this->dispatchBrowserEvent('toast:confirm', [
+            'id'      => $id,
+            'title'   => 'Hapus transaksi?',
+            'message' => 'Tindakan ini tidak bisa dibatalkan.',
         ]);
     }
 
-
+    /** Eksekusi hapus saat user menekan YA di dialog */
     public function delete($id)
     {
         $transaction = Transaction::findOrFail($id);
-
-        // dd($transaction->balance);
 
         if ($transaction->balance > 0) {
             if ($transaction->balance < $transaction->total) {
@@ -45,10 +47,18 @@ class History extends Component
                 Customer::findOrFail($transaction->customer_id)->increment('balance', $transaction->total);
             }
         }
+
         $deleted = $transaction->delete();
 
         if ($deleted) {
-            $this->dispatchBrowserEvent('deleted');
+            // sesuaikan dengan listener di alert.blade.php
+            $this->dispatchBrowserEvent('toast:warning', [
+                'message' => 'Data terhapus!',
+            ]);
+        } else {
+            $this->dispatchBrowserEvent('toast:error', [
+                'message' => 'Gagal menghapus data.',
+            ]);
         }
     }
 
@@ -64,7 +74,7 @@ class History extends Component
                 return $query->whereBetween('created_at', [$this->startDate, $this->endDate]);
             })
             ->orderBy('created_at', 'desc')
-            ->paginate($this->perPage);  // Ensure you're using paginate here, not get()
+            ->paginate($this->perPage);
 
         return view('livewire.transaction.history', [
             'data' => $data

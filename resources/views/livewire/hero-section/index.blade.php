@@ -1,20 +1,42 @@
-@section('title', 'Kelola Hero Section')
+<div>
+    <x-slot name="title">
+        Kelola Hero Section
+    </x-slot>
 
-@section('content')
+    <x-slot name="breadcrumb">
+        @php
+            $breadcrumb = ['Content', 'Hero Section'];
+        @endphp
+        @foreach ($breadcrumb as $item)
+            <li class="rtl:rotate-180">
+                <svg xmlns="http://www.w3.org/2000/svg" class="size-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd"
+                        d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                        clip-rule="evenodd" />
+                </svg>
+            </li>
+            <li>
+                <span
+                    class="block transition hover:text-gray-700 @if ($loop->last) text-gray-950 font-medium @endif">
+                    {{ $item }}
+                </span>
+            </li>
+        @endforeach
+    </x-slot>
     <div class="container mx-auto px-4 py-8">
         <div class="flex justify-between items-center mb-6">
             <div>
                 <h1 class="text-3xl font-bold text-gray-900">Kelola Hero Section</h1>
                 <p class="text-gray-600">Kelola konten hero section website</p>
             </div>
-            <a href="{{ route('content-admin.hero-sections.create') }}"
+            {{-- <a href="{{ route('content-admin.hero-sections.create') }}"
                 class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md inline-flex items-center">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6">
                     </path>
                 </svg>
                 Tambah Hero Section
-            </a>
+            </a> --}}
         </div>
 
         @if (session()->has('message'))
@@ -102,14 +124,15 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                     <a href="{{ route('content-admin.hero-sections.edit', $hero->id) }}"
                                         class="text-blue-600 hover:text-blue-900 mr-3 inline-flex items-center">
-                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
                                             </path>
                                         </svg>
                                         Edit
                                     </a>
-                                    <button wire:click="delete({{ $hero->id }})"
+                                    {{-- <button wire:click="delete({{ $hero->id }})"
                                         class="text-red-600 hover:text-red-900 inline-flex items-center"
                                         onclick="return confirm('Apakah Anda yakin ingin menghapus hero section ini?')">
                                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -118,7 +141,7 @@
                                             </path>
                                         </svg>
                                         Hapus
-                                    </button>
+                                    </button> --}}
                                 </td>
                             </tr>
                         @empty
@@ -137,3 +160,4 @@
             </div>
         </div>
     </div>
+</div>

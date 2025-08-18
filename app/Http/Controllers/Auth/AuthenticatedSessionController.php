@@ -99,7 +99,6 @@ class AuthenticatedSessionController extends Controller
 
             case 'content-admin':
                 $name = $this->pickFirstExistingRoute([
-                    'content-admin.analytics',
                     'content-admin.hero-sections',
                     'content-admin.hero-sections.index',
                 ]);

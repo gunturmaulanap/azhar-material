@@ -16,6 +16,9 @@ class Index extends Component
     public $sortBy = 'created_at';
     public $sortDirection = 'desc';
 
+    // >>> TAMBAH: supaya konfirmasi dari JS bisa memanggil deleteProject
+    protected $listeners = ['confirm' => 'deleteProject'];
+
     protected $queryString = [
         'search' => ['except' => ''],
         'statusFilter' => ['except' => 'all']
@@ -25,7 +28,6 @@ class Index extends Component
     {
         $this->resetPage();
     }
-
     public function updatingStatusFilter()
     {
         $this->resetPage();
@@ -47,8 +49,11 @@ class Index extends Component
         if ($project) {
             $project->featured = !$project->featured;
             $project->save();
-            
-            $this->emit('projectUpdated', 'Project featured status updated successfully!');
+
+            // >>> GANTI: pakai browser event untuk iziToast
+            $this->dispatchBrowserEvent('toast:success', [
+                'message' => 'Project featured status updated.'
+            ]);
         }
     }
 
@@ -58,22 +63,38 @@ class Index extends Component
         if ($project) {
             $project->status = $project->status === 'published' ? 'draft' : 'published';
             $project->save();
-            
-            $this->emit('projectUpdated', 'Project status updated successfully!');
+
+            // >>> GANTI: pakai browser event untuk iziToast
+            $this->dispatchBrowserEvent('toast:success', [
+                'message' => 'Project status updated.'
+            ]);
         }
     }
 
+    // >>> BARU: tampilkan dialog konfirmasi via iziToast
+    public function confirmDelete($projectId)
+    {
+        $this->dispatchBrowserEvent('toast:confirm', [
+            'id'      => $projectId,
+            'title'   => 'Hapus project?',
+            'message' => 'Tindakan ini tidak bisa dibatalkan.'
+        ]);
+    }
+
+    // Catatan: dipanggil dari JS dengan Livewire.emit('confirm', id)
     public function deleteProject($projectId)
     {
         $project = Project::find($projectId);
         if ($project) {
-            // Delete image if exists
             if ($project->image) {
                 Storage::disk('public')->delete($project->image);
             }
-            
             $project->delete();
-            $this->emit('projectDeleted', 'Project deleted successfully!');
+
+            // >>> Notifikasi hapus
+            $this->dispatchBrowserEvent('toast:warning', [
+                'message' => 'Project deleted.'
+            ]);
         }
     }
 
@@ -81,23 +102,20 @@ class Index extends Component
     {
         $query = Project::query();
 
-        // Apply search filter
         if (!empty($this->search)) {
-            $query->where(function($q) {
+            $query->where(function ($q) {
                 $q->where('title', 'like', '%' . $this->search . '%')
-                  ->orWhere('description', 'like', '%' . $this->search . '%')
-                  ->orWhere('category', 'like', '%' . $this->search . '%')
-                  ->orWhere('client', 'like', '%' . $this->search . '%')
-                  ->orWhere('location', 'like', '%' . $this->search . '%');
+                    ->orWhere('description', 'like', '%' . $this->search . '%')
+                    ->orWhere('category', 'like', '%' . $this->search . '%')
+                    ->orWhere('client', 'like', '%' . $this->search . '%')
+                    ->orWhere('location', 'like', '%' . $this->search . '%');
             });
         }
 
-        // Apply status filter
         if ($this->statusFilter !== 'all') {
             $query->where('status', $this->statusFilter);
         }
 
-        // Apply sorting
         $query->orderBy($this->sortBy, $this->sortDirection);
 
         return $query->paginate(12);
