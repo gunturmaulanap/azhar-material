@@ -224,7 +224,7 @@ const Login: React.FC = () => {
               {submitting ? "Memproses..." : "Login"}
             </Button>
 
-            <div className="mt-4 p-3 bg-gray-50 rounded-md">
+            {/* <div className="mt-4 p-3 bg-gray-50 rounded-md">
               <p className="text-xs text-gray-600 mb-2">Demo Accounts:</p>
               <div className="text-xs space-y-1 text-gray-500">
                 <div>Customer: customer / password</div>
@@ -234,7 +234,7 @@ const Login: React.FC = () => {
                 <div>Content Admin: contentadmin / password</div>
                 <div>Owner: owner / password</div>
               </div>
-            </div>
+            </div> */}
           </form>
         </CardContent>
       </Card>

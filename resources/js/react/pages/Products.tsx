@@ -398,9 +398,9 @@ const Products: React.FC = () => {
                       {product.category?.name || "No Category"}
                     </p>
                     <div className="flex items-center justify-between">
-                      <span className="text-2xl font-bold text-neutral-800">
+                      {/* <span className="text-2xl font-bold text-neutral-800">
                         {formatPrice(product.price)}
-                      </span>
+                      </span> */}
                     </div>
                   </CardContent>
                 </Card>
