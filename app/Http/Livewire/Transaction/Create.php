@@ -164,39 +164,36 @@ class Create extends Component
 
     public function updatedTransactionDiscount($value)
     {
-        $max = (int) ($this->transaction['total'] ?? 0);
+        // Normalisasi angka diskon
         $v = (int) preg_replace('/\D/', '', (string) $value);
-        $v = max(0, min($v, $max));
+
+        // Ambil nilai yang terlibat
+        $total   = (int) ($this->transaction['total'] ?? 0);
+        $balance = (int) ($this->transaction['balance'] ?? 0);
+        $bill    = (int) ($this->transaction['bill'] ?? 0);
+
+        // Diskon minimal 0 dan maksimal total
+        $v = max(0, min($v, $total));
         $this->transaction['discount'] = $v;
 
-        $balance = (int) ($this->transaction['balance'] ?? 0);
-        $total   = (int) ($this->transaction['total'] ?? 0);
-
-        // grand total = total - discount - balance (minimal 0)
+        // grand total = total - discount - balance (tidak boleh negatif)
         $grand = max(0, $total - $v - $balance);
         $this->transaction['grand_total'] = $grand;
 
-        // jika bill kebablasan melebihi sisa (grand), rapikan ke grand
-        $bill = (int) ($this->transaction['bill'] ?? 0);
-        if ($bill > $grand) {
-            $bill = $grand;
-            $this->transaction['bill'] = $bill;
-        }
-
-        // return = bill - grand
+        // TIDAK merapikan bill lagi (biarkan > grand_total untuk kembalian)
         $this->transaction['return'] = $bill - $grand;
     }
 
     public function updatedTransactionBill($value)
     {
-        // BATAS bayar adalah 'kurang' = grand_total saat ini
-        $max = (int) ($this->transaction['grand_total'] ?? 0);
+        // Bayar boleh lebih besar dari grand_total (kembalian = bill - grand_total)
         $v = (int) preg_replace('/\D/', '', (string) $value);
-        $v = max(0, min($v, $max));
+        $v = max(0, $v); // minimal 0
+
         $this->transaction['bill'] = $v;
 
         $grand = (int) ($this->transaction['grand_total'] ?? 0);
-        $this->transaction['return'] = $v - $grand;
+        $this->transaction['return'] = $v - $grand; // (+) kembalian, (-) kurang
     }
 
     public function increment($index)
