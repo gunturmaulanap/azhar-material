@@ -1,5 +1,27 @@
 <div>
-    <!-- Header Section -->
+    <x-slot name="title">{{ __('Tren Penjualan') }}</x-slot>
+
+    <x-slot name="breadcrumb">
+        @php
+            $breadcumb = ['Tren Penjualan'];
+        @endphp
+        @foreach ($breadcumb as $item)
+            <li class="rtl:rotate-180">
+                <svg xmlns="http://www.w3.org/2000/svg" class="size-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd"
+                        d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                        clip-rule="evenodd" />
+                </svg>
+            </li>
+
+            <li>
+                <span
+                    class="block transition hover:text-gray-700 @if ($loop->last) text-gray-950 font-medium @endif">
+                    {{ $item }}
+                </span>
+            </li>
+        @endforeach
+    </x-slot>
     <div class="flex items-center justify-between mb-6">
 
 
@@ -290,38 +312,38 @@
                         <!-- Category Dropdown -->
                         <div>
                             <label class="block text-sm font-medium text-gray-300 mb-2">Kategori</label>
-                            <select wire:model="selectedCategoryId" 
+                            <select wire:model="selectedCategoryId"
                                 class="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none">
                                 <option value="">Semua Kategori</option>
-                                @foreach($categories as $category)
+                                @foreach ($categories as $category)
                                     <option value="{{ $category['id'] }}">{{ $category['name'] }}</option>
                                 @endforeach
                             </select>
                         </div>
-                        
+
                         <!-- Brand Dropdown -->
                         <div>
                             <label class="block text-sm font-medium text-gray-300 mb-2">Brand</label>
                             <select wire:model="selectedBrandId"
                                 class="w-full bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none">
                                 <option value="">Semua Brand</option>
-                                @foreach($brands as $brand)
+                                @foreach ($brands as $brand)
                                     <option value="{{ $brand['id'] }}">{{ $brand['name'] }}</option>
                                 @endforeach
                             </select>
                         </div>
                     </div>
-                    
+
                     <!-- Clear Filters Button -->
-                    @if($selectedCategoryId || $selectedBrandId)
+                    @if ($selectedCategoryId || $selectedBrandId)
                         <div class="flex justify-end">
-                            <button wire:click="clearFilters" 
+                            <button wire:click="clearFilters"
                                 class="text-gray-400 hover:text-white text-sm underline transition-colors">
                                 Reset Filter
                             </button>
                         </div>
                     @endif
-                    
+
                     <!-- Search Input -->
                     <div class="relative">
                         <input type="text" wire:model="search" placeholder="Type to search goods..."
@@ -329,7 +351,8 @@
                             autofocus>
 
                         <!-- Loading indicator -->
-                        <div wire:loading wire:target="search,selectedCategoryId,selectedBrandId" class="absolute right-3 top-3">
+                        <div wire:loading wire:target="search,selectedCategoryId,selectedBrandId"
+                            class="absolute right-3 top-3">
                             <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
                         </div>
                     </div>
