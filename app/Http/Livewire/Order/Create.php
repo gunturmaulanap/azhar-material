@@ -17,7 +17,18 @@ class Create extends Component
 {
     use WithFileUploads;
 
-    public $order, $supplier, $delivery = false;
+    public $order = [
+        'supplier_id' => null,
+        'company'     => '',
+        'name'        => '',
+        'phone'       => '',
+        'address'     => '',
+        'keterangan'  => '',
+        'status'      => 'selesai',
+        'total'       => 0,
+        'image'       => null,
+    ];
+    public $supplier, $delivery = false;
     public $searchSupplier, $search, $byCategory, $byBrand;
     public $goodOrders = [];
     public $imagePreview;
@@ -28,6 +39,7 @@ class Create extends Component
             $this->imagePreview = $this->order['image']->temporaryUrl();
         }
     }
+
 
     public function deleteImage()
     {
@@ -46,7 +58,7 @@ class Create extends Component
         'order.phone' => 'required',
     ];
 
-    public function messages() //function untuk pesan error
+    public function messages() //function untuk pesan toast:error
     {
         return [
             'order.company.required' => 'Nama perusahaan harus diisi.',
@@ -106,7 +118,7 @@ class Create extends Component
         $good = Goods::find($good_id);
 
         if (!$good) {
-            $this->dispatchBrowserEvent('error', ['message' => 'Barang tidak ditemukan']);
+            $this->dispatchBrowserEvent('toast:error', ['message' => 'Barang tidak ditemukan']);
             return;
         }
 
@@ -116,8 +128,8 @@ class Create extends Component
         });
 
         if ($productKey !== false) {
-            // Jika barang sudah ada, tampilkan pesan error
-            $this->dispatchBrowserEvent('error', ['message' => 'Barang sudah terinput']);
+            // Jika barang sudah ada, tampilkan pesan toast:error
+            $this->dispatchBrowserEvent('toast:error', ['message' => 'Barang sudah terinput']);
         } else {
             // Jika barang belum ada, tambahkan sebagai entri baru
             $this->goodOrders[] = [
@@ -137,13 +149,19 @@ class Create extends Component
 
     public function updatedGoodOrders($value, $propertyName)
     {
-        // Validasi setiap kali properti di-update
-        if (!is_numeric($value)) {
-            $this->dispatchBrowserEvent('validation-error', ['message' => 'Input harus berupa angka']);
-            $this->goodOrders[$propertyName] = 0; // Reset nilai jika salah
-        }
+        [$index, $field] = array_pad(explode('.', $propertyName), 2, null);
 
-        $this->calculateSubtotal(explode('.', $propertyName)[0]);
+        if (in_array($field, ['cost', 'qty'])) {
+            $num = preg_replace('/\D/', '', (string)$value);
+            if ($field === 'qty') {
+                $this->goodOrders[$index]['qty'] = max(1, (int)$num);
+            } else {
+                $this->goodOrders[$index]['cost'] = (float)$num;
+            }
+            $this->goodOrders[$index]['subtotal'] =
+                ((float)($this->goodOrders[$index]['cost'] ?? 0)) * ((int)($this->goodOrders[$index]['qty'] ?? 0));
+            $this->calculateTotal();
+        }
     }
 
     public function calculateSubtotal($index)
@@ -176,7 +194,7 @@ class Create extends Component
     {
         if ($this->goodOrders[$index]['qty'] <= 1) {
             $this->goodOrders[$index]['qty'] = 1;
-            $this->dispatchBrowserEvent('error', ['message' => 'Tidak bisa kurang dari 1']);
+            $this->dispatchBrowserEvent('toast:error', ['message' => 'Tidak bisa kurang dari 1']);
         } else {
             $this->goodOrders[$index]['qty'] -= 1;
             $this->goodOrders[$index]['subtotal'] = $this->goodOrders[$index]['cost'] * $this->goodOrders[$index]['qty'];
@@ -212,28 +230,45 @@ class Create extends Component
     {
         // Validasi: Jika barang belum diisi
         if (empty($this->goodOrders)) {
-            $this->dispatchBrowserEvent('error', ['message' => 'Silakan isi data barang terlebih dahulu']);
-            return false;
+            $this->dispatchBrowserEvent('toast:error', ['message' => 'Silakan isi data barang terlebih dahulu']);
+            return;
         }
 
-        // Validasi: Jika data supplier belum lengkap
-        if (empty($this->order['name']) || empty($this->order['phone']) || empty($this->order['company'])) {
-            $this->dispatchBrowserEvent('error', ['message' => 'Silakan isi data supplier terlebih dahulu']);
-            return false;
+        // Validasi field supplier
+        try {
+            $this->validate([
+                'order.company' => 'required|string',
+                'order.name'    => 'required|string',
+                'order.phone'   => ['required', 'regex:/^\d{1,15}$/'],
+            ], [
+                'order.company.required' => 'Nama perusahaan harus diisi.',
+                'order.name.required'    => 'Nama supplier harus diisi.',
+                'order.phone.required'   => 'Nomor telp supplier harus diisi.',
+                'order.phone.regex'      => 'Nomor telp harus berupa angka dan maksimal 15 digit.',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Kalau validasi gagal → munculin toast
+            $this->dispatchBrowserEvent('toast:error', ['message' => 'Silakan lengkapi data supplier!']);
+            throw $e; // tetap lempar error biar Livewire render @error di blade
         }
+
+        // Normalisasi nomor telepon
+        $this->order['phone'] = preg_replace('/\D/', '', $this->order['phone'] ?? '');
 
         // Cek atau buat supplier baru
         $supplier = Supplier::firstOrCreate(
             ['phone' => $this->order['phone']],
             [
-                'company' => $this->order['company'],
-                'name' => $this->order['name'],
-                'address' => $this->order['address'] ?? '',
+                'company'    => $this->order['company'],
+                'name'       => $this->order['name'],
+                'address'    => $this->order['address'] ?? '',
                 'keterangan' => $this->order['keterangan'] ?? '',
+                'status'     => 'Non Member',
+                'balance'    => 0,
             ]
         );
 
-        // Mengatur supplier_id
+        // Set supplier_id
         $this->order['supplier_id'] = $supplier->id;
 
         // Panggil metode setImage yang sudah diperbaiki
@@ -241,32 +276,33 @@ class Create extends Component
 
         // Membuat Order baru
         $order = Order::create([
-            'user_id' => Auth::user()->id,
+            'user_id'     => Auth::user()->id,
             'supplier_id' => $this->order['supplier_id'],
-            'company' => $this->order['company'],
-            'name' => $this->order['name'],
-            'phone' => $this->order['phone'],
-            'address' => $this->order['address'] ?? '',
-            // 'keterangan' => $this->order['keterangan'] ?? '',
-            'total' => $this->order['total'],
-            'status' => $this->order['status'] ?? 'selesai',
-            'image' => $this->order['image'] ?? null,
+            'company'     => $this->order['company'],
+            'name'        => $this->order['name'],
+            'phone'       => $this->order['phone'],
+            'address'     => $this->order['address'] ?? '',
+            'total'       => $this->order['total'],
+            'status'      => $this->order['status'] ?? 'selesai',
+            'image'       => $this->order['image'] ?? null,
         ]);
 
         foreach ($this->goodOrders as $good) {
-            // Menambahkan data ke tabel pivot
+            // Tambahkan data ke tabel pivot
             $order->goods()->attach($good['goods_id'], [
-                'cost' => $good['cost'],
-                'qty' => $good['qty'],
+                'cost'     => $good['cost'],
+                'qty'      => $good['qty'],
                 'subtotal' => $good['subtotal'],
             ]);
 
-            // Melakukan increment stok
+            // Increment stok barang
             Goods::where('id', $good['goods_id'])->increment('stock', $good['qty']);
         }
 
         if ($order) {
-            return redirect()->route(str_replace('_', '', auth()->user()->role) . '.order.index')->with('success', 'Pesanan berhasil!');
+            return redirect()
+                ->route(str_replace('_', '', auth()->user()->role) . '.order.index')
+                ->with('success', 'Pesanan berhasil!');
         }
     }
 

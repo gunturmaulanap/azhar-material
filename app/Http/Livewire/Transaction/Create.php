@@ -20,7 +20,19 @@ class Create extends Component
 {
     use WithFileUploads;
 
-    public $transaction, $customer = false;
+    public $transaction = [
+        'customer_id' => 1,
+        'name'        => null,
+        'phone'       => null,
+        'address'     => null,
+        'total'       => 0,
+        'discount'    => 0,
+        'grand_total' => 0,
+        'balance'     => null,
+        'bill'        => 0,
+        'return'      => 0,
+    ];
+    public $customer = false;
     public $searchCustomer, $search, $byCategory, $byBrand;
 
     public $goodTransaction = [];
@@ -41,8 +53,8 @@ class Create extends Component
     }
 
     protected $rules = [
-        'transaction.name' => 'required',
-        'transaction.phone' => 'required',
+        'transaction.name'  => 'required|string',
+        'transaction.phone' => ['required','regex:/^\d{1,15}$/'],
     ];
 
     public function messages() //function untuk pesan error
@@ -108,7 +120,7 @@ class Create extends Component
         });
 
         if ($productKey !== false) {
-            $this->dispatchBrowserEvent('error', ['message' => 'Barang sudah terinput']);
+            $this->dispatchBrowserEvent('toast:error', ['message' => 'Barang sudah terinput']);
         } else {
             // Jika barang belum ada, tambahkan sebagai entri baru
             $this->goodTransaction[] = [
@@ -130,7 +142,7 @@ class Create extends Component
         $index = explode('.', $propertyName)[0];
 
         if ($value > Goods::find($this->goodTransaction[$index]['goods_id'])->stock) {
-            $this->dispatchBrowserEvent('error', ['message' => 'Barang melebihi stok yang ada']);
+            $this->dispatchBrowserEvent('toast:error', ['message' => 'Barang melebihi stok yang ada']);
             $this->goodTransaction[$index]['qty'] = Goods::find($this->goodTransaction[$index]['goods_id'])->stock;
         }
 
@@ -201,7 +213,7 @@ class Create extends Component
         $this->goodTransaction[$index]['qty'] += 1;
         if ($this->goodTransaction[$index]['qty'] > Goods::find($this->goodTransaction[$index]['goods_id'])->stock) {
             $this->goodTransaction[$index]['qty'] = Goods::find($this->goodTransaction[$index]['goods_id'])->stock;
-            $this->dispatchBrowserEvent('error', ['message' => 'Barang melebihi stok yang ada']);
+            $this->dispatchBrowserEvent('toast:error', ['message' => 'Barang melebihi stok yang ada']);
         }
         $this->goodTransaction[$index]['subtotal'] = $this->goodTransaction[$index]['price'] * $this->goodTransaction[$index]['qty'];
         $this->calculateTotal();
@@ -211,7 +223,7 @@ class Create extends Component
     {
         if ($this->goodTransaction[$index]['qty'] <= 1) {
             $this->goodTransaction[$index]['qty'] = 1;
-            $this->dispatchBrowserEvent('error', ['message' => 'Tidak bisa kurang dari 1']);
+            $this->dispatchBrowserEvent('toast:error', ['message' => 'Tidak bisa kurang dari 1']);
         } else {
             $this->goodTransaction[$index]['qty'] -= 1;
             $this->goodTransaction[$index]['subtotal'] = $this->goodTransaction[$index]['price'] * $this->goodTransaction[$index]['qty'];
@@ -230,7 +242,7 @@ class Create extends Component
     {
         // Validasi: Jika customer_id == 1 dan return < 0, hentikan proses di awal
         if (isset($this->transaction['customer_id']) && $this->transaction['customer_id'] == 1 && ($this->transaction['return'] ?? 0) < 0) {
-            $this->dispatchBrowserEvent('error', [
+            $this->dispatchBrowserEvent('toast:error', [
                 'message' => 'Customer tanpa nama dan nomor telepon tidak dapat berhutang'
             ]);
             return false; // Hentikan proses
@@ -251,7 +263,7 @@ class Create extends Component
 
         // Validasi tambahan untuk status 'hutang' pada customer_id == 1
         if (isset($this->transaction['customer_id']) && $this->transaction['customer_id'] == 1 && $this->transaction['status'] === 'hutang') {
-            $this->dispatchBrowserEvent('error', [
+            $this->dispatchBrowserEvent('toast:error', [
                 'message' => 'Transaksi tidak dapat dilakukan karena status hutang'
             ]);
             return false; // Hentikan proses
@@ -293,44 +305,51 @@ class Create extends Component
     {
         // Validasi awal: Pastikan barang telah dipilih
         if (empty($this->goodTransaction)) {
-            $this->dispatchBrowserEvent('error', ['message' => 'Pilih barang terlebih dahulu']);
+            $this->dispatchBrowserEvent('toast:error', ['message' => 'Pilih barang terlebih dahulu']);
             return false;
         }
 
+        // Sanitize phone to digits-only
+        $this->transaction['phone'] = preg_replace('/\D/', '', $this->transaction['phone'] ?? '');
+
         // Validasi customer
         if ($this->customer) {
-            if (isset($this->transaction['name']) && isset($this->transaction['phone'])) {
-                $this->validate(
-                    ['transaction.phone' => 'max:15'],
-                    ['transaction.phone.max' => 'Nomor telp customer terlalu panjang. Maksimal 15 karakter']
-                );
+            $this->validate(
+                [
+                    'transaction.name'  => 'required|string',
+                    'transaction.phone' => ['required','regex:/^\d{1,15}$/'],
+                ],
+                [
+                    'transaction.name.required'  => 'Nama customer tidak boleh kosong.',
+                    'transaction.phone.required' => 'Nomor telp customer tidak boleh kosong.',
+                    'transaction.phone.regex'    => 'Nomor telp harus digit &amp; maks 15 karakter.',
+                ]
+            );
 
-                // Cek atau buat customer baru
-                $customer = Customer::firstOrCreate(
-                    ['phone' => $this->transaction['phone'], 'name' => $this->transaction['name']],
-                    ['address' => $this->transaction['address'] ?? '', 'status' => 'Non Member', 'balance' => 0]
-                );
+            // Cek atau buat customer baru - kunci unik di nomor telepon
+            $customer = Customer::firstOrCreate(
+                ['phone' => $this->transaction['phone']],
+                [
+                    'name'    => $this->transaction['name'],
+                    'address' => $this->transaction['address'] ?? '',
+                    'status'  => 'Non Member',
+                    'balance' => 0,
+                ]
+            );
 
-                // Mengatur customer_id
-                $this->transaction['customer_id'] = $customer->id;
-            } else {
-                $this->validate(
-                    [
-                        'transaction.name' => 'required',
-                        'transaction.phone' => 'required',
-                    ],
-                    [
-                        'transaction.name.required' => 'Nama customer tidak boleh kosong.',
-                        'transaction.phone.required' => 'Nomor telp customer tidak boleh kosong.',
-                    ]
-                );
-            }
+            // Mengatur customer_id
+            $this->transaction['customer_id'] = $customer->id;
         }
 
         // Panggil fungsi preparation
         if (!$this->preparation()) {
             return false; // Jika preparation gagal, hentikan proses
         }
+
+        // Pastikan nilai bill &amp; return konsisten
+        $grand = (int)($this->transaction['grand_total'] ?? 0);
+        $bill  = (int)($this->transaction['bill'] ?? 0);
+        $this->transaction['return'] = $bill - $grand;
 
         // Buat transaksi
         $transaction = Transaction::create([
@@ -343,8 +362,8 @@ class Create extends Component
             'discount' => $this->transaction['discount'] ?? 0,
             'grand_total' => $this->transaction['grand_total'],
             'balance' => $this->transaction['balance'] ?? 0,
-            'bill' => $this->transaction['bill'] ?? 0,
-            'return' => $this->transaction['return'] ?? $this->transaction['grand_total'],
+            'bill'   => $bill,
+            'return' => $this->transaction['return'],
             'status' => $this->transaction['status'],
             'image' => $this->transaction['image'] ?? null,
         ]);

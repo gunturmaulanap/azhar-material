@@ -208,14 +208,20 @@
                             telp
                             <span class="text-xs text-red-500">*</span></label>
                         <div class="mt-2" x-data="{ phone: @entangle('transaction.phone') }">
-                            <input x-model="phone" @input="phone = phone.replace(/\D/g, '').slice(0, 15)"
-                                type="tel" inputmode="numeric" pattern="\d*" maxlength="15"
-                                class="block px-3 w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6" />
+                            <input
+                                x-model="phone"
+                                @input="phone = (phone || '').replace(/\D/g, '').slice(0, 15)"
+                                id="transaction.phone"
+                                type="tel"
+                                inputmode="numeric"
+                                pattern="\d*"
+                                maxlength="15"
+                                class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-500 sm:text-sm sm:leading-6"
+                            />
 
-                            <!-- Pakai helper len() agar aman ketika null/angka -->
-                            <template x-if="len(phone) >= 15">
-                                <span class="text-xs text-red-500">
-                                    Nomor telp customer terlalu panjang. Maksimal 15 karakter
+                            <template x-if="(phone || '').length === 15">
+                                <span class="text-xs text-gray-500">
+                                    Maksimal 15 digit tercapai
                                 </span>
                             </template>
 
@@ -223,8 +229,6 @@
                                 <span class="text-xs text-red-500">{{ $message }}</span>
                             @enderror
                         </div>
-
-
                     </div>
 
                     <div class="col-span-7 sm:col-span-4">
@@ -748,27 +752,24 @@
 
 @push('scripts')
     <script>
-        $(document).on('input', '[id^="price-"]', function() {
-            if ($(this).val() == "") {
-                $(this).val(0).select();
-            }
-        });
+        document.addEventListener('input', function (e) {
+            const el = e.target;
+            if (!el || !el.id) return;
 
-        $(document).on('input', '[id^="qty-"]', function() {
-            if ($(this).val() == "") {
-                $(this).val(1).select();
+            if (el.id.startsWith('price-')) {
+                if (el.value === '') { el.value = 0; el.select(); }
             }
-        });
 
-        $(document).on('input', '#bill', function() {
-            if ($(this).val() == "") {
-                $(this).val(0).select();
+            if (el.id.startsWith('qty-')) {
+                if (el.value === '') { el.value = 1; el.select(); }
             }
-        });
 
-        $(document).on('input', '#discount', function() {
-            if ($(this).val() == "") {
-                $(this).val(0).select();
+            if (el.id === 'bill') {
+                if (el.value === '') { el.value = 0; el.select(); }
+            }
+
+            if (el.id === 'discount') {
+                if (el.value === '') { el.value = 0; el.select(); }
             }
         });
     </script>

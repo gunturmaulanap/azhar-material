@@ -2,6 +2,8 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { ChevronDown, MapPin, Calendar, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
+import LoadingSpinner from "./components/LoadingSpinner";
+
 
 interface Project {
   id: number;
